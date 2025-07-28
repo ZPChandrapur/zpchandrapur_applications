@@ -1,0 +1,152 @@
+{
+  "common": {
+    "loading": "लोड हो रहा है...",
+    "error": "त्रुटि",
+    "success": "यशस्वी",
+    "cancel": "रद्द करा",
+    "save": "जतन करा",
+    "delete": "हटवा",
+    "edit": "संपादित करा",
+    "view": "पहा",
+    "search": "शोधा",
+    "filter": "फिल्टर",
+    "export": "निर्यात",
+    "print": "छापा",
+    "submit": "सबमिट करा",
+    "back": "मागे",
+    "next": "पुढे",
+    "previous": "मागील",
+    "close": "बंद करा",
+    "confirm": "पुष्टी करा",
+    "yes": "होय",
+    "no": "नाही"
+  },
+  "auth": {
+    "signIn": "साइन इन",
+    "signOut": "साइन आउट",
+    "email": "ईमेल पत्ता",
+    "password": "पासवर्ड",
+    "forgotPassword": "आपला पासवर्ड विसरलात?",
+    "resetPassword": "पासवर्ड रीसेट करा",
+    "enterEmail": "आपला ईमेल टाका",
+    "enterPassword": "आपला पासवर्ड टाका",
+    "signInError": "साइन इन अयशस्वी. कृपया आपली माहिती तपासा.",
+    "resetEmailSent": "पासवर्ड रीसेट ईमेल पाठवला",
+    "checkEmail": "आपला ईमेल तपासा",
+    "resetEmailMessage": "आम्ही पासवर्ड रीसेट लिंक पाठवली आहे",
+    "backToSignIn": "साइन इन वर परत जा",
+    "invalidEmail": "कृपया वैध ईमेल पत्ता टाका",
+    "passwordTooShort": "पासवर्ड किमान 6 अक्षरांचा असावा",
+    "fillAllFields": "कृपया सर्व फील्ड भरा"
+  },
+  "navigation": {
+    "dashboard": "डॅशबोर्ड",
+    "profile": "प्रोफाइल",
+    "settings": "सेटिंग्ज",
+    "help": "मदत",
+    "language": "भाषा"
+  },
+  "dashboard": {
+    "title": "जि.प. चंद्रपूर",
+    "subtitle": "एकात्मिक अनुप्रयोग प्रणाली",
+    "welcome": "परत स्वागत",
+    "overview": "प्रणाली विहंगावलोकन",
+    "quickActions": "त्वरित क्रिया",
+    "recentActivity": "अलीकडील क्रियाकलाप",
+    "systemStatus": "प्रणाली स्थिती",
+    "notifications": "सूचना"
+  },
+  "systems": {
+    "erms": {
+      "name": "ERMS",
+      "fullName": "कर्मचारी सेवानिवृत्ती व्यवस्थापन प्रणाली",
+      "description": "कर्मचारी सेवानिवृत्ती प्रक्रिया आणि दस्तऐवजीकरण व्यवस्थापित करा",
+      "totalEmployees": "एकूण कर्मचारी",
+      "upcomingRetirements": "आगामी सेवानिवृत्ती",
+      "processedCases": "प्रक्रिया केलेली प्रकरणे",
+      "pendingActions": "प्रलंबित क्रिया",
+      "viewEmployees": "कर्मचारी पहा",
+      "addEmployee": "कर्मचारी जोडा",
+      "generateReport": "अहवाल तयार करा",
+      "webApplication": "वेब अनुप्रयोग"
+    },
+    "estimate": {
+      "name": "ई-अंदाजपत्रक",
+      "fullName": "इलेक्ट्रॉनिक अंदाजपत्रक प्रणाली",
+      "description": "प्रकल्प अंदाजपत्रक आणि पूर्णता अहवाल तयार, व्यवस्थापित आणि ट्रॅक करा",
+      "activeEstimates": "सक्रिय अंदाजपत्रक",
+      "pendingApprovals": "प्रलंबित मंजुरी",
+      "completedProjects": "पूर्ण झालेले प्रकल्प",
+      "totalValue": "एकूण मूल्य",
+      "createEstimate": "अंदाजपत्रक तयार करा",
+      "viewEstimates": "अंदाजपत्रक पहा",
+      "templates": "टेम्प्लेट्स",
+      "mobileApplication": "मोबाइल अनुप्रयोग"
+    },
+    "fims": {
+      "name": "FIMS",
+      "fullName": "क्षेत्रीय तपासणी व्यवस्थापन प्रणाली",
+      "description": "फोटो दस्तऐवजीकरणासह क्षेत्रीय तपासणी आयोजित आणि व्यवस्थापित करा",
+      "monthlyTarget": "मासिक लक्ष्य",
+      "completed": "पूर्ण",
+      "pending": "प्रलंबित",
+      "inspectionRate": "तपासणी दर",
+      "newInspection": "नवीन तपासणी",
+      "viewInspections": "तपासणी पहा",
+      "reports": "अहवाल",
+      "mobileApplication": "मोबाइल अनुप्रयोग"
+    },
+    "pesa": {
+      "name": "PESA 5%",
+      "fullName": "PESA 5% निधी व्यवस्थापन प्रणाली",
+      "description": "घटकांमध्ये PESA निधी वापराचा मागोवा आणि व्यवस्थापन करा",
+      "totalFund": "एकूण निधी",
+      "utilized": "वापरलेला",
+      "remaining": "उरलेला",
+      "villages": "गावे",
+      "addTransaction": "व्यवहार जोडा",
+      "viewFunds": "निधी पहा",
+      "compliance": "अनुपालन",
+      "webApplication": "वेब अनुप्रयोग"
+    }
+  },
+  "profile": {
+    "userProfile": "वापरकर्ता प्रोफाइल",
+    "accountDetails": "खाते तपशील",
+    "systemAccess": "प्रणाली प्रवेश",
+    "username": "वापरकर्तानाव",
+    "email": "ईमेल",
+    "role": "भूमिका",
+    "userId": "वापरकर्ता आयडी",
+    "memberSince": "सदस्य कधीपासून",
+    "lastSignIn": "शेवटचे साइन इन",
+    "permissions": "परवानग्या",
+    "read": "वाचा",
+    "write": "लिहा",
+    "delete": "हटवा",
+    "admin": "प्रशासक",
+    "webApp": "वेब अॅप",
+    "mobileApp": "मोबाइल अॅप"
+  },
+  "roles": {
+    "developer": "डेव्हलपर",
+    "super_admin": "सुपर प्रशासक",
+    "admin": "प्रशासक",
+    "officer": "अधिकारी",
+    "clerk": "लिपिक"
+  },
+  "permissions": {
+    "accessRestricted": "प्रवेश प्रतिबंधित",
+    "noAccess": "आपल्याकडे {{system}} प्रणालीसाठी {{permission}} प्रवेश नाही.",
+    "contactAdmin": "जर आपल्याला वाटत असेल की ही चूक आहे तर कृपया आपल्या प्रशासकाशी संपर्क साधा.",
+    "permissionError": "परवानगी त्रुटि"
+  },
+  "errors": {
+    "somethingWentWrong": "काहीतरी चूक झाली",
+    "tryAgain": "कृपया पुन्हा प्रयत्न करा",
+    "networkError": "नेटवर्क त्रुटि आली",
+    "unauthorized": "अनधिकृत प्रवेश",
+    "forbidden": "प्रवेश निषिद्ध",
+    "notFound": "पृष्ठ सापडले नाही"
+  }
+}

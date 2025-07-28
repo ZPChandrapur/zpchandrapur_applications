@@ -1,0 +1,152 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "search": "Search",
+    "filter": "Filter",
+    "export": "Export",
+    "print": "Print",
+    "submit": "Submit",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "close": "Close",
+    "confirm": "Confirm",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "auth": {
+    "signIn": "Sign In",
+    "signOut": "Sign Out",
+    "email": "Email Address",
+    "password": "Password",
+    "forgotPassword": "Forgot your password?",
+    "resetPassword": "Reset Password",
+    "enterEmail": "Enter your email",
+    "enterPassword": "Enter your password",
+    "signInError": "Sign in failed. Please check your credentials.",
+    "resetEmailSent": "Password reset email sent",
+    "checkEmail": "Check Your Email",
+    "resetEmailMessage": "We've sent a password reset link to",
+    "backToSignIn": "Back to Sign In",
+    "invalidEmail": "Please enter a valid email address",
+    "passwordTooShort": "Password must be at least 6 characters long",
+    "fillAllFields": "Please fill in all fields"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "profile": "Profile",
+    "settings": "Settings",
+    "help": "Help",
+    "language": "Language"
+  },
+  "dashboard": {
+    "title": "ZP Chandrapur",
+    "subtitle": "Integrated Applications System",
+    "welcome": "Welcome back",
+    "overview": "System Overview",
+    "quickActions": "Quick Actions",
+    "recentActivity": "Recent Activity",
+    "systemStatus": "System Status",
+    "notifications": "Notifications"
+  },
+  "systems": {
+    "erms": {
+      "name": "ERMS",
+      "fullName": "Employee Retirement Management System",
+      "description": "Manage employee retirement processes and documentation",
+      "totalEmployees": "Total Employees",
+      "upcomingRetirements": "Upcoming Retirements",
+      "processedCases": "Processed Cases",
+      "pendingActions": "Pending Actions",
+      "viewEmployees": "View Employees",
+      "addEmployee": "Add Employee",
+      "generateReport": "Generate Report",
+      "webApplication": "Web Application"
+    },
+    "estimate": {
+      "name": "E-Estimate",
+      "fullName": "Electronic Estimation System",
+      "description": "Create, manage and track project estimates and completion reports",
+      "activeEstimates": "Active Estimates",
+      "pendingApprovals": "Pending Approvals",
+      "completedProjects": "Completed Projects",
+      "totalValue": "Total Value",
+      "createEstimate": "Create Estimate",
+      "viewEstimates": "View Estimates",
+      "templates": "Templates",
+      "mobileApplication": "Mobile Application"
+    },
+    "fims": {
+      "name": "FIMS",
+      "fullName": "Field Inspection Management System",
+      "description": "Conduct and manage field inspections with photo documentation",
+      "monthlyTarget": "Monthly Target",
+      "completed": "Completed",
+      "pending": "Pending",
+      "inspectionRate": "Inspection Rate",
+      "newInspection": "New Inspection",
+      "viewInspections": "View Inspections",
+      "reports": "Reports",
+      "mobileApplication": "Mobile Application"
+    },
+    "pesa": {
+      "name": "PESA 5%",
+      "fullName": "PESA 5% Fund Management System",
+      "description": "Track and manage PESA fund utilization across components",
+      "totalFund": "Total Fund",
+      "utilized": "Utilized",
+      "remaining": "Remaining",
+      "villages": "Villages",
+      "addTransaction": "Add Transaction",
+      "viewFunds": "View Funds",
+      "compliance": "Compliance",
+      "webApplication": "Web Application"
+    }
+  },
+  "profile": {
+    "userProfile": "User Profile",
+    "accountDetails": "Account Details",
+    "systemAccess": "System Access",
+    "username": "Username",
+    "email": "Email",
+    "role": "Role",
+    "userId": "User ID",
+    "memberSince": "Member Since",
+    "lastSignIn": "Last Sign In",
+    "permissions": "Permissions",
+    "read": "Read",
+    "write": "Write",
+    "delete": "Delete",
+    "admin": "Admin",
+    "webApp": "Web App",
+    "mobileApp": "Mobile App"
+  },
+  "roles": {
+    "developer": "Developer",
+    "super_admin": "Super Admin",
+    "admin": "Admin",
+    "officer": "Officer",
+    "clerk": "Clerk"
+  },
+  "permissions": {
+    "accessRestricted": "Access Restricted",
+    "noAccess": "You don't have {{permission}} access to the {{system}} system.",
+    "contactAdmin": "Please contact your administrator if you believe this is an error.",
+    "permissionError": "Permission Error"
+  },
+  "errors": {
+    "somethingWentWrong": "Something went wrong",
+    "tryAgain": "Please try again later",
+    "networkError": "Network error occurred",
+    "unauthorized": "Unauthorized access",
+    "forbidden": "Access forbidden",
+    "notFound": "Page not found"
+  }
+}
