@@ -847,7 +847,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
             </div>
             
             {/* Profile Dropdown */}
-            <div className="relative profile-dropdown">
+            <div className="relative user-profile-dropdown">
               <button
                 onClick={() => setIsProfileOpen(!isProfileOpen)}
                 className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors p-2 rounded-md hover:bg-gray-100"
