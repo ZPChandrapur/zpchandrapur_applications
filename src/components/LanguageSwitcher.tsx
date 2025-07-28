@@ -14,12 +14,12 @@ export const LanguageSwitcher: React.FC = () => {
   const currentLanguage = languages.find(lang => lang.code === i18n.language) || languages[0];
 
   const handleLanguageChange = (languageCode: string) => {
+    console.log('Changing language to:', languageCode);
     i18n.changeLanguage(languageCode);
+    localStorage.setItem('i18nextLng', languageCode);
     setIsOpen(false);
-    // Force page refresh to ensure all components update
-    setTimeout(() => {
-      window.location.reload();
-    }, 100);
+    // Force reload to ensure all components update
+    window.location.reload();
   };
 
   // Close dropdown when clicking outside
@@ -38,7 +38,7 @@ export const LanguageSwitcher: React.FC = () => {
   }, [isOpen]);
 
   return (
-    <div className="relative language-switcher mr-4">
+    <div className="relative language-switcher">
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center space-x-2 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-lg transition-all duration-200 min-w-[120px] justify-between"
@@ -53,7 +53,7 @@ export const LanguageSwitcher: React.FC = () => {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-[60]">
+        <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-[70]">
           <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100">
             Select Language
           </div>
