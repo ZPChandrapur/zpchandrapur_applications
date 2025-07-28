@@ -82,8 +82,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
       fullName: t('systems.erms.fullName'),
       description: t('systems.erms.description'),
       icon: Users,
-      color: 'bg-gradient-to-br from-blue-500 to-blue-600',
-      hoverColor: 'hover:from-blue-600 hover:to-blue-700',
+      color: 'bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-700',
+      hoverColor: 'hover:from-blue-600 hover:via-blue-700 hover:to-indigo-800',
+      headerColor: 'bg-gradient-to-r from-blue-600 to-indigo-700',
       stats: [
         { label: t('systems.erms.totalEmployees'), value: '1,247', icon: Users, color: 'text-blue-600' },
         { label: t('systems.erms.upcomingRetirements'), value: '23', icon: Calendar, color: 'text-orange-600' },
@@ -103,8 +104,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
       fullName: t('systems.estimate.fullName'),
       description: t('systems.estimate.description'),
       icon: FileText,
-      color: 'bg-gradient-to-br from-green-500 to-green-600',
-      hoverColor: 'hover:from-green-600 hover:to-green-700',
+      color: 'bg-gradient-to-br from-emerald-500 via-green-600 to-teal-700',
+      hoverColor: 'hover:from-emerald-600 hover:via-green-700 hover:to-teal-800',
+      headerColor: 'bg-gradient-to-r from-emerald-600 to-teal-700',
       stats: [
         { label: t('systems.estimate.activeEstimates'), value: '45', icon: FileText, color: 'text-green-600' },
         { label: t('systems.estimate.pendingApprovals'), value: '12', icon: Clock, color: 'text-orange-600' },
@@ -124,8 +126,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
       fullName: t('systems.fims.fullName'),
       description: t('systems.fims.description'),
       icon: Camera,
-      color: 'bg-gradient-to-br from-purple-500 to-purple-600',
-      hoverColor: 'hover:from-purple-600 hover:to-purple-700',
+      color: 'bg-gradient-to-br from-purple-500 via-violet-600 to-indigo-700',
+      hoverColor: 'hover:from-purple-600 hover:via-violet-700 hover:to-indigo-800',
+      headerColor: 'bg-gradient-to-r from-purple-600 to-indigo-700',
       stats: [
         { label: t('systems.fims.monthlyTarget'), value: '150', icon: BarChart3, color: 'text-purple-600' },
         { label: t('systems.fims.completed'), value: '127', icon: CheckCircle, color: 'text-green-600' },
@@ -145,8 +148,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
       fullName: t('systems.pesa.fullName'),
       description: t('systems.pesa.description'),
       icon: TrendingUp,
-      color: 'bg-gradient-to-br from-orange-500 to-orange-600',
-      hoverColor: 'hover:from-orange-600 hover:to-orange-700',
+      color: 'bg-gradient-to-br from-orange-500 via-red-500 to-pink-600',
+      hoverColor: 'hover:from-orange-600 hover:via-red-600 hover:to-pink-700',
+      headerColor: 'bg-gradient-to-r from-orange-600 to-pink-600',
       stats: [
         { label: t('systems.pesa.totalFund'), value: '₹1.2Cr', icon: DollarSign, color: 'text-orange-600' },
         { label: t('systems.pesa.utilized'), value: '₹85L', icon: TrendingUp, color: 'text-green-600' },
@@ -178,25 +182,25 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
     return (
       <div className="min-h-screen bg-gray-50">
         {/* Navigation Header */}
-        <nav className="bg-white shadow-sm border-b border-gray-200">
+        <nav className={`${app.headerColor} shadow-lg border-b border-gray-200`}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
               {/* Logo and Title */}
               <div className="flex items-center space-x-3">
                 <button
                   onClick={handleBackToDashboard}
-                  className="bg-gray-100 hover:bg-gray-200 p-2 rounded-lg transition-colors duration-200"
+                  className="bg-white/20 hover:bg-white/30 p-2 rounded-lg transition-colors duration-200"
                 >
-                  <ArrowRight className="h-5 w-5 text-gray-600 rotate-180" />
+                  <ArrowRight className="h-5 w-5 text-white rotate-180" />
                 </button>
-                <div className={`${app.color} p-2 rounded-lg`}>
+                <div className="bg-white/20 p-2 rounded-lg">
                   <app.icon className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-lg font-semibold text-gray-900">
+                  <h1 className="text-lg font-semibold text-white">
                     {app.name} - {app.fullName}
                   </h1>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-white/80">
                     {app.description}
                   </p>
                 </div>
@@ -209,16 +213,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
                 <div className="relative user-profile-dropdown">
                   <button
                     onClick={() => setIsProfileOpen(!isProfileOpen)}
-                    className="flex items-center space-x-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-lg transition-all duration-200"
+                    className="flex items-center space-x-3 px-3 py-2 text-white hover:bg-white/20 rounded-lg transition-all duration-200"
                   >
-                    <div className="bg-blue-100 p-1.5 rounded-full">
-                      <User className="h-4 w-4 text-blue-600" />
+                    <div className="bg-white/20 p-1.5 rounded-full">
+                      <User className="h-4 w-4 text-white" />
                     </div>
                     <div className="text-left">
-                      <div className="text-sm font-medium">{user.email}</div>
-                      <div className="text-xs text-gray-500">{t(`roles.${userRole}`)}</div>
+                      <div className="text-sm font-medium text-white">{user.email}</div>
+                      <div className="text-xs text-white/80">{t(`roles.${userRole}`)}</div>
                     </div>
-                    <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isProfileOpen ? 'rotate-180' : ''}`} />
+                    <ChevronDown className={`h-4 w-4 text-white transition-transform duration-200 ${isProfileOpen ? 'rotate-180' : ''}`} />
                   </button>
 
                   {isProfileOpen && (
@@ -266,7 +270,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
         {/* App Dashboard Content */}
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            <h2 className="text-3xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent mb-4">
               {app.name} Dashboard
             </h2>
             <p className="text-gray-600 text-lg">
@@ -275,15 +279,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
           </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             {app.stats.map((stat, index) => (
-              <div key={index} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow duration-200">
-                <div className="flex items-center justify-between mb-4">
-                  <div className={`p-3 rounded-lg bg-gray-50`}>
+              <div key={index} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow duration-200">
+                <div className="flex items-center justify-between mb-2">
+                  <div className={`p-2 rounded-lg bg-gray-50`}>
                     <stat.icon className={`h-6 w-6 ${stat.color}`} />
                   </div>
                   <div className="text-right">
-                    <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
+                    <div className="text-xl font-bold text-gray-900">{stat.value}</div>
                   </div>
                 </div>
                 <div className="text-sm text-gray-600">{stat.label}</div>
@@ -293,7 +297,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
 
           {/* Actions Grid */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h3 className="text-xl font-semibold text-gray-900 mb-6">Quick Actions</h3>
+            <h3 className="text-xl font-semibold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent mb-6">Quick Actions</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {app.actions.map((action, index) => (
                 <button
@@ -315,19 +319,19 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Navigation Header */}
-      <nav className="bg-white shadow-sm border-b border-gray-200">
+      <nav className="bg-gradient-to-r from-blue-600 via-purple-600 to-teal-600 shadow-lg border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo and Title */}
             <div className="flex items-center space-x-3">
-              <div className="bg-blue-100 p-2 rounded-lg">
-                <Building2 className="h-6 w-6 text-blue-600" />
+              <div className="bg-white/20 p-2 rounded-lg">
+                <Building2 className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h1 className="text-lg font-semibold text-gray-900">
+                <h1 className="text-lg font-semibold text-white">
                   {t('dashboard.title')}
                 </h1>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-white/80">
                   {t('dashboard.subtitle')}
                 </p>
               </div>
@@ -342,16 +346,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
               <div className="relative user-profile-dropdown">
                 <button
                   onClick={() => setIsProfileOpen(!isProfileOpen)}
-                  className="flex items-center space-x-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-lg transition-all duration-200"
+                  className="flex items-center space-x-3 px-3 py-2 text-white hover:bg-white/20 rounded-lg transition-all duration-200"
                 >
-                  <div className="bg-blue-100 p-1.5 rounded-full">
-                    <User className="h-4 w-4 text-blue-600" />
+                  <div className="bg-white/20 p-1.5 rounded-full">
+                    <User className="h-4 w-4 text-white" />
                   </div>
                   <div className="text-left">
-                    <div className="text-sm font-medium">{user.email}</div>
-                    <div className="text-xs text-gray-500">{t(`roles.${userRole}`)}</div>
+                    <div className="text-sm font-medium text-white">{user.email}</div>
+                    <div className="text-xs text-white/80">{t(`roles.${userRole}`)}</div>
                   </div>
-                  <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isProfileOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown className={`h-4 w-4 text-white transition-transform duration-200 ${isProfileOpen ? 'rotate-180' : ''}`} />
                 </button>
 
                 {isProfileOpen && (
@@ -403,7 +407,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Section */}
         <div className="mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
             {t('dashboard.welcome')}, {user.email?.split('@')[0]}
           </h2>
           <p className="text-gray-600 text-lg">
@@ -414,13 +418,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
         {/* Systems Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {systems.map((system) => (
-            <PermissionGuard
-              key={system.id}
-              user={user}
-              application={system.id}
-              permission="read"
-            >
               <div 
+                key={system.id}
                 className={`bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer transform hover:-translate-y-1 ${system.hoverColor}`}
                 onClick={() => handleAppClick(system.id)}
               >
@@ -450,13 +449,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
 
                 {/* System Stats */}
                 <div className="p-6 bg-gradient-to-r from-gray-50 to-gray-100">
-                  <div className="grid grid-cols-2 gap-6">
+                  <div className="grid grid-cols-2 gap-4">
                     {system.stats.map((stat, index) => (
-                      <div key={index} className="text-center bg-white rounded-lg p-4 shadow-sm">
+                      <div key={index} className="text-center bg-white rounded-lg p-3 shadow-sm">
                         <div className="flex items-center justify-center mb-2">
                           <stat.icon className={`h-5 w-5 ${stat.color}`} />
                         </div>
-                        <div className="text-2xl font-bold text-gray-900 mb-1">{stat.value}</div>
+                        <div className="text-lg font-bold text-gray-900 mb-1">{stat.value}</div>
                         <div className="text-xs text-gray-600 font-medium">{stat.label}</div>
                       </div>
                     ))}
@@ -479,7 +478,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
                   </div>
                 </div>
               </div>
-            </PermissionGuard>
           ))}
         </div>
       </main>
