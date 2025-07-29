@@ -44,6 +44,7 @@ interface ERMSDashboardProps {
 
 export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
   const { t } = useTranslation();
+  const { i18n } = useTranslation();
   const [activeSection, setActiveSection] = useState('organization-setup');
   const [searchTerm, setSearchTerm] = useState('');
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -117,7 +118,7 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
   const handleAddDepartment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newDepartment.dept_id.trim() || !newDepartment.department.trim()) {
-      setError('Please fill in all fields');
+      setError(t('erms.fillAllFields'));
       return;
     }
 
@@ -149,7 +150,7 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
   };
 
   const handleDeleteDepartment = async (deptId: string) => {
-    if (!confirm('Are you sure you want to delete this department?')) return;
+    if (!confirm(t('erms.deleteConfirm'))) return;
 
     try {
       const { error } = await ermsClient
@@ -470,7 +471,7 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
                     className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
                   >
                     <Plus className="h-4 w-4" />
-                    <span>Add Department</span>
+                    <span>{t('erms.addDepartment')}</span>
                   </button>
                   <button className="text-gray-400 hover:text-gray-600">
                     <Filter className="h-5 w-5" />
@@ -489,7 +490,7 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Search departments..."
+                  placeholder={t('erms.searchDepartments')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -497,7 +498,7 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
               </div>
 
               <div className="text-sm text-gray-500 mb-4">
-                Showing {filteredDepartments.length} of {departments.length} records
+                {t('erms.showingRecords', { filtered: filteredDepartments.length, total: departments.length })}
               </div>
 
               {/* Table */}
@@ -510,18 +511,18 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
                   <table className="w-full">
                     <thead>
                       <tr className="border-b border-gray-200">
-                        <th className="text-left py-3 px-4 font-medium text-gray-700">DEPARTMENT ID</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-700">DEPARTMENT NAME</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-700">CREATED DATE</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-700">LAST UPDATED</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-700">ACTIONS</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-700">{t('erms.departmentId').toUpperCase()}</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-700">{t('erms.departmentName').toUpperCase()}</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-700">{t('erms.createdDate').toUpperCase()}</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-700">{t('erms.lastUpdated').toUpperCase()}</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-700">{t('erms.actions').toUpperCase()}</th>
                       </tr>
                     </thead>
                     <tbody>
                       {filteredDepartments.length === 0 ? (
                         <tr>
                           <td colSpan={5} className="py-8 px-4 text-center text-gray-500">
-                            {searchTerm ? 'No departments found matching your search.' : 'No departments found. Add your first department.'}
+                            {searchTerm ? t('erms.noDepartmentsFound') : t('erms.addFirstDepartment')}
                           </td>
                         </tr>
                       ) : (
@@ -566,7 +567,7 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">Add New Department</h3>
+                <h3 className="text-lg font-semibold text-gray-900">{t('erms.addNewDepartment')}</h3>
                 <button
                   onClick={() => {
                     setShowAddModal(false);
@@ -587,31 +588,27 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
 
               <form onSubmit={handleAddDepartment} className="space-y-4">
                 <div>
-                  <label htmlFor="dept_id" className="block text-sm font-medium text-gray-700 mb-2">
-                    Department ID
-                  </label>
+                  <label htmlFor="dept_id" className="block text-sm font-medium text-gray-700 mb-2">{t('erms.departmentId')}</label>
                   <input
                     id="dept_id"
                     type="text"
                     value={newDepartment.dept_id}
                     onChange={(e) => setNewDepartment({ ...newDepartment, dept_id: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Enter department ID"
+                    placeholder={t('erms.enterDepartmentId')}
                     disabled={isSubmitting}
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="department" className="block text-sm font-medium text-gray-700 mb-2">
-                    Department Name
-                  </label>
+                  <label htmlFor="department" className="block text-sm font-medium text-gray-700 mb-2">{t('erms.departmentName')}</label>
                   <input
                     id="department"
                     type="text"
                     value={newDepartment.department}
                     onChange={(e) => setNewDepartment({ ...newDepartment, department: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Enter department name"
+                    placeholder={t('erms.enterDepartmentName')}
                     disabled={isSubmitting}
                   />
                 </div>
@@ -627,7 +624,7 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
                     className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
                     disabled={isSubmitting}
                   >
-                    Cancel
+                    {t('common.cancel')}
                   </button>
                   <button
                     type="submit"
@@ -637,12 +634,12 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
                     {isSubmitting ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        <span>Adding...</span>
+                        <span>{t('erms.adding')}</span>
                       </>
                     ) : (
                       <>
                         <Plus className="h-4 w-4" />
-                        <span>Add Department</span>
+                        <span>{t('erms.addDepartment')}</span>
                       </>
                     )}
                   </button>
