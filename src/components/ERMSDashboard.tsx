@@ -54,17 +54,17 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
 
   // Fetch departments from Supabase
   React.useEffect(() => {
-    testERMSConnection();
+    fetchDepartments();
   }, []);
 
-  const testERMSConnection = async () => {
+  const fetchDepartments = async () => {
     try {
       setIsLoading(true);
       setError('');
       
-      console.log('Testing connection to erms.department table...');
+      console.log('Fetching departments from erms.department table...');
       
-      // Test 1: Try to fetch from erms.department
+      // Fetch departments from erms.department
       const { data, error, count } = await supabase
         .from('erms.department')
         .select('*', { count: 'exact' });
@@ -77,33 +77,15 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
         return;
       }
       
-      console.log('Successfully connected to erms.department');
+      console.log('Successfully fetched departments from erms.department');
       console.log('Found', count, 'departments');
       console.log('Data:', data);
       
       setDepartments(data || []);
       
     } catch (err) {
-      console.error('Connection test failed:', err);
-      setError(`Connection failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const fetchDepartments = async () => {
-    try {
-      setIsLoading(true);
-      const { data, error } = await supabase
-        .from('erms.department')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setDepartments(data || []);
-    } catch (err) {
-      console.error('Error fetching departments:', err);
-      setError('Failed to fetch departments');
+      console.error('Failed to fetch departments:', err);
+      setError(`Failed to fetch departments: ${err instanceof Error ? err.message : 'Unknown error'}`);
     } finally {
       setIsLoading(false);
     }
