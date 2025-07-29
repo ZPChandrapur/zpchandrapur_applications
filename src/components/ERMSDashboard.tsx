@@ -22,7 +22,6 @@ import {
   Briefcase,
   Filter,
   X
-  X
 } from 'lucide-react';
 
 interface Department {
@@ -136,94 +135,6 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
     dept.dept_id.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const [departments, setDepartments] = useState<Department[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [newDepartment, setNewDepartment] = useState({ dept_id: '', department: '' });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState('');
-
-  // Fetch departments from Supabase
-  React.useEffect(() => {
-    fetchDepartments();
-  }, []);
-
-  const fetchDepartments = async () => {
-    try {
-      setIsLoading(true);
-      const { data, error } = await supabase
-        .from('department')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setDepartments(data || []);
-    } catch (err) {
-      console.error('Error fetching departments:', err);
-      setError('Failed to fetch departments');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleAddDepartment = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newDepartment.dept_id.trim() || !newDepartment.department.trim()) {
-      setError('Please fill in all fields');
-      return;
-    }
-
-    try {
-      setIsSubmitting(true);
-      setError('');
-
-      const { error } = await supabase
-        .from('department')
-        .insert([{
-          dept_id: newDepartment.dept_id.trim(),
-          department: newDepartment.department.trim()
-        }]);
-
-      if (error) throw error;
-
-      // Reset form and close modal
-      setNewDepartment({ dept_id: '', department: '' });
-      setShowAddModal(false);
-      
-      // Refresh departments list
-      await fetchDepartments();
-    } catch (err: any) {
-      console.error('Error adding department:', err);
-      setError(err.message || 'Failed to add department');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleDeleteDepartment = async (deptId: string) => {
-    if (!confirm('Are you sure you want to delete this department?')) return;
-
-    try {
-      const { error } = await supabase
-        .from('department')
-        .delete()
-        .eq('dept_id', deptId);
-
-      if (error) throw error;
-      
-      // Refresh departments list
-      await fetchDepartments();
-    } catch (err: any) {
-      console.error('Error deleting department:', err);
-      setError(err.message || 'Failed to delete department');
-    }
-  };
-
-  // Filter departments based on search term
-  const filteredDepartments = departments.filter(dept =>
-    dept.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    dept.dept_id.toLowerCase().includes(searchTerm.toLowerCase())
-  );
   const sidebarItems = [
     {
       id: 'employee-dashboard',
@@ -515,24 +426,11 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
                     <Plus className="h-4 w-4" />
                     <span>Add Department</span>
                   </button>
-                  <button
-                    onClick={() => setShowAddModal(true)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
-                  >
-                    <Plus className="h-4 w-4" />
-                    <span>Add Department</span>
-                  </button>
                   <button className="text-gray-400 hover:text-gray-600">
                     <Filter className="h-5 w-5" />
                   </button>
                 </div>
               </div>
-
-              {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
-                  {error}
-                </div>
-              )}
 
               {error && (
                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
@@ -548,14 +446,8 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
                   placeholder="Search departments..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
-              </div>
-
-              <div className="text-sm text-gray-500 mb-4">
-                Showing {filteredDepartments.length} of {departments.length} records
               </div>
 
               <div className="text-sm text-gray-500 mb-4">
@@ -617,112 +509,9 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
                   </table>
                 </div>
               )}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              )}
             </div>
           </div>
         </div>
-
-        {/* Add Department Modal */}
-        {showAddModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">Add New Department</h3>
-                <button
-                  onClick={() => {
-                    setShowAddModal(false);
-                    setNewDepartment({ dept_id: '', department: '' });
-                    setError('');
-                  }}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-
-              {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
-                  {error}
-                </div>
-              )}
-
-              <form onSubmit={handleAddDepartment} className="space-y-4">
-                <div>
-                  <label htmlFor="dept_id" className="block text-sm font-medium text-gray-700 mb-2">
-                    Department ID
-                  </label>
-                  <input
-                    id="dept_id"
-                    type="text"
-                    value={newDepartment.dept_id}
-                    onChange={(e) => setNewDepartment({ ...newDepartment, dept_id: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Enter department ID"
-                    disabled={isSubmitting}
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="department" className="block text-sm font-medium text-gray-700 mb-2">
-                    Department Name
-                  </label>
-                  <input
-                    id="department"
-                    type="text"
-                    value={newDepartment.department}
-                    onChange={(e) => setNewDepartment({ ...newDepartment, department: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Enter department name"
-                    disabled={isSubmitting}
-                  />
-                </div>
-
-                <div className="flex items-center justify-end space-x-3 pt-4">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowAddModal(false);
-                      setNewDepartment({ dept_id: '', department: '' });
-                      setError('');
-                    }}
-                    className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-                    disabled={isSubmitting}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg transition-colors flex items-center space-x-2"
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        <span>Adding...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Plus className="h-4 w-4" />
-                        <span>Add Department</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
 
         {/* Add Department Modal */}
         {showAddModal && (
