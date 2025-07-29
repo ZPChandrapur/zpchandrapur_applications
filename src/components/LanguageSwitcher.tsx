@@ -18,8 +18,6 @@ export const LanguageSwitcher: React.FC = () => {
     i18n.changeLanguage(languageCode);
     localStorage.setItem('i18nextLng', languageCode);
     setIsOpen(false);
-    // Force reload to ensure all components update
-    window.location.reload();
   };
 
   // Close dropdown when clicking outside

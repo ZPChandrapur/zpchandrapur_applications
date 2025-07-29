@@ -68,6 +68,8 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
 
   // Function to get translated department name
   const getTranslatedDepartmentName = (departmentName: string) => {
+    if (!ready) return departmentName; // Return original if translations not ready
+    
     const translation = departmentTranslations[departmentName];
     if (translation) {
       return i18n.language === 'mr' ? translation.mr : translation.en;
