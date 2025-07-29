@@ -54,8 +54,42 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
 
   // Fetch departments from Supabase
   React.useEffect(() => {
-    fetchDepartments();
+    testERMSConnection();
   }, []);
+
+  const testERMSConnection = async () => {
+    try {
+      setIsLoading(true);
+      setError('');
+      
+      console.log('Testing connection to erms.department table...');
+      
+      // Test 1: Try to fetch from erms.department
+      const { data, error, count } = await supabase
+        .from('erms.department')
+        .select('*', { count: 'exact' });
+
+      console.log('Supabase response:', { data, error, count });
+      
+      if (error) {
+        console.error('Database error:', error);
+        setError(`Database Error: ${error.message}`);
+        return;
+      }
+      
+      console.log('Successfully connected to erms.department');
+      console.log('Found', count, 'departments');
+      console.log('Data:', data);
+      
+      setDepartments(data || []);
+      
+    } catch (err) {
+      console.error('Connection test failed:', err);
+      setError(`Connection failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const fetchDepartments = async () => {
     try {
