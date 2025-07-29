@@ -55,17 +55,63 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
   // Fetch departments from Supabase
   React.useEffect(() => {
     console.log('🚀 ERMSDashboard mounted, testing ERMS connection...');
-    testERMSConnection().then(result => {
-      if (result.success) {
-        console.log('✅ ERMS Connection successful, fetching departments...');
-        setDepartments(result.data || []);
-        setIsLoading(false);
-      } else {
-        console.error('❌ ERMS Connection failed:', result.error);
-        setError(result.error || 'Failed to connect to ERMS schema');
+    
+    // Comprehensive ERMS connection test
+    const testERMSConnection = async () => {
+      try {
+        console.log('🔍 Testing ERMS Schema Connection...');
+        console.log('📋 Connection Details:');
+        console.log('   URL:', 'https://tvmqkondihsomlebizjj.supabase.co');
+        console.log('   Schema:', 'erms');
+        console.log('   Table:', 'department');
+        
+        // Test 1: Basic connection
+        console.log('🧪 Test 1: Basic Supabase connection...');
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError) {
+          console.error('❌ Basic connection failed:', sessionError);
+        } else {
+          console.log('✅ Basic connection successful');
+        }
+        
+        // Test 2: ERMS client connection
+        console.log('🧪 Test 2: ERMS client connection...');
+        const { data: ermsData, error: ermsError } = await ermsClient
+          .from('department')
+          .select('*')
+          .limit(10);
+        
+        if (ermsError) {
+          console.error('❌ ERMS connection failed:', ermsError);
+          console.error('   Error code:', ermsError.code);
+          console.error('   Error message:', ermsError.message);
+          console.error('   Error details:', ermsError.details);
+          setError(`ERMS Connection Error: ${ermsError.message}`);
+          setIsLoading(false);
+          return;
+        }
+        
+        console.log('✅ ERMS connection successful!');
+        console.log('📊 Department data:', ermsData);
+        console.log('📈 Found', ermsData?.length || 0, 'departments');
+        
+        if (ermsData && ermsData.length > 0) {
+          console.log('🔍 Sample department record:', ermsData[0]);
+          console.log('📋 Table columns:', Object.keys(ermsData[0]));
+        }
+        
+        setDepartments(ermsData || []);
+        setError('');
+        
+      } catch (err: any) {
+        console.error('❌ Connection test failed:', err);
+        setError(`Connection failed: ${err.message}`);
+      } finally {
         setIsLoading(false);
       }
-    });
+    };
+    
+    testERMSConnection();
     fetchDepartments();
   }, []);
 
@@ -344,6 +390,32 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
           {/* Organization Setup Header */}
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-3">
+              <button
+                onClick={() => {
+                  console.log('🔄 Manual connection test triggered...');
+                  setIsLoading(true);
+                  setError('');
+                  
+                  // Manual test with detailed logging
+                  ermsClient
+                    .from('department')
+                    .select('*')
+                    .then(({ data, error }) => {
+                      if (error) {
+                        console.error('❌ Manual test failed:', error);
+                        setError(`Manual test failed: ${error.message}`);
+                      } else {
+                        console.log('✅ Manual test successful:', data);
+                        setDepartments(data || []);
+                        setError('');
+                      }
+                      setIsLoading(false);
+                    });
+                }}
+                className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+              >
+                <span>🧪 Test Connection</span>
+              </button>
               <div className="bg-blue-100 p-2 rounded-lg">
                 <Building2 className="h-6 w-6 text-blue-600" />
               </div>

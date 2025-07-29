@@ -20,36 +20,66 @@ export const ermsClient = createClient(supabaseUrl, supabaseAnonKey, {
 // Test function to verify ERMS connection
 export const testERMSConnection = async () => {
   try {
-    console.log('🔍 Testing ERMS Schema Connection...');
+    console.log('🔍 Testing ERMS Schema Connection with provided credentials...');
+    console.log('📋 Connection Details:');
+    console.log('   URL: https://tvmqkondihsomlebizjj.supabase.co');
+    console.log('   Anon Key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...');
+    console.log('   Schema: erms');
+    console.log('   Target Table: department');
     
     // Test 1: Basic connection
-    const { data: basicTest, error: basicError } = await supabase.auth.getSession();
-    console.log('✅ Basic Supabase connection:', basicTest ? 'Success' : 'Failed');
+    console.log('🧪 Step 1: Testing basic Supabase connection...');
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
     
-    // Test 2: ERMS schema access
+    if (sessionError) {
+      console.error('❌ Basic connection failed:', sessionError);
+      return { success: false, error: `Basic connection failed: ${sessionError.message}`, data: null };
+    }
+    console.log('✅ Basic Supabase connection successful');
+    
+    // Test 2: ERMS schema access with detailed logging
+    console.log('🧪 Step 2: Testing ERMS schema access...');
+    console.log('   Using ermsClient.from("department").select("*")...');
+    
     const { data: departments, error: ermsError } = await ermsClient
       .from('department')
       .select('*')
       .limit(10);
     
     if (ermsError) {
-      console.error('❌ ERMS Schema Error:', ermsError);
-      return { success: false, error: ermsError.message, data: null };
+      console.error('❌ ERMS Schema Access Failed:');
+      console.error('   Error Code:', ermsError.code);
+      console.error('   Error Message:', ermsError.message);
+      console.error('   Error Details:', ermsError.details);
+      console.error('   Error Hint:', ermsError.hint);
+      return { success: false, error: `ERMS Schema Error: ${ermsError.message}`, data: null };
     }
     
-    console.log('✅ ERMS Schema Connection Success!');
-    console.log('📊 Department Data:', departments);
-    console.log(`📈 Found ${departments?.length || 0} departments`);
+    console.log('✅ ERMS Schema Access Successful!');
+    console.log('📊 Raw Department Data:', departments);
+    console.log(`📈 Total Records Found: ${departments?.length || 0}`);
+    
+    if (departments && departments.length > 0) {
+      console.log('🔍 Sample Record Structure:', departments[0]);
+      console.log('📋 Available Columns:', Object.keys(departments[0]));
+    } else {
+      console.log('⚠️ No department records found in the table');
+    }
     
     return { 
       success: true, 
       error: null, 
       data: departments,
-      count: departments?.length || 0
+      count: departments?.length || 0,
+      schema: 'erms',
+      table: 'department'
     };
     
   } catch (error: any) {
-    console.error('❌ Connection Test Failed:', error);
-    return { success: false, error: error.message, data: null };
+    console.error('❌ Unexpected Connection Test Failure:');
+    console.error('   Error Type:', error.constructor.name);
+    console.error('   Error Message:', error.message);
+    console.error('   Error Stack:', error.stack);
+    return { success: false, error: `Unexpected error: ${error.message}`, data: null };
   }
 };
