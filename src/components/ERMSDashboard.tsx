@@ -55,82 +55,8 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
   // Fetch departments from Supabase
   React.useEffect(() => {
     console.log('ERMSDashboard mounted, attempting to fetch departments...');
-    testDatabaseConnection();
+    fetchDepartments();
   }, []);
-
-  const testDatabaseConnection = async () => {
-    console.log('=== TESTING DATABASE CONNECTION ===');
-    
-    // Test 1: Check if we can connect to Supabase at all
-    try {
-      console.log('Test 1: Testing basic Supabase connection...');
-      const { data: authData, error: authError } = await supabase.auth.getUser();
-      console.log('Auth test result:', { authData, authError });
-    } catch (err) {
-      console.error('Auth test failed:', err);
-    }
-
-    // Test 2: Try to access public schema first
-    try {
-      console.log('Test 2: Testing public schema access...');
-      const { data: publicData, error: publicError } = await supabase
-        .from('roles')
-        .select('*')
-        .limit(1);
-      console.log('Public schema test result:', { publicData, publicError });
-    } catch (err) {
-      console.error('Public schema test failed:', err);
-    }
-
-    // Test 3: Try different ways to access erms.department
-    const testMethods = [
-      {
-        name: 'Method 1: Direct erms.department',
-        query: () => supabase.from('erms.department').select('*')
-      },
-      {
-        name: 'Method 2: With schema in select',
-        query: () => supabase.from('department').select('*').schema('erms')
-      },
-      {
-        name: 'Method 3: RPC call to get departments',
-        query: () => supabase.rpc('get_departments_from_erms')
-      }
-    ];
-
-    for (const method of testMethods) {
-      try {
-        console.log(`Test 3: ${method.name}...`);
-        const result = await method.query();
-        console.log(`${method.name} result:`, result);
-        
-        if (result.data && !result.error) {
-          console.log('✅ SUCCESS! Found working method:', method.name);
-          setDepartments(result.data);
-          setIsLoading(false);
-          return;
-        }
-      } catch (err) {
-        console.error(`${method.name} failed:`, err);
-      }
-    }
-
-    // Test 4: Check what tables are available
-    try {
-      console.log('Test 4: Checking available tables...');
-      const { data: tablesData, error: tablesError } = await supabase
-        .from('information_schema.tables')
-        .select('table_schema, table_name')
-        .eq('table_schema', 'erms');
-      console.log('Available ERMS tables:', { tablesData, tablesError });
-    } catch (err) {
-      console.error('Tables check failed:', err);
-    }
-
-    // If we get here, nothing worked
-    setError('Unable to connect to erms.department table. Check console for details.');
-    setIsLoading(false);
-  };
 
   const fetchDepartments = async () => {
     try {
@@ -140,7 +66,7 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
       console.log('Attempting to fetch departments...');
       
       const { data, error, count } = await supabase
-        .from('erms.department')
+        .from('department', { schema: 'erms' })
         .select('*', { count: 'exact' });
 
       console.log('Fetch result:', { data, error, count });
@@ -174,30 +100,6 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
     fetchDepartments();
   };
 
-  // Test with different table names
-  const testDifferentTableNames = async () => {
-    const tableNames = ['department', 'departments', 'erms.department', 'erms.departments'];
-    
-    for (const tableName of tableNames) {
-      try {
-        console.log(`Testing table name: ${tableName}`);
-        const { data, error } = await supabase
-          .from(tableName)
-          .select('*')
-          .limit(1);
-        
-        console.log(`Result for ${tableName}:`, { data, error });
-        
-        if (!error && data) {
-          console.log(`✅ Found working table name: ${tableName}`);
-        return;
-        }
-      } catch (err) {
-        console.log(`❌ ${tableName} failed:`, err);
-      }
-    }
-  };
-
   const handleAddDepartment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newDepartment.dept_id.trim() || !newDepartment.department.trim()) {
@@ -210,7 +112,7 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
       setError('');
 
       const { error } = await supabase
-        .from('erms.department')
+        .from('department', { schema: 'erms' })
         .insert([{
           dept_id: newDepartment.dept_id.trim(),
           department: newDepartment.department.trim()
@@ -237,7 +139,7 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
 
     try {
       const { error } = await supabase
-        .from('erms.department')
+        .from('department', { schema: 'erms' })
         .delete()
         .eq('dept_id', deptId);
 
@@ -546,12 +448,6 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
                     className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
                   >
                     <span>🔄 Refresh</span>
-                  </button>
-                  <button
-                    onClick={testDifferentTableNames}
-                    className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
-                  >
-                    <span>🧪 Test Tables</span>
                   </button>
                   <button
                     onClick={() => setShowAddModal(true)}
