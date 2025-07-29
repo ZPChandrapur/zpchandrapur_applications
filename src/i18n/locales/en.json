@@ -128,6 +128,26 @@
     "webApp": "Web App",
     "mobileApp": "Mobile App"
   },
+  "erms": {
+    "organizationSetup": "Organization Setup",
+    "departmentManagement": "Department Management",
+    "addDepartment": "Add Department",
+    "addNewDepartment": "Add New Department",
+    "departmentId": "Department ID",
+    "departmentName": "Department Name",
+    "enterDepartmentId": "Enter department ID",
+    "enterDepartmentName": "Enter department name",
+    "createdDate": "Created Date",
+    "lastUpdated": "Last Updated",
+    "actions": "Actions",
+    "searchDepartments": "Search departments...",
+    "showingRecords": "Showing {{filtered}} of {{total}} records",
+    "noDepartmentsFound": "No departments found matching your search.",
+    "addFirstDepartment": "No departments found. Add your first department.",
+    "adding": "Adding...",
+    "fillAllFields": "Please fill in all fields",
+    "deleteConfirm": "Are you sure you want to delete this department?"
+  },
   "roles": {
     "developer": "Developer",
     "super_admin": "Super Admin",

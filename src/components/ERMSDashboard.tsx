@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ermsClient, testERMSConnection } from '../lib/supabase';
+import { LanguageSwitcher } from './LanguageSwitcher';
 import { 
   ArrowLeft,
   Building2,
@@ -51,6 +52,27 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
   const [newDepartment, setNewDepartment] = useState({ dept_id: '', department: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+
+  // Language-specific department names mapping
+  const departmentTranslations: { [key: string]: { en: string; mr: string } } = {
+    'आरोग्य विभाग': { en: 'Health Department', mr: 'आरोग्य विभाग' },
+    'कामगार प्रशासन विभाग': { en: 'Labor Administration Department', mr: 'कामगार प्रशासन विभाग' },
+    'पशुसंवर्धन विभाग': { en: 'Animal Husbandry Department', mr: 'पशुसंवर्धन विभाग' },
+    'शिक्षण विभाग': { en: 'Education Department', mr: 'शिक्षण विभाग' },
+    'कृषी विभाग': { en: 'Agriculture Department', mr: 'कृषी विभाग' },
+    'ग्रामीय पाणीपुरवठा विभाग': { en: 'Rural Water Supply Department', mr: 'ग्रामीय पाणीपुरवठा विभाग' },
+    'पंचायत विभाग': { en: 'Panchayat Department', mr: 'पंचायत विभाग' },
+    'बांधकाम विभाग': { en: 'Construction Department', mr: 'बांधकाम विभाग' }
+  };
+
+  // Function to get translated department name
+  const getTranslatedDepartmentName = (departmentName: string) => {
+    const translation = departmentTranslations[departmentName];
+    if (translation) {
+      return i18n.language === 'mr' ? translation.mr : translation.en;
+    }
+    return departmentName; // Return original if no translation found
+  };
 
   // Fetch departments from Supabase
   React.useEffect(() => {
@@ -271,6 +293,11 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
               <p className="text-xs text-gray-600">Employee Retirement Management</p>
             </div>
           </div>
+          
+          {/* Language Switcher */}
+          <div className="mt-3 flex justify-end">
+            <LanguageSwitcher />
+          </div>
         </div>
 
         {/* Navigation Items */}
@@ -316,6 +343,7 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
               <h1 className="text-2xl font-bold text-gray-900">Zilla Parishad Chandrapur</h1>
               <p className="text-gray-600">Employee Retirement Management System</p>
             </div>
+            <LanguageSwitcher />
           </div>
         </div>
 
@@ -370,7 +398,9 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
                   { name: 'बांधकाम विभाग', count: 1, color: 'bg-blue-300' }
                 ].map((item, index) => (
                   <div key={index} className="flex items-center space-x-3">
-                    <div className="w-32 text-sm text-gray-700 truncate">{item.name}</div>
+                    <div className="w-32 text-sm text-gray-700 truncate">
+                      {getTranslatedDepartmentName(item.name)}
+                    </div>
                     <div className="flex-1 bg-gray-200 rounded-full h-2">
                       <div className={`${item.color} h-2 rounded-full`} style={{ width: `${(item.count / 4) * 100}%` }}></div>
                     </div>
@@ -498,7 +528,9 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
                         filteredDepartments.map((dept) => (
                           <tr key={dept.dept_id} className="border-b border-gray-100 hover:bg-gray-50">
                             <td className="py-3 px-4 text-gray-900 font-medium">{dept.dept_id}</td>
-                            <td className="py-3 px-4 text-gray-900">{dept.department}</td>
+                            <td className="py-3 px-4 text-gray-900">
+                              {getTranslatedDepartmentName(dept.department)}
+                            </td>
                             <td className="py-3 px-4 text-gray-600">
                               {new Date(dept.created_at).toLocaleDateString('en-GB')}
                             </td>

@@ -128,6 +128,26 @@
     "webApp": "वेब अॅप",
     "mobileApp": "मोबाइल अॅप"
   },
+  "erms": {
+    "organizationSetup": "संस्था सेटअप",
+    "departmentManagement": "विभाग व्यवस्थापन",
+    "addDepartment": "विभाग जोडा",
+    "addNewDepartment": "नवीन विभाग जोडा",
+    "departmentId": "विभाग आयडी",
+    "departmentName": "विभागाचे नाव",
+    "enterDepartmentId": "विभाग आयडी टाका",
+    "enterDepartmentName": "विभागाचे नाव टाका",
+    "createdDate": "तयार केलेली तारीख",
+    "lastUpdated": "शेवटचे अपडेट",
+    "actions": "क्रिया",
+    "searchDepartments": "विभाग शोधा...",
+    "showingRecords": "{{total}} पैकी {{filtered}} रेकॉर्ड दाखवत आहे",
+    "noDepartmentsFound": "आपल्या शोधाशी जुळणारे कोणतेही विभाग सापडले नाहीत.",
+    "addFirstDepartment": "कोणतेही विभाग सापडले नाहीत. आपला पहिला विभाग जोडा.",
+    "adding": "जोडत आहे...",
+    "fillAllFields": "कृपया सर्व फील्ड भरा",
+    "deleteConfirm": "आपल्याला खात्री आहे की आपण हा विभाग हटवू इच्छिता?"
+  },
   "roles": {
     "developer": "डेव्हलपर",
     "super_admin": "सुपर प्रशासक",
