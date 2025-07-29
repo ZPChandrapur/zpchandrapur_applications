@@ -56,15 +56,28 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
     'कृषी विभाग': { en: 'Agriculture Department', mr: 'कृषी विभाग' },
     'ग्रामीय पाणीपुरवठा विभाग': { en: 'Rural Water Supply Department', mr: 'ग्रामीय पाणीपुरवठा विभाग' },
     'पंचायत विभाग': { en: 'Panchayat Department', mr: 'पंचायत विभाग' },
-    'बांधकाम विभाग': { en: 'Construction Department', mr: 'बांधकाम विभाग' }
+    'बांधकाम विभाग': { en: 'Construction Department', mr: 'बांधकाम विभाग' },
+    // Add reverse mappings for English to Marathi
+    'Health Department': { en: 'Health Department', mr: 'आरोग्य विभाग' },
+    'Labor Administration Department': { en: 'Labor Administration Department', mr: 'कामगार प्रशासन विभाग' },
+    'Animal Husbandry Department': { en: 'Animal Husbandry Department', mr: 'पशुसंवर्धन विभाग' },
+    'Education Department': { en: 'Education Department', mr: 'शिक्षण विभाग' },
+    'Agriculture Department': { en: 'Agriculture Department', mr: 'कृषी विभाग' },
+    'Rural Water Supply Department': { en: 'Rural Water Supply Department', mr: 'ग्रामीय पाणीपुरवठा विभाग' },
+    'Panchayat Department': { en: 'Panchayat Department', mr: 'पंचायत विभाग' },
+    'Construction Department': { en: 'Construction Department', mr: 'बांधकाम विभाग' }
   };
 
   // Function to get translated department name
   const getTranslatedDepartmentName = (departmentName: string) => {
+    console.log('Translating department:', departmentName, 'to language:', i18n.language);
     const translation = departmentTranslations[departmentName];
     if (translation) {
-      return i18n.language === 'mr' ? translation.mr : translation.en;
+      const result = i18n.language === 'mr' ? translation.mr : translation.en;
+      console.log('Translation result:', result);
+      return result;
     }
+    console.log('No translation found, returning original:', departmentName);
     return departmentName; // Return original if no translation found
   };
 
@@ -75,14 +88,12 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
 
   // Re-fetch departments when language changes to apply translations
   React.useEffect(() => {
-    // Force re-render when language changes to update translations
-    const timer = setTimeout(() => {
-      if (departments.length > 0) {
-        setDepartments([...departments]);
-      }
-    }, 100);
-    
-    return () => clearTimeout(timer);
+    // Force component re-render when language changes
+    if (departments.length > 0) {
+      console.log('Language changed to:', i18n.language, 'forcing re-render');
+      // Create a new array reference to trigger re-render
+      setDepartments(prevDepts => [...prevDepts]);
+    }
   }, [i18n.language]);
 
   const fetchDepartments = async () => {
@@ -521,7 +532,11 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
                           <tr key={dept.dept_id} className="border-b border-gray-100 hover:bg-gray-50">
                             <td className="py-3 px-4 text-gray-900 font-medium">{dept.dept_id}</td>
                             <td className="py-3 px-4 text-gray-900">
-                              {getTranslatedDepartmentName(dept.department)}
+                              {(() => {
+                                const translatedName = getTranslatedDepartmentName(dept.department);
+                                console.log('Rendering department:', dept.department, 'as:', translatedName);
+                                return translatedName;
+                              })()}
                             </td>
                             <td className="py-3 px-4 text-gray-600">
                               {new Date(dept.created_at).toLocaleDateString('en-GB')}
