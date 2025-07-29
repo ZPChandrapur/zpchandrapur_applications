@@ -516,9 +516,7 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
                         filteredDepartments.map((dept) => (
                           <tr key={dept.dept_id} className="border-b border-gray-100 hover:bg-gray-50">
                             <td className="py-3 px-4 text-gray-900 font-medium">{dept.dept_id}</td>
-                            <td className="py-3 px-4 text-gray-900">
-                              {getTranslatedDepartmentName(dept.department)}
-                            </td>
+                            <td className="py-3 px-4 text-gray-900">{getTranslatedDepartmentName(dept.department)}</td>
                             <td className="py-3 px-4 text-gray-600">
                               {new Date(dept.created_at).toLocaleDateString('en-GB')}
                             </td>
