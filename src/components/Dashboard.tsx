@@ -30,6 +30,7 @@ import { supabase } from '../lib/supabase';
 import { usePermissions } from '../hooks/usePermissions';
 import { PermissionGuard } from './PermissionGuard';
 import { LanguageSwitcher } from './LanguageSwitcher';
+import { ERMSDashboard } from './ERMSDashboard';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 interface DashboardProps {
@@ -176,6 +177,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
 
   // Render individual app dashboard
   if (selectedApp) {
+    // Special handling for ERMS
+    if (selectedApp === 'erms') {
+      return <ERMSDashboard onBack={handleBackToDashboard} />;
+    }
+
     const app = systems.find(s => s.id === selectedApp);
     if (!app) return null;
 

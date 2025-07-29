@@ -1,0 +1,407 @@
+import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { 
+  ArrowLeft,
+  Building2,
+  Users,
+  Calendar,
+  FileText,
+  BarChart3,
+  Settings,
+  HelpCircle,
+  Phone,
+  Plus,
+  Search,
+  Edit,
+  Trash2,
+  Building,
+  MapPin,
+  UserCheck,
+  Briefcase,
+  Filter
+} from 'lucide-react';
+
+interface ERMSDashboardProps {
+  onBack: () => void;
+}
+
+export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
+  const { t } = useTranslation();
+  const [activeSection, setActiveSection] = useState('organization-setup');
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const sidebarItems = [
+    {
+      id: 'employee-dashboard',
+      icon: Users,
+      title: 'Employee Dashboard',
+      subtitle: 'View employee statistics and manage records'
+    },
+    {
+      id: 'retirement-dashboard',
+      icon: Calendar,
+      title: 'Retirement Dashboard',
+      subtitle: 'Manage retirement processes and benefits'
+    },
+    {
+      id: 'retirement-tracker',
+      icon: BarChart3,
+      title: 'Retirement Tracker',
+      subtitle: 'Track retirement progress, pay commission and insurance'
+    },
+    {
+      id: 'retirement-file-tracker',
+      icon: FileText,
+      title: 'Retirement File Tracker',
+      subtitle: 'Track retirement case submissions and approval workflow'
+    },
+    {
+      id: 'analytics-dashboard',
+      icon: BarChart3,
+      title: 'Analytics Dashboard',
+      subtitle: 'Real-time insights and comprehensive reporting'
+    },
+    {
+      id: 'organization-setup',
+      icon: Building2,
+      title: 'Organization Setup',
+      subtitle: 'Manage departments, designations, talukas, and office locations',
+      active: true
+    },
+    {
+      id: 'custom-reports',
+      icon: FileText,
+      title: 'Custom Reports',
+      subtitle: 'Create interactive reports and graphs from all database tables'
+    },
+    {
+      id: 'instructions',
+      icon: HelpCircle,
+      title: 'Instructions',
+      subtitle: 'System instructions and operational guidelines'
+    },
+    {
+      id: 'contact-support',
+      icon: Phone,
+      title: 'Contact & Support',
+      subtitle: 'Get help and raise support tickets'
+    }
+  ];
+
+  const kpiCards = [
+    {
+      title: 'Total Departments',
+      value: '11',
+      subtitle: 'Active departments',
+      icon: Building,
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50'
+    },
+    {
+      title: 'Total Designations',
+      value: '19',
+      subtitle: 'Job positions',
+      icon: Briefcase,
+      color: 'text-green-600',
+      bgColor: 'bg-green-50'
+    },
+    {
+      title: 'Total Clerks',
+      value: '29',
+      subtitle: '16 active',
+      icon: UserCheck,
+      color: 'text-purple-600',
+      bgColor: 'bg-purple-50'
+    },
+    {
+      title: 'Total Talukas',
+      value: '15',
+      subtitle: 'Administrative units',
+      icon: MapPin,
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-50'
+    },
+    {
+      title: 'Office Locations',
+      value: '34',
+      subtitle: 'Work locations',
+      icon: Building2,
+      color: 'text-indigo-600',
+      bgColor: 'bg-indigo-50'
+    }
+  ];
+
+  const departmentData = [
+    { name: 'Health Department', createdDate: '15/6/2025', lastUpdated: '15/6/2025' },
+    { name: 'Agriculture Department', createdDate: '15/6/2025', lastUpdated: '15/6/2025' },
+    { name: 'Rural Water Supply Department', createdDate: '15/6/2025', lastUpdated: '15/6/2025' },
+    { name: 'Panchayat Department', createdDate: '15/6/2025', lastUpdated: '15/6/2025' }
+  ];
+
+  const tabItems = [
+    { id: 'departments', label: 'Departments (11)', icon: Building },
+    { id: 'designations', label: 'Designations (19)', icon: Briefcase },
+    { id: 'clerk-management', label: 'Clerk Management (29)', icon: UserCheck },
+    { id: 'talukas', label: 'Talukas (15)', icon: MapPin },
+    { id: 'office-locations', label: 'Office Locations (34)', icon: Building2 }
+  ];
+
+  const [activeTab, setActiveTab] = useState('departments');
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex">
+      {/* Sidebar */}
+      <div className="w-64 bg-white shadow-lg border-r border-gray-200">
+        {/* Header */}
+        <div className="p-4 border-b border-gray-200">
+          <div className="flex items-center space-x-3 mb-2">
+            <button
+              onClick={onBack}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <ArrowLeft className="h-5 w-5 text-gray-600" />
+            </button>
+            <div className="bg-blue-100 p-2 rounded-lg">
+              <Building2 className="h-6 w-6 text-blue-600" />
+            </div>
+            <div>
+              <h1 className="font-bold text-gray-900">ERMS</h1>
+              <p className="text-xs text-gray-600">Employee Retirement Management</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Navigation Items */}
+        <div className="p-2">
+          {sidebarItems.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => setActiveSection(item.id)}
+              className={`w-full text-left p-3 rounded-lg mb-1 transition-all duration-200 ${
+                activeSection === item.id
+                  ? 'bg-blue-500 text-white shadow-md'
+                  : 'hover:bg-gray-50 text-gray-700'
+              }`}
+            >
+              <div className="flex items-start space-x-3">
+                <item.icon className={`h-5 w-5 mt-0.5 ${
+                  activeSection === item.id ? 'text-white' : 'text-gray-400'
+                }`} />
+                <div>
+                  <div className={`font-medium text-sm ${
+                    activeSection === item.id ? 'text-white' : 'text-gray-900'
+                  }`}>
+                    {item.title}
+                  </div>
+                  <div className={`text-xs mt-1 ${
+                    activeSection === item.id ? 'text-blue-100' : 'text-gray-500'
+                  }`}>
+                    {item.subtitle}
+                  </div>
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+
+        {/* System Status */}
+        <div className="absolute bottom-4 left-4 right-4">
+          <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+            <div className="flex items-center space-x-2">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <span className="text-sm font-medium text-green-800">System Status</span>
+            </div>
+            <p className="text-xs text-green-600 mt-1">All systems operational</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 overflow-auto">
+        {/* Header */}
+        <div className="bg-white border-b border-gray-200 px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Zilla Parishad Chandrapur</h1>
+              <p className="text-gray-600">Employee Retirement Management System</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Organization Setup Content */}
+        <div className="p-6">
+          {/* Organization Setup Header */}
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center space-x-3">
+              <div className="bg-blue-100 p-2 rounded-lg">
+                <Building2 className="h-6 w-6 text-blue-600" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">Organization Setup</h2>
+                <p className="text-gray-600">Manage organizational structure and master data</p>
+              </div>
+            </div>
+            <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
+              <Plus className="h-4 w-4" />
+              <span>Add department</span>
+            </button>
+          </div>
+
+          {/* KPI Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+            {kpiCards.map((card, index) => (
+              <div key={index} className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
+                <div className="flex items-center justify-between mb-3">
+                  <div className={`${card.bgColor} p-2 rounded-lg`}>
+                    <card.icon className={`h-5 w-5 ${card.color}`} />
+                  </div>
+                </div>
+                <div className="text-2xl font-bold text-gray-900 mb-1">{card.value}</div>
+                <div className="text-sm text-gray-600 mb-1">{card.title}</div>
+                <div className="text-xs text-gray-500">{card.subtitle}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Charts Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            {/* Department-wise Designation Distribution */}
+            <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <div className="flex items-center space-x-2 mb-4">
+                <BarChart3 className="h-5 w-5 text-blue-600" />
+                <h3 className="font-semibold text-gray-900">Department-wise Designation Distribution</h3>
+              </div>
+              <div className="space-y-3">
+                {[
+                  { name: 'आरोग्य विभाग', count: 4, color: 'bg-blue-500' },
+                  { name: 'कामगार प्रशासन विभाग', count: 4, color: 'bg-blue-500' },
+                  { name: 'पशुसंवर्धन विभाग', count: 2, color: 'bg-blue-400' },
+                  { name: 'शिक्षण विभाग', count: 2, color: 'bg-blue-400' },
+                  { name: 'कृषी विभाग', count: 1, color: 'bg-blue-300' },
+                  { name: 'ग्रामीय पाणीपुरवठा विभाग', count: 1, color: 'bg-blue-300' },
+                  { name: 'पंचायत विभाग', count: 1, color: 'bg-blue-300' },
+                  { name: 'बांधकाम विभाग', count: 1, color: 'bg-blue-300' }
+                ].map((item, index) => (
+                  <div key={index} className="flex items-center space-x-3">
+                    <div className="w-32 text-sm text-gray-700 truncate">{item.name}</div>
+                    <div className="flex-1 bg-gray-200 rounded-full h-2">
+                      <div className={`${item.color} h-2 rounded-full`} style={{ width: `${(item.count / 4) * 100}%` }}></div>
+                    </div>
+                    <div className="text-sm font-medium text-gray-900 w-6">{item.count}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Clerk Workload Distribution */}
+            <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <div className="flex items-center space-x-2 mb-4">
+                <Users className="h-5 w-5 text-green-600" />
+                <h3 className="font-semibold text-gray-900">Clerk Workload Distribution</h3>
+              </div>
+              <div className="space-y-3">
+                {[
+                  { name: 'pr@coparpana', workload: 'Low', color: 'bg-green-500' },
+                  { name: 'pr@nagbhid', workload: 'Low', color: 'bg-green-500' },
+                  { name: 'health@zpchandra...', workload: 'Low', color: 'bg-green-400' },
+                  { name: 'pr@chimur', workload: 'Low', color: 'bg-green-400' },
+                  { name: 'pr@gadpipari', workload: 'Low', color: 'bg-green-400' },
+                  { name: 'pr@bhadravati', workload: 'Low', color: 'bg-green-300' },
+                  { name: 'pr@chandrapur', workload: 'Low', color: 'bg-green-300' },
+                  { name: 'pr@mul', workload: 'Low', color: 'bg-green-300' }
+                ].map((item, index) => (
+                  <div key={index} className="flex items-center justify-between">
+                    <div className="text-sm text-gray-700">{item.name}</div>
+                    <div className="flex items-center space-x-2">
+                      <div className={`${item.color} h-2 w-16 rounded-full`}></div>
+                      <span className="text-xs text-gray-500 w-8">{item.workload}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Tabs */}
+          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div className="border-b border-gray-200">
+              <div className="flex space-x-0 overflow-x-auto">
+                {tabItems.map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex items-center space-x-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                      activeTab === tab.id
+                        ? 'border-blue-500 text-blue-600 bg-blue-50'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    <tab.icon className="h-4 w-4" />
+                    <span>{tab.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Department Management Table */}
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Department Management</h3>
+                <button className="text-gray-400 hover:text-gray-600">
+                  <Filter className="h-5 w-5" />
+                </button>
+              </div>
+
+              {/* Search */}
+              <div className="relative mb-4">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search departments..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              <div className="text-sm text-gray-500 mb-4">Showing 11 records</div>
+
+              {/* Table */}
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-gray-200">
+                      <th className="text-left py-3 px-4 font-medium text-gray-700">DEPARTMENT NAME</th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-700">CREATED DATE</th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-700">LAST UPDATED</th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-700">ACTIONS</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {departmentData.map((dept, index) => (
+                      <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
+                        <td className="py-3 px-4 text-gray-900">{dept.name}</td>
+                        <td className="py-3 px-4 text-gray-600">{dept.createdDate}</td>
+                        <td className="py-3 px-4 text-gray-600">{dept.lastUpdated}</td>
+                        <td className="py-3 px-4">
+                          <div className="flex items-center space-x-2">
+                            <button className="text-blue-600 hover:text-blue-800 p-1">
+                              <Edit className="h-4 w-4" />
+                            </button>
+                            <button className="text-red-600 hover:text-red-800 p-1">
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
