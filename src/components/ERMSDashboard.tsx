@@ -57,6 +57,7 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
     'ग्रामीय पाणीपुरवठा विभाग': { en: 'Rural Water Supply Department', mr: 'ग्रामीय पाणीपुरवठा विभाग' },
     'पंचायत विभाग': { en: 'Panchayat Department', mr: 'पंचायत विभाग' },
     'बांधकाम विभाग': { en: 'Construction Department', mr: 'बांधकाम विभाग' },
+    'सामान्य प्रशासन विभाग': { en: 'General Administration Department', mr: 'सामान्य प्रशासन विभाग' },
     // Add reverse mappings for English to Marathi
     'Health Department': { en: 'Health Department', mr: 'आरोग्य विभाग' },
     'Labor Administration Department': { en: 'Labor Administration Department', mr: 'कामगार प्रशासन विभाग' },
@@ -65,7 +66,8 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
     'Agriculture Department': { en: 'Agriculture Department', mr: 'कृषी विभाग' },
     'Rural Water Supply Department': { en: 'Rural Water Supply Department', mr: 'ग्रामीय पाणीपुरवठा विभाग' },
     'Panchayat Department': { en: 'Panchayat Department', mr: 'पंचायत विभाग' },
-    'Construction Department': { en: 'Construction Department', mr: 'बांधकाम विभाग' }
+    'Construction Department': { en: 'Construction Department', mr: 'बांधकाम विभाग' },
+    'General Administration Department': { en: 'General Administration Department', mr: 'सामान्य प्रशासन विभाग' }
   };
 
   // Function to get translated department name
