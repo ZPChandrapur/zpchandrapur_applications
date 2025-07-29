@@ -43,8 +43,7 @@ interface ERMSDashboardProps {
 }
 
 export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
-  const { t } = useTranslation();
-  const { i18n } = useTranslation();
+  const { t, i18n, ready } = useTranslation();
   const [activeSection, setActiveSection] = useState('organization-setup');
   const [searchTerm, setSearchTerm] = useState('');
   const [departments, setDepartments] = useState<Department[]>([]);
