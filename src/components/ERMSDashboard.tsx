@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../lib/supabase';
-import { supabase } from '../lib/supabase';
 import { 
   ArrowLeft,
   Building2,
