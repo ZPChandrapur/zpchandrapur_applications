@@ -54,40 +54,147 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
 
   // Fetch departments from Supabase
   React.useEffect(() => {
-    fetchDepartments();
+    console.log('ERMSDashboard mounted, attempting to fetch departments...');
+    testDatabaseConnection();
   }, []);
+
+  const testDatabaseConnection = async () => {
+    console.log('=== TESTING DATABASE CONNECTION ===');
+    
+    // Test 1: Check if we can connect to Supabase at all
+    try {
+      console.log('Test 1: Testing basic Supabase connection...');
+      const { data: authData, error: authError } = await supabase.auth.getUser();
+      console.log('Auth test result:', { authData, authError });
+    } catch (err) {
+      console.error('Auth test failed:', err);
+    }
+
+    // Test 2: Try to access public schema first
+    try {
+      console.log('Test 2: Testing public schema access...');
+      const { data: publicData, error: publicError } = await supabase
+        .from('roles')
+        .select('*')
+        .limit(1);
+      console.log('Public schema test result:', { publicData, publicError });
+    } catch (err) {
+      console.error('Public schema test failed:', err);
+    }
+
+    // Test 3: Try different ways to access erms.department
+    const testMethods = [
+      {
+        name: 'Method 1: Direct erms.department',
+        query: () => supabase.from('erms.department').select('*')
+      },
+      {
+        name: 'Method 2: With schema in select',
+        query: () => supabase.from('department').select('*').schema('erms')
+      },
+      {
+        name: 'Method 3: RPC call to get departments',
+        query: () => supabase.rpc('get_departments_from_erms')
+      }
+    ];
+
+    for (const method of testMethods) {
+      try {
+        console.log(`Test 3: ${method.name}...`);
+        const result = await method.query();
+        console.log(`${method.name} result:`, result);
+        
+        if (result.data && !result.error) {
+          console.log('✅ SUCCESS! Found working method:', method.name);
+          setDepartments(result.data);
+          setIsLoading(false);
+          return;
+        }
+      } catch (err) {
+        console.error(`${method.name} failed:`, err);
+      }
+    }
+
+    // Test 4: Check what tables are available
+    try {
+      console.log('Test 4: Checking available tables...');
+      const { data: tablesData, error: tablesError } = await supabase
+        .from('information_schema.tables')
+        .select('table_schema, table_name')
+        .eq('table_schema', 'erms');
+      console.log('Available ERMS tables:', { tablesData, tablesError });
+    } catch (err) {
+      console.error('Tables check failed:', err);
+    }
+
+    // If we get here, nothing worked
+    setError('Unable to connect to erms.department table. Check console for details.');
+    setIsLoading(false);
+  };
 
   const fetchDepartments = async () => {
     try {
       setIsLoading(true);
       setError('');
       
-      console.log('Fetching departments from erms.department table...');
+      console.log('Attempting to fetch departments...');
       
-      // Fetch departments from erms.department
       const { data, error, count } = await supabase
         .from('erms.department')
         .select('*', { count: 'exact' });
 
-      console.log('Supabase response:', { data, error, count });
+      console.log('Fetch result:', { data, error, count });
       
       if (error) {
-        console.error('Database error:', error);
-        setError(`Database Error: ${error.message}`);
-        return;
+        throw error;
       }
       
-      console.log('Successfully fetched departments from erms.department');
-      console.log('Found', count, 'departments');
-      console.log('Data:', data);
+      if (data) {
+        console.log('✅ Successfully fetched departments:', data);
+        setDepartments(data);
+      } else {
+        console.log('⚠️ No data returned');
+        setDepartments([]);
+      }
       
-      setDepartments(data || []);
-      
-    } catch (err) {
-      console.error('Failed to fetch departments:', err);
-      setError(`Failed to fetch departments: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    } catch (err: any) {
+      console.error('❌ Error fetching departments:', err);
+      setError(`Failed to fetch departments: ${err.message || 'Unknown error'}`);
+      setDepartments([]);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Manual refresh function for testing
+  const handleRefresh = () => {
+    console.log('Manual refresh triggered...');
+    setIsLoading(true);
+    setError('');
+    fetchDepartments();
+  };
+
+  // Test with different table names
+  const testDifferentTableNames = async () => {
+    const tableNames = ['department', 'departments', 'erms.department', 'erms.departments'];
+    
+    for (const tableName of tableNames) {
+      try {
+        console.log(`Testing table name: ${tableName}`);
+        const { data, error } = await supabase
+          .from(tableName)
+          .select('*')
+          .limit(1);
+        
+        console.log(`Result for ${tableName}:`, { data, error });
+        
+        if (!error && data) {
+          console.log(`✅ Found working table name: ${tableName}`);
+        return;
+        }
+      } catch (err) {
+        console.log(`❌ ${tableName} failed:`, err);
+      }
     }
   };
 
@@ -434,6 +541,18 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-gray-900">Department Management</h3>
                 <div className="flex items-center space-x-3">
+                  <button
+                    onClick={handleRefresh}
+                    className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+                  >
+                    <span>🔄 Refresh</span>
+                  </button>
+                  <button
+                    onClick={testDifferentTableNames}
+                    className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+                  >
+                    <span>🧪 Test Tables</span>
+                  </button>
                   <button
                     onClick={() => setShowAddModal(true)}
                     className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
