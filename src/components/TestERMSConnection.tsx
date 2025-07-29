@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ermsClient, supabase } from '../lib/supabase';
+import { ermsClient, supabase, testERMSConnection } from '../lib/supabase';
 import { Database, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 
 interface TestResult {
@@ -21,9 +21,37 @@ export const TestERMSConnection: React.FC = () => {
     setIsRunning(true);
     setResults([]);
 
-    // Test 1: Basic Supabase Connection
+    // Test 1: Use the built-in test function
     try {
-      addResult({ test: 'Basic Supabase Connection', status: 'pending', message: 'Testing...' });
+      addResult({ test: 'ERMS Schema Connection Test', status: 'pending', message: 'Testing connection with provided credentials...' });
+      
+      const result = await testERMSConnection();
+      
+      if (result.success) {
+        addResult({ 
+          test: 'ERMS Schema Connection Test', 
+          status: 'success', 
+          message: `Successfully connected! Found ${result.count} departments`,
+          data: result.data
+        });
+      } else {
+        addResult({ 
+          test: 'ERMS Schema Connection Test', 
+          status: 'error', 
+          message: result.error || 'Connection failed'
+        });
+      }
+    } catch (error: any) {
+      addResult({ 
+        test: 'ERMS Schema Connection Test', 
+        status: 'error', 
+        message: error.message 
+      });
+    }
+
+    // Test 2: Basic Supabase Connection
+    try {
+      addResult({ test: 'Basic Supabase Connection', status: 'pending', message: 'Testing basic connection...' });
       
       const { data, error } = await supabase.auth.getSession();
       
@@ -43,7 +71,7 @@ export const TestERMSConnection: React.FC = () => {
       });
     }
 
-    // Test 2: Public Schema Access (roles table)
+    // Test 3: Public Schema Access (roles table)
     try {
       addResult({ test: 'Public Schema Access', status: 'pending', message: 'Testing roles table...' });
       
@@ -68,9 +96,9 @@ export const TestERMSConnection: React.FC = () => {
       });
     }
 
-    // Test 3: ERMS Schema Access (department table)
+    // Test 4: Direct ERMS Schema Access
     try {
-      addResult({ test: 'ERMS Schema Access', status: 'pending', message: 'Testing department table...' });
+      addResult({ test: 'Direct ERMS Schema Access', status: 'pending', message: 'Testing direct department table access...' });
       
       const { data, error } = await ermsClient
         .from('department')
@@ -80,22 +108,22 @@ export const TestERMSConnection: React.FC = () => {
       if (error) throw error;
       
       addResult({ 
-        test: 'ERMS Schema Access', 
+        test: 'Direct ERMS Schema Access', 
         status: 'success', 
         message: `Found ${data?.length || 0} departments`,
         data: data
       });
     } catch (error: any) {
       addResult({ 
-        test: 'ERMS Schema Access', 
+        test: 'Direct ERMS Schema Access', 
         status: 'error', 
         message: error.message 
       });
     }
 
-    // Test 4: ERMS Schema Table Structure
+    // Test 5: ERMS Table Structure Analysis
     try {
-      addResult({ test: 'ERMS Table Structure', status: 'pending', message: 'Checking table structure...' });
+      addResult({ test: 'ERMS Table Structure Analysis', status: 'pending', message: 'Analyzing table structure...' });
       
       const { data, error } = await ermsClient
         .from('department')
@@ -107,14 +135,14 @@ export const TestERMSConnection: React.FC = () => {
       const columns = data && data.length > 0 ? Object.keys(data[0]) : [];
       
       addResult({ 
-        test: 'ERMS Table Structure', 
+        test: 'ERMS Table Structure Analysis', 
         status: 'success', 
         message: `Table has ${columns.length} columns: ${columns.join(', ')}`,
         data: { columns, sampleData: data?.[0] }
       });
     } catch (error: any) {
       addResult({ 
-        test: 'ERMS Table Structure', 
+        test: 'ERMS Table Structure Analysis', 
         status: 'error', 
         message: error.message 
       });
@@ -152,7 +180,12 @@ export const TestERMSConnection: React.FC = () => {
           <Database className="h-6 w-6 text-blue-600" />
           <div>
             <h2 className="text-xl font-bold text-gray-900">ERMS Schema Connection Test</h2>
-            <p className="text-gray-600">Test connection to Supabase ERMS schema</p>
+            <p className="text-gray-600">Test connection to Supabase ERMS schema with provided credentials</p>
+            <div className="mt-2 text-sm text-gray-500">
+              <p><strong>URL:</strong> https://tvmqkondihsomlebizjj.supabase.co</p>
+              <p><strong>Schema:</strong> erms</p>
+              <p><strong>Table:</strong> department</p>
+            </div>
           </div>
         </div>
 

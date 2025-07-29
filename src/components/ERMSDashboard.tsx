@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ermsClient } from '../lib/supabase';
+import { ermsClient, testERMSConnection } from '../lib/supabase';
 import { 
   ArrowLeft,
   Building2,
@@ -54,7 +54,18 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
 
   // Fetch departments from Supabase
   React.useEffect(() => {
-    console.log('ERMSDashboard mounted, attempting to fetch departments...');
+    console.log('🚀 ERMSDashboard mounted, testing ERMS connection...');
+    testERMSConnection().then(result => {
+      if (result.success) {
+        console.log('✅ ERMS Connection successful, fetching departments...');
+        setDepartments(result.data || []);
+        setIsLoading(false);
+      } else {
+        console.error('❌ ERMS Connection failed:', result.error);
+        setError(result.error || 'Failed to connect to ERMS schema');
+        setIsLoading(false);
+      }
+    });
     fetchDepartments();
   }, []);
 
@@ -63,28 +74,29 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
       setIsLoading(true);
       setError('');
       
-      console.log('Attempting to fetch departments...');
+      console.log('🔍 Fetching departments from erms.department...');
       
       const { data, error, count } = await ermsClient
         .from('department')
         .select('*', { count: 'exact' });
 
-      console.log('Fetch result:', { data, error, count });
+      console.log('📊 Fetch result:', { data, error, count });
       
       if (error) {
+        console.error('❌ Department fetch error:', error);
         throw error;
       }
       
       if (data) {
-        console.log('✅ Successfully fetched departments:', data);
+        console.log(`✅ Successfully fetched ${data.length} departments:`, data);
         setDepartments(data);
       } else {
-        console.log('⚠️ No data returned');
+        console.log('⚠️ No department data returned');
         setDepartments([]);
       }
       
     } catch (err: any) {
-      console.error('❌ Error fetching departments:', err);
+      console.error('❌ Department fetch error:', err);
       setError(`Failed to fetch departments: ${err.message || 'Unknown error'}`);
       setDepartments([]);
     } finally {
@@ -94,7 +106,7 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
 
   // Manual refresh function for testing
   const handleRefresh = () => {
-    console.log('Manual refresh triggered...');
+    console.log('🔄 Manual refresh triggered...');
     setIsLoading(true);
     setError('');
     fetchDepartments();
@@ -445,13 +457,13 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
                 <div className="flex items-center space-x-3">
                   <button
                     onClick={handleRefresh}
-                    className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
                   >
-                    <span>🔄 Refresh</span>
+                    <span>🔄 Refresh Departments</span>
                   </button>
                   <button
                     onClick={() => setShowAddModal(true)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
                   >
                     <Plus className="h-4 w-4" />
                     <span>Add Department</span>
