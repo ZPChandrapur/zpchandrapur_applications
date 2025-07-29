@@ -47,40 +47,19 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('departments');
 
-  // Language-specific department names mapping
-  const departmentTranslations: { [key: string]: { en: string; mr: string } } = {
-    'आरोग्य विभाग': { en: 'Health Department', mr: 'आरोग्य विभाग' },
-    'कामगार प्रशासन विभाग': { en: 'Labor Administration Department', mr: 'कामगार प्रशासन विभाग' },
-    'पशुसंवर्धन विभाग': { en: 'Animal Husbandry Department', mr: 'पशुसंवर्धन विभाग' },
-    'शिक्षण विभाग': { en: 'Education Department', mr: 'शिक्षण विभाग' },
-    'कृषी विभाग': { en: 'Agriculture Department', mr: 'कृषी विभाग' },
-    'ग्रामीय पाणीपुरवठा विभाग': { en: 'Rural Water Supply Department', mr: 'ग्रामीय पाणीपुरवठा विभाग' },
-    'पंचायत विभाग': { en: 'Panchayat Department', mr: 'पंचायत विभाग' },
-    'बांधकाम विभाग': { en: 'Construction Department', mr: 'बांधकाम विभाग' },
-    'सामान्य प्रशासन विभाग': { en: 'General Administration Department', mr: 'सामान्य प्रशासन विभाग' },
-    // Add reverse mappings for English to Marathi
-    'Health Department': { en: 'Health Department', mr: 'आरोग्य विभाग' },
-    'Labor Administration Department': { en: 'Labor Administration Department', mr: 'कामगार प्रशासन विभाग' },
-    'Animal Husbandry Department': { en: 'Animal Husbandry Department', mr: 'पशुसंवर्धन विभाग' },
-    'Education Department': { en: 'Education Department', mr: 'शिक्षण विभाग' },
-    'Agriculture Department': { en: 'Agriculture Department', mr: 'कृषी विभाग' },
-    'Rural Water Supply Department': { en: 'Rural Water Supply Department', mr: 'ग्रामीय पाणीपुरवठा विभाग' },
-    'Panchayat Department': { en: 'Panchayat Department', mr: 'पंचायत विभाग' },
-    'Construction Department': { en: 'Construction Department', mr: 'बांधकाम विभाग' },
-    'General Administration Department': { en: 'General Administration Department', mr: 'सामान्य प्रशासन विभाग' }
-  };
-
-  // Function to get translated department name
+  // Function to get translated department name using i18n
   const getTranslatedDepartmentName = (departmentName: string) => {
-    console.log('Translating department:', departmentName, 'to language:', i18n.language);
-    const translation = departmentTranslations[departmentName];
-    if (translation) {
-      const result = i18n.language === 'mr' ? translation.mr : translation.en;
-      console.log('Translation result:', result);
-      return result;
+    // Try to get translation from i18n files
+    const translationKey = `erms.departments.${departmentName}`;
+    const translated = t(translationKey);
+    
+    // If translation exists and is different from the key, return it
+    if (translated && translated !== translationKey) {
+      return translated;
     }
-    console.log('No translation found, returning original:', departmentName);
-    return departmentName; // Return original if no translation found
+    
+    // Otherwise return the original name
+    return departmentName;
   };
 
   // Fetch departments from Supabase
@@ -393,18 +372,18 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
               </div>
               <div className="space-y-3">
                 {[
-                  { name: 'आरोग्य विभाग', count: 4, color: 'bg-blue-500' },
-                  { name: 'कामगार प्रशासन विभाग', count: 4, color: 'bg-blue-500' },
-                  { name: 'पशुसंवर्धन विभाग', count: 2, color: 'bg-blue-400' },
-                  { name: 'शिक्षण विभाग', count: 2, color: 'bg-blue-400' },
-                  { name: 'कृषी विभाग', count: 1, color: 'bg-blue-300' },
-                  { name: 'ग्रामीय पाणीपुरवठा विभाग', count: 1, color: 'bg-blue-300' },
-                  { name: 'पंचायत विभाग', count: 1, color: 'bg-blue-300' },
-                  { name: 'बांधकाम विभाग', count: 1, color: 'bg-blue-300' }
+                  { name: i18n.language === 'mr' ? 'आरोग्य विभाग' : 'Health Department', count: 4, color: 'bg-blue-500' },
+                  { name: i18n.language === 'mr' ? 'कामगार प्रशासन विभाग' : 'Labor Administration Department', count: 4, color: 'bg-blue-500' },
+                  { name: i18n.language === 'mr' ? 'पशुसंवर्धन विभाग' : 'Animal Husbandry Department', count: 2, color: 'bg-blue-400' },
+                  { name: i18n.language === 'mr' ? 'शिक्षण विभाग' : 'Education Department', count: 2, color: 'bg-blue-400' },
+                  { name: i18n.language === 'mr' ? 'कृषी विभाग' : 'Agriculture Department', count: 1, color: 'bg-blue-300' },
+                  { name: i18n.language === 'mr' ? 'ग्रामीय पाणीपुरवठा विभाग' : 'Rural Water Supply Department', count: 1, color: 'bg-blue-300' },
+                  { name: i18n.language === 'mr' ? 'पंचायत विभाग' : 'Panchayat Department', count: 1, color: 'bg-blue-300' },
+                  { name: i18n.language === 'mr' ? 'बांधकाम विभाग' : 'Construction Department', count: 1, color: 'bg-blue-300' }
                 ].map((item, index) => (
                   <div key={index} className="flex items-center space-x-3">
                     <div className="w-32 text-sm text-gray-700 truncate">
-                      {getTranslatedDepartmentName(item.name)}
+                      {item.name}
                     </div>
                     <div className="flex-1 bg-gray-200 rounded-full h-2">
                       <div className={`${item.color} h-2 rounded-full`} style={{ width: `${(item.count / 4) * 100}%` }}></div>
@@ -534,11 +513,7 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
                           <tr key={dept.dept_id} className="border-b border-gray-100 hover:bg-gray-50">
                             <td className="py-3 px-4 text-gray-900 font-medium">{dept.dept_id}</td>
                             <td className="py-3 px-4 text-gray-900">
-                              {(() => {
-                                const translatedName = getTranslatedDepartmentName(dept.department);
-                                console.log('Rendering department:', dept.department, 'as:', translatedName);
-                                return translatedName;
-                              })()}
+                              {getTranslatedDepartmentName(dept.department)}
                             </td>
                             <td className="py-3 px-4 text-gray-600">
                               {new Date(dept.created_at).toLocaleDateString('en-GB')}

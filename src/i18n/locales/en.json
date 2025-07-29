@@ -176,7 +176,18 @@
     "addFirstDepartment": "No departments found. Add your first department.",
     "adding": "Adding...",
     "fillAllFields": "Please fill in all fields",
-    "deleteConfirm": "Are you sure you want to delete this department?"
+    "deleteConfirm": "Are you sure you want to delete this department?",
+    "departments": {
+      "आरोग्य विभाग": "Health Department",
+      "कामगार प्रशासन विभाग": "Labor Administration Department", 
+      "पशुसंवर्धन विभाग": "Animal Husbandry Department",
+      "शिक्षण विभाग": "Education Department",
+      "कृषी विभाग": "Agriculture Department",
+      "ग्रामीय पाणीपुरवठा विभाग": "Rural Water Supply Department",
+      "पंचायत विभाग": "Panchayat Department",
+      "बांधकाम विभाग": "Construction Department",
+      "सामान्य प्रशासन विभाग": "General Administration Department"
+    }
   },
   "roles": {
     "developer": "Developer",
