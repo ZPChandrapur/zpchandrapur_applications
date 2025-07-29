@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ermsClient, testERMSConnection } from '../lib/supabase';
+import { ermsClient } from '../lib/supabase';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { 
   ArrowLeft,
@@ -31,19 +31,12 @@ interface Department {
   updated_at: string;
 }
 
-interface Department {
-  dept_id: string;
-  department: string;
-  created_at: string;
-  updated_at: string;
-}
-
 interface ERMSDashboardProps {
   onBack: () => void;
 }
 
 export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
-  const { t, i18n, ready } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [activeSection, setActiveSection] = useState('organization-setup');
   const [searchTerm, setSearchTerm] = useState('');
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -52,6 +45,7 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
   const [newDepartment, setNewDepartment] = useState({ dept_id: '', department: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [activeTab, setActiveTab] = useState('departments');
 
   // Language-specific department names mapping
   const departmentTranslations: { [key: string]: { en: string; mr: string } } = {
@@ -67,8 +61,6 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
 
   // Function to get translated department name
   const getTranslatedDepartmentName = (departmentName: string) => {
-    if (!ready) return departmentName; // Return original if translations not ready
-    
     const translation = departmentTranslations[departmentName];
     if (translation) {
       return i18n.language === 'mr' ? translation.mr : translation.en;
@@ -81,29 +73,30 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
     fetchDepartments();
   }, []);
 
+  // Re-fetch departments when language changes to apply translations
+  React.useEffect(() => {
+    if (departments.length > 0) {
+      // Force re-render with new translations
+      setDepartments([...departments]);
+    }
+  }, [i18n.language]);
+
   const fetchDepartments = async () => {
     try {
       setIsLoading(true);
       setError('');
       
-      console.log('🔍 Fetching departments from erms.department...');
-      
-      const { data, error, count } = await ermsClient
+      const { data, error } = await ermsClient
         .from('department')
-        .select('*', { count: 'exact' });
-
-      console.log('📊 Fetch result:', { data, error, count });
+        .select('*');
       
       if (error) {
-        console.error('❌ Department fetch error:', error);
         throw error;
       }
       
       if (data) {
-        console.log(`✅ Successfully fetched ${data.length} departments:`, data);
         setDepartments(data);
       } else {
-        console.log('⚠️ No department data returned');
         setDepartments([]);
       }
       
@@ -179,85 +172,85 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
     {
       id: 'employee-dashboard',
       icon: Users,
-      title: 'Employee Dashboard',
-      subtitle: 'View employee statistics and manage records'
+      title: t('erms.employeeDashboard') || 'Employee Dashboard',
+      subtitle: t('erms.employeeDashboardDesc') || 'View employee statistics and manage records'
     },
     {
       id: 'retirement-dashboard',
       icon: Calendar,
-      title: 'Retirement Dashboard',
-      subtitle: 'Manage retirement processes and benefits'
+      title: t('erms.retirementDashboard') || 'Retirement Dashboard',
+      subtitle: t('erms.retirementDashboardDesc') || 'Manage retirement processes and benefits'
     },
     {
       id: 'retirement-tracker',
       icon: BarChart3,
-      title: 'Retirement Tracker',
-      subtitle: 'Track retirement progress, pay commission and insurance'
+      title: t('erms.retirementTracker') || 'Retirement Tracker',
+      subtitle: t('erms.retirementTrackerDesc') || 'Track retirement progress, pay commission and insurance'
     },
     {
       id: 'retirement-file-tracker',
       icon: FileText,
-      title: 'Retirement File Tracker',
-      subtitle: 'Track retirement case submissions and approval workflow'
+      title: t('erms.retirementFileTracker') || 'Retirement File Tracker',
+      subtitle: t('erms.retirementFileTrackerDesc') || 'Track retirement case submissions and approval workflow'
     },
     {
       id: 'organization-setup',
       icon: Building2,
-      title: 'Organization Setup',
-      subtitle: 'Manage departments, designations, talukas, and office locations',
+      title: t('erms.organizationSetup'),
+      subtitle: t('erms.organizationSetupDesc') || 'Manage departments, designations, talukas, and office locations',
       active: true
     },
     {
       id: 'custom-reports',
       icon: FileText,
-      title: 'Custom Reports',
-      subtitle: 'Create interactive reports and graphs from all database tables'
+      title: t('erms.customReports') || 'Custom Reports',
+      subtitle: t('erms.customReportsDesc') || 'Create interactive reports and graphs from all database tables'
     },
     {
       id: 'instructions',
       icon: HelpCircle,
-      title: 'Instructions',
-      subtitle: 'System instructions and operational guidelines'
+      title: t('erms.instructions') || 'Instructions',
+      subtitle: t('erms.instructionsDesc') || 'System instructions and operational guidelines'
     }
   ];
 
   const kpiCards = [
     {
-      title: 'Total Departments',
+      title: t('erms.totalDepartments') || 'Total Departments',
       value: departments.length.toString(),
-      subtitle: 'Active departments',
+      subtitle: t('erms.activeDepartments') || 'Active departments',
       icon: Building,
       color: 'text-blue-600',
       bgColor: 'bg-blue-50'
     },
     {
-      title: 'Total Designations',
+      title: t('erms.totalDesignations') || 'Total Designations',
       value: '19',
-      subtitle: 'Job positions',
+      subtitle: t('erms.jobPositions') || 'Job positions',
       icon: Briefcase,
       color: 'text-green-600',
       bgColor: 'bg-green-50'
     },
     {
-      title: 'Total Clerks',
+      title: t('erms.totalClerks') || 'Total Clerks',
       value: '29',
-      subtitle: '16 active',
+      subtitle: t('erms.activeClerks') || '16 active',
       icon: UserCheck,
       color: 'text-purple-600',
       bgColor: 'bg-purple-50'
     },
     {
-      title: 'Total Talukas',
+      title: t('erms.totalTalukas') || 'Total Talukas',
       value: '15',
-      subtitle: 'Administrative units',
+      subtitle: t('erms.administrativeUnits') || 'Administrative units',
       icon: MapPin,
       color: 'text-orange-600',
       bgColor: 'bg-orange-50'
     },
     {
-      title: 'Office Locations',
+      title: t('erms.officeLocations') || 'Office Locations',
       value: '34',
-      subtitle: 'Work locations',
+      subtitle: t('erms.workLocations') || 'Work locations',
       icon: Building2,
       color: 'text-indigo-600',
       bgColor: 'bg-indigo-50'
@@ -265,14 +258,12 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
   ];
 
   const tabItems = [
-    { id: 'departments', label: `Departments (${departments.length})`, icon: Building },
-    { id: 'designations', label: 'Designations (19)', icon: Briefcase },
-    { id: 'clerk-management', label: 'Clerk Management (29)', icon: UserCheck },
-    { id: 'talukas', label: 'Talukas (15)', icon: MapPin },
-    { id: 'office-locations', label: 'Office Locations (34)', icon: Building2 }
+    { id: 'departments', label: `${t('erms.departments')} (${departments.length})`, icon: Building },
+    { id: 'designations', label: `${t('erms.designations')} (19)`, icon: Briefcase },
+    { id: 'clerk-management', label: `${t('erms.clerkManagement')} (29)`, icon: UserCheck },
+    { id: 'talukas', label: `${t('erms.talukas')} (15)`, icon: MapPin },
+    { id: 'office-locations', label: `${t('erms.officeLocations')} (34)`, icon: Building2 }
   ];
-
-  const [activeTab, setActiveTab] = useState('departments');
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -292,13 +283,8 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
             </div>
             <div>
               <h1 className="font-bold text-gray-900">ERMS</h1>
-              <p className="text-xs text-gray-600">Employee Retirement Management</p>
+              <p className="text-xs text-gray-600">{t('systems.erms.fullName')}</p>
             </div>
-          </div>
-          
-          {/* Language Switcher */}
-          <div className="mt-3 flex justify-end">
-            <LanguageSwitcher />
           </div>
         </div>
 
@@ -342,8 +328,8 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
         <div className="bg-white border-b border-gray-200 px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Zilla Parishad Chandrapur</h1>
-              <p className="text-gray-600">Employee Retirement Management System</p>
+              <h1 className="text-2xl font-bold text-gray-900">{t('dashboard.title')}</h1>
+              <p className="text-gray-600">{t('systems.erms.fullName')}</p>
             </div>
             <LanguageSwitcher />
           </div>
@@ -358,8 +344,8 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
                 <Building2 className="h-6 w-6 text-blue-600" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-gray-900">Organization Setup</h2>
-                <p className="text-gray-600">Manage organizational structure and master data</p>
+                <h2 className="text-xl font-bold text-gray-900">{t('erms.organizationSetup')}</h2>
+                <p className="text-gray-600">{t('erms.organizationSetupDesc') || 'Manage organizational structure and master data'}</p>
               </div>
             </div>
           </div>
@@ -386,7 +372,7 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
             <div className="bg-white rounded-lg border border-gray-200 p-6">
               <div className="flex items-center space-x-2 mb-4">
                 <BarChart3 className="h-5 w-5 text-blue-600" />
-                <h3 className="font-semibold text-gray-900">Department-wise Designation Distribution</h3>
+                <h3 className="font-semibold text-gray-900">{t('erms.departmentWiseDistribution') || 'Department-wise Designation Distribution'}</h3>
               </div>
               <div className="space-y-3">
                 {[
@@ -416,18 +402,18 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
             <div className="bg-white rounded-lg border border-gray-200 p-6">
               <div className="flex items-center space-x-2 mb-4">
                 <Users className="h-5 w-5 text-green-600" />
-                <h3 className="font-semibold text-gray-900">Clerk Workload Distribution</h3>
+                <h3 className="font-semibold text-gray-900">{t('erms.clerkWorkloadDistribution') || 'Clerk Workload Distribution'}</h3>
               </div>
               <div className="space-y-3">
                 {[
-                  { name: 'pr@coparpana', workload: 'Low', color: 'bg-green-500' },
-                  { name: 'pr@nagbhid', workload: 'Low', color: 'bg-green-500' },
-                  { name: 'health@zpchandra...', workload: 'Low', color: 'bg-green-400' },
-                  { name: 'pr@chimur', workload: 'Low', color: 'bg-green-400' },
-                  { name: 'pr@gadpipari', workload: 'Low', color: 'bg-green-400' },
-                  { name: 'pr@bhadravati', workload: 'Low', color: 'bg-green-300' },
-                  { name: 'pr@chandrapur', workload: 'Low', color: 'bg-green-300' },
-                  { name: 'pr@mul', workload: 'Low', color: 'bg-green-300' }
+                  { name: 'pr@coparpana', workload: t('erms.low') || 'Low', color: 'bg-green-500' },
+                  { name: 'pr@nagbhid', workload: t('erms.low') || 'Low', color: 'bg-green-500' },
+                  { name: 'health@zpchandra...', workload: t('erms.low') || 'Low', color: 'bg-green-400' },
+                  { name: 'pr@chimur', workload: t('erms.low') || 'Low', color: 'bg-green-400' },
+                  { name: 'pr@gadpipari', workload: t('erms.low') || 'Low', color: 'bg-green-400' },
+                  { name: 'pr@bhadravati', workload: t('erms.low') || 'Low', color: 'bg-green-300' },
+                  { name: 'pr@chandrapur', workload: t('erms.low') || 'Low', color: 'bg-green-300' },
+                  { name: 'pr@mul', workload: t('erms.low') || 'Low', color: 'bg-green-300' }
                 ].map((item, index) => (
                   <div key={index} className="flex items-center justify-between">
                     <div className="text-sm text-gray-700">{item.name}</div>
@@ -465,7 +451,7 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
             {/* Department Management Table */}
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">Department Management</h3>
+                <h3 className="text-lg font-semibold text-gray-900">{t('erms.departmentManagement')}</h3>
                 <div className="flex items-center space-x-3">
                   <button
                     onClick={() => setShowAddModal(true)}
