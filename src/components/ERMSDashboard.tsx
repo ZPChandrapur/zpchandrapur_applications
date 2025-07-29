@@ -75,10 +75,14 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
 
   // Re-fetch departments when language changes to apply translations
   React.useEffect(() => {
-    if (departments.length > 0) {
-      // Force re-render with new translations
-      setDepartments([...departments]);
-    }
+    // Force re-render when language changes to update translations
+    const timer = setTimeout(() => {
+      if (departments.length > 0) {
+        setDepartments([...departments]);
+      }
+    }, 100);
+    
+    return () => clearTimeout(timer);
   }, [i18n.language]);
 
   const fetchDepartments = async () => {
@@ -516,7 +520,9 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
                         filteredDepartments.map((dept) => (
                           <tr key={dept.dept_id} className="border-b border-gray-100 hover:bg-gray-50">
                             <td className="py-3 px-4 text-gray-900 font-medium">{dept.dept_id}</td>
-                            <td className="py-3 px-4 text-gray-900">{getTranslatedDepartmentName(dept.department)}</td>
+                            <td className="py-3 px-4 text-gray-900">
+                              {getTranslatedDepartmentName(dept.department)}
+                            </td>
                             <td className="py-3 px-4 text-gray-600">
                               {new Date(dept.created_at).toLocaleDateString('en-GB')}
                             </td>
