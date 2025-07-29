@@ -61,7 +61,7 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
     try {
       setIsLoading(true);
       const { data, error } = await supabase
-        .from('department')
+        .from('erms.department')
         .select('*')
         .order('created_at', { ascending: false });
 
@@ -87,7 +87,7 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
       setError('');
 
       const { error } = await supabase
-        .from('department')
+        .from('erms.department')
         .insert([{
           dept_id: newDepartment.dept_id.trim(),
           department: newDepartment.department.trim()
@@ -114,7 +114,7 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
 
     try {
       const { error } = await supabase
-        .from('department')
+        .from('erms.department')
         .delete()
         .eq('dept_id', deptId);
 
