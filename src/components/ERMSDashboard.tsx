@@ -56,12 +56,6 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
       subtitle: 'Track retirement case submissions and approval workflow'
     },
     {
-      id: 'analytics-dashboard',
-      icon: BarChart3,
-      title: 'Analytics Dashboard',
-      subtitle: 'Real-time insights and comprehensive reporting'
-    },
-    {
       id: 'organization-setup',
       icon: Building2,
       title: 'Organization Setup',
@@ -79,12 +73,6 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
       icon: HelpCircle,
       title: 'Instructions',
       subtitle: 'System instructions and operational guidelines'
-    },
-    {
-      id: 'contact-support',
-      icon: Phone,
-      title: 'Contact & Support',
-      subtitle: 'Get help and raise support tickets'
     }
   ];
 
@@ -202,17 +190,6 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
               </div>
             </button>
           ))}
-        </div>
-
-        {/* System Status */}
-        <div className="absolute bottom-4 left-4 right-4">
-          <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-            <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <span className="text-sm font-medium text-green-800">System Status</span>
-            </div>
-            <p className="text-xs text-green-600 mt-1">All systems operational</p>
-          </div>
         </div>
       </div>
 
