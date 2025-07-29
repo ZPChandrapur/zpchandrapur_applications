@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { supabase } from '../lib/supabase';
+import { ermsClient } from '../lib/supabase';
 import { 
   ArrowLeft,
   Building2,
@@ -65,7 +65,7 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
       
       console.log('Attempting to fetch departments...');
       
-      const { data, error, count } = await supabase
+      const { data, error, count } = await ermsClient
         .from('department')
         .select('*', { count: 'exact' });
 
@@ -111,7 +111,7 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
       setIsSubmitting(true);
       setError('');
 
-      const { error } = await supabase
+      const { error } = await ermsClient
         .from('department')
         .insert([{
           dept_id: newDepartment.dept_id.trim(),
@@ -138,7 +138,7 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
     if (!confirm('Are you sure you want to delete this department?')) return;
 
     try {
-      const { error } = await supabase
+      const { error } = await ermsClient
         .from('department')
         .delete()
         .eq('dept_id', deptId);

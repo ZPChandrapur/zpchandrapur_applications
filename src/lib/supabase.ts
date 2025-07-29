@@ -7,7 +7,11 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+// Main client for public schema (auth, roles, permissions)
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+// ERMS-specific client for erms schema
+export const ermsClient = createClient(supabaseUrl, supabaseAnonKey, {
   db: {
     schema: 'erms'
   }
