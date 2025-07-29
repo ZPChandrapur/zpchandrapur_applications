@@ -40,7 +40,7 @@ export const usePermissions = (user: User | null): PermissionCheck => {
 
         // Call the database function to get user permissions
         const { data, error: permError } = await supabase
-          .rpc('get_user_permissions', { user_uuid: user.id });
+          .rpc('get_user_permissions', { user_uuid: user.id }, { schema: 'public' });
 
         if (permError) {
           throw permError;
