@@ -146,8 +146,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         if (clerksError) {
           console.error('❌ Clerks fetch error:', clerksError);
           setClerks([]);
-          // Set clerksData to empty array to avoid undefined error
-          const clerksData = [];
         } else {
           const formattedClerks = clerksData?.map(clerk => ({
             user_id: clerk.user_id,
@@ -156,6 +154,12 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
           })) || [];
           setClerks(formattedClerks);
           console.log('✅ Clerks fetched:', formattedClerks.length);
+          
+          // Update KPI with actual clerk count
+          setKpiData(prev => ({
+            ...prev,
+            totalClerks: formattedClerks.length
+          }));
         }
       }
       
@@ -209,7 +213,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         totalEmployees,
         upcomingRetirements,
         departments: departmentsData?.length || 0,
-        totalClerks: clerks.length || 0,
+        totalClerks: 0, // Will be updated when clerks are fetched
         assignedEmployees,
         unassignedEmployees
       });
@@ -252,7 +256,10 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     const clerkCounts = new Map();
     employeesData.forEach(emp => {
       if (emp.assigned_clerk) {
-        clerkCounts.set(emp.assigned_clerk, (clerkCounts.get(emp.assigned_clerk) || 0) + 1);
+        // Find clerk name by user_id
+        const clerk = clerks.find(c => c.user_id === emp.assigned_clerk);
+        const clerkName = clerk ? clerk.name : emp.assigned_clerk;
+        clerkCounts.set(clerkName, (clerkCounts.get(clerkName) || 0) + 1);
       }
     });
     
@@ -353,7 +360,9 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     const matchesSearch = emp.emp_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          emp.emp_id?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesDepartment = selectedDepartment === t('erms.allDepartments') || emp.dept_id === selectedDepartment;
-    const matchesClerk = selectedClerk === t('erms.allClerks') || emp.assigned_clerk === selectedClerk;
+    const matchesClerk = selectedClerk === t('erms.allClerks') || 
+                        emp.assigned_clerk === selectedClerk ||
+                        clerks.find(c => c.user_id === emp.assigned_clerk)?.name === selectedClerk;
     const matchesReason = selectedReason === t('erms.allReasons') || emp.reason === selectedReason;
     
     return matchesSearch && matchesDepartment && matchesClerk && matchesReason;
@@ -619,7 +628,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
               >
                 <option>{t('erms.allClerks')}</option>
                 {clerks.map(clerk => (
-                  <option key={clerk.user_id} value={clerk.name}>{clerk.name}</option>
+                  <option key={clerk.user_id} value={clerk.user_id}>{clerk.name}</option>
                 ))}
               </select>
               
@@ -684,7 +693,10 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                       {employee.retirement_date ? new Date(employee.retirement_date).toLocaleDateString() : '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {employee.assigned_clerk || t('erms.unassigned')}
+                      {employee.assigned_clerk ? 
+                        (clerks.find(c => c.user_id === employee.assigned_clerk)?.name || employee.assigned_clerk) : 
+                        t('erms.unassigned')
+                      }
                     </td>
                   </tr>
                 ))}
@@ -805,7 +817,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   >
                     <option value="">{t('erms.selectClerk')}</option>
                     {clerks.map(clerk => (
-                      <option key={clerk.user_id} value={clerk.name}>{clerk.name}</option>
+                      <option key={clerk.user_id} value={clerk.user_id}>{clerk.name}</option>
                     ))}
                   </select>
                 </div>
