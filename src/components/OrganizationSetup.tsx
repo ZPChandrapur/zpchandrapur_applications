@@ -81,12 +81,6 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
       color: 'bg-green-500'
     },
     {
-      id: 'clerks',
-      name: t('erms.clerkManagement'),
-      icon: UserCheck,
-      color: 'bg-purple-500'
-    },
-    {
       id: 'talukas',
       name: t('erms.talukas'),
       icon: MapPin,
@@ -328,14 +322,6 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
       iconBg: 'bg-green-500'
     },
     {
-      title: t('erms.totalClerks'),
-      value: '16',
-      subtitle: t('erms.activeClerks'),
-      icon: UserCheck,
-      color: 'bg-purple-100 text-purple-600',
-      iconBg: 'bg-purple-500'
-    },
-    {
       title: t('erms.totalTalukas'),
       value: talukas.length.toString(),
       subtitle: t('erms.administrativeUnits'),
@@ -354,24 +340,24 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
   ];
 
   const renderTabContent = () => {
-    if (activeTab === 'designations' || activeTab === 'clerks') {
+    if (activeTab === 'designations') {
       return (
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <h3 className="text-xl font-semibold text-gray-900">
-              {activeTab === 'designations' ? t('erms.designations') : t('erms.clerkManagement')}
+              {t('erms.designations')}
             </h3>
-            <button className={`flex items-center space-x-2 px-4 py-2 ${activeTab === 'designations' ? 'bg-green-600 hover:bg-green-700' : 'bg-purple-600 hover:bg-purple-700'} text-white rounded-lg transition-all duration-200`}>
+            <button className="flex items-center space-x-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all duration-200">
               <Plus className="h-4 w-4" />
               <span className="text-sm font-medium">
-                {activeTab === 'designations' ? 'Add Designation' : 'Add Clerk'}
+                Add Designation
               </span>
             </button>
           </div>
           
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <p className="text-gray-600">
-              {activeTab === 'designations' ? 'Designation' : 'Clerk'} management interface will be implemented here.
+              Designation management interface will be implemented here.
             </p>
           </div>
         </div>
@@ -529,7 +515,7 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
 
       {/* KPI Cards */}
       <div className="p-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {kpiData.map((kpi, index) => (
             <div key={index} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
               <div className="flex items-center justify-between">
