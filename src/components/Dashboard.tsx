@@ -432,7 +432,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
         {/* Welcome Section */}
         <div className="mb-8">
           <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
-            {t('dashboard.welcome')}, {user.email?.split('@')[0]}
+            {t('dashboard.welcome')}, {userProfile?.name || user.email?.split('@')[0]}
           </h2>
           <p className="text-gray-600 text-lg">
             {t('dashboard.overview')}
