@@ -231,10 +231,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
                       <div className="text-xs text-white/80">
                         {userProfile?.role_name ? t(`roles.${userProfile.role_name}`) : t(`roles.${userRole}`)}
                       </div>
-                      </div>
-                      <div className="text-xs text-white/80">
-                        {userProfile?.role_name ? t(`roles.${userProfile.role_name}`) : t(`roles.${userRole}`)}
-                      </div>
                     </div>
                     <ChevronDown className={`h-4 w-4 text-white transition-transform duration-200 ${isProfileOpen ? 'rotate-180' : ''}`} />
                   </button>
