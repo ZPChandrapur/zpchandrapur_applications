@@ -132,6 +132,7 @@
     "organizationSetup": "Organization Setup",
     "organizationSetupDesc": "Manage organizational structure and master data",
     "departmentManagement": "Department Management",
+    "departmentsTab": "Departments",
     "departments": "Departments",
     "designations": "Designations",
     "clerkManagement": "Clerk Management",
