@@ -81,5 +81,8 @@ export const testERMSConnection = async () => {
     console.log('✅ Basic Supabase connection successful');
     
     // Test 2: ERMS schema access with detailed logging
+  } catch (error) {
+    console.error('❌ Error in testERMSConnection:', error);
+    return { success: false, error: error.message, data: null };
   }
 }
