@@ -19,7 +19,12 @@
     "close": "Close",
     "confirm": "Confirm",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "add": "Add",
+    "edit": "Edit", 
+    "update": "Update",
+    "saving": "Saving...",
+    "deleteConfirm": "Are you sure you want to delete this?"
   },
   "auth": {
     "signIn": "Sign In",
@@ -238,10 +243,6 @@
     "enterOfficeName": "Enter office name",
     "createdDate": "Created Date",
     "actions": "Actions",
-    "add": "Add",
-    "edit": "Edit", 
-    "update": "Update",
-    "saving": "Saving...",
     "departments": {
       "आरोग्य विभाग": "Health Department",
       "कामगार प्रशासन विभाग": "Labor Administration Department", 

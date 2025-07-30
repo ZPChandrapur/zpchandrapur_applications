@@ -19,7 +19,12 @@
     "close": "बंद करा",
     "confirm": "पुष्टी करा",
     "yes": "होय",
-    "no": "नाही"
+    "no": "नाही",
+    "add": "जोडा",
+    "edit": "संपादित करा",
+    "update": "अपडेट करा",
+    "saving": "जतन करत आहे...",
+    "deleteConfirm": "आपल्याला खात्री आहे की आपण हे हटवू इच्छिता?"
   },
   "auth": {
     "signIn": "साइन इन",
@@ -238,10 +243,6 @@
     "enterOfficeName": "कार्यालयाचे नाव टाका",
     "createdDate": "तयार केलेली तारीख",
     "actions": "क्रिया",
-    "add": "जोडा",
-    "edit": "संपादित करा",
-    "update": "अपडेट करा",
-    "saving": "जतन करत आहे...",
     "departments": {
       "Health Department": "आरोग्य विभाग",
       "Labor Administration Department": "कामगार प्रशासन विभाग",

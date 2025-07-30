@@ -47,7 +47,6 @@ interface OfficeLocation {
 interface Designation {
   designation_id: string;
   designation: string;
-  department_id?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -127,7 +126,7 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
       console.log('📋 Fetching designations...');
       const { data, error } = await ermsClient
         .from('designations')
-        .select('designation_id, designation, department_id, created_at, updated_at')
+        .select('designation_id, designation, created_at, updated_at')
         .order('designation');
       
       if (error) throw error;
@@ -335,10 +334,10 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
       const searchFields = activeTab === 'departments' 
         ? [item.id, item.department]
         : activeTab === 'designations'
-        ? [item.id, item.designation]
+        ? [item.designation_id, item.designation]
         : activeTab === 'talukas'
         ? [item.id, item.name]
-        : [item.id, item.name, item.address];
+        : [item.office_id, item.name];
       
       return searchFields.some(field => 
         field?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -382,30 +381,6 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
   ];
 
   const renderTabContent = () => {
-    if (activeTab === 'designations') {
-      return (
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xl font-semibold text-gray-900">
-              {t('erms.designations')}
-            </h3>
-            <button className="flex items-center space-x-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all duration-200">
-              <Plus className="h-4 w-4" />
-              <span className="text-sm font-medium">
-                Add Designation
-              </span>
-            </button>
-          </div>
-          
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <p className="text-gray-600">
-              Designation management interface will be implemented here.
-            </p>
-          </div>
-        </div>
-      );
-    }
-
     const filteredData = getFilteredData();
     const tabConfig = {
       departments: { 
@@ -413,6 +388,12 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
         addText: t('erms.addDepartment'),
         color: 'bg-blue-600 hover:bg-blue-700',
         columns: [t('erms.departmentId'), t('erms.departmentName'), t('erms.createdDate'), t('erms.actions')]
+      },
+      designations: { 
+        title: t('erms.designations'), 
+        addText: t('erms.addDesignation'),
+        color: 'bg-green-600 hover:bg-green-700',
+        columns: [t('erms.designationId'), t('erms.designationName'), t('erms.createdDate'), t('erms.actions')]
       },
       talukas: { 
         title: t('erms.talukas'), 
@@ -492,12 +473,22 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
                   </tr>
                 ) : (
                   filteredData.map((item) => (
-                    <tr key={activeTab === 'designations' ? item.designation_id : activeTab === 'offices' ? item.office_id : item.id} className="hover:bg-gray-50">
+                    <tr key={
+                      activeTab === 'designations' ? item.designation_id : 
+                      activeTab === 'offices' ? item.office_id : 
+                      activeTab === 'talukas' ? item.id : 
+                      item.id
+                    } className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {activeTab === 'designations' ? item.designation_id : activeTab === 'offices' ? item.office_id : item.id}
+                        {activeTab === 'designations' ? item.designation_id : 
+                         activeTab === 'offices' ? item.office_id : 
+                         activeTab === 'talukas' ? item.id : 
+                         item.id}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {activeTab === 'departments' ? item.department : item.name}
+                        {activeTab === 'departments' ? item.department : 
+                         activeTab === 'designations' ? item.designation : 
+                         item.name}
                       </td>
                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                        {item.created_at ? new Date(item.created_at).toLocaleDateString() : '-'}
@@ -622,7 +613,7 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
                   {activeTab === 'departments' ? t('erms.departmentId') : 
                    activeTab === 'designations' ? t('erms.designationId') :
                    activeTab === 'talukas' ? t('erms.talukaId') : 
-                   activeTab === 'offices' ? t('erms.officeId') : t('common.id')}
+                   activeTab === 'offices' ? t('erms.officeId') : 'ID'}
                 </label>
                 <input
                   type="text"
@@ -644,7 +635,7 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
                   {activeTab === 'departments' ? t('erms.departmentName') : 
                    activeTab === 'designations' ? t('erms.designationName') :
                    activeTab === 'talukas' ? t('erms.talukaName') : 
-                   activeTab === 'offices' ? t('erms.officeName') : t('common.name')}
+                   activeTab === 'offices' ? t('erms.officeName') : 'Name'}
                 </label>
                 <input
                   type="text"
@@ -673,7 +664,7 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
                 disabled={isLoading}
                 className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 disabled:opacity-50"
               >
-                {isLoading ? t('erms.saving') : (editingItem ? t('erms.update') : t('erms.add'))}
+                {isLoading ? t('common.saving') : (editingItem ? t('common.update') : t('common.add'))}
               </button>
             </div>
           </div>
