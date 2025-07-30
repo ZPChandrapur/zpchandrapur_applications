@@ -458,7 +458,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Total Clerks</p>
+                <p className="text-sm text-gray-600 mb-1">{t('erms.totalClerks')}</p>
                 <p className="text-2xl font-bold text-purple-600">{kpiData.totalClerks}</p>
               </div>
               <div className="bg-purple-100 p-3 rounded-lg">
