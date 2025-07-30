@@ -730,9 +730,9 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
             <div className="flex flex-wrap gap-2 mb-6">
               <button
                 onClick={() => setActiveTab('departments')}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${
+                className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
                   activeTab === 'departments'
-                    ? 'bg-blue-600 text-white'
+                    ? 'bg-blue-600 text-white shadow-md'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
