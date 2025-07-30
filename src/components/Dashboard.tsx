@@ -386,6 +386,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
                           </div>
                           <div className="text-sm text-gray-500">
                             {userProfile?.role_name ? t(`roles.${userProfile.role_name}`) : t(`roles.${userRole}`)}
+                          </div>
                         </div>
                       </div>
                     </div>
