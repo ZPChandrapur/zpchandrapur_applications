@@ -65,7 +65,7 @@ export const usePermissions = (user: User | null): PermissionCheck => {
         // Fetch user profile information from user_roles table
         const { data: userRoleData, error: userRoleError } = await supabase
           .from('user_roles')
-          .select('name, phone_number, roles(name)')
+          .select('name, phone_number')
           .eq('user_id', user.id)
           .single();
 
@@ -81,7 +81,7 @@ export const usePermissions = (user: User | null): PermissionCheck => {
         } else {
           setUserProfile({
             name: userRoleData?.name || null,
-            role_name: userRoleData?.roles?.name || (data && data.length > 0 ? data[0].role_name : null),
+            role_name: data && data.length > 0 ? data[0].role_name : null,
             email: user.email || null,
             phone_number: userRoleData?.phone_number || null
           });
