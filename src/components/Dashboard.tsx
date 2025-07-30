@@ -237,6 +237,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
 
                   {isProfileOpen && (
                     <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-[60]">
+                      <>
                       <div className="px-4 py-3 border-b border-gray-100">
                         <div className="flex items-center space-x-3">
                           <div className="bg-blue-100 p-2 rounded-full">
@@ -255,6 +256,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
                             </div>
                           </div>
                         </div>
+                      </>
                       </div>
 
                       <div className="py-2">
