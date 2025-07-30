@@ -19,6 +19,9 @@ function App() {
         setUser(user);
       } catch (error) {
         console.error('Error checking user:', error);
+        // Clear stale session data if JWT is invalid
+        await supabase.auth.signOut();
+        setUser(null);
       } finally {
         setIsLoading(false);
       }
