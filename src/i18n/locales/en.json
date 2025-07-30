@@ -228,6 +228,10 @@
     "enterClerkName": "Enter clerk name",
     "retirementReason": "Retirement Reason",
     "selectReason": "Select Reason",
+    "add": "Add",
+    "edit": "Edit", 
+    "update": "Update",
+    "saving": "Saving...",
     "departments": {
       "आरोग्य विभाग": "Health Department",
       "कामगार प्रशासन विभाग": "Labor Administration Department", 

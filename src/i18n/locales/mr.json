@@ -228,6 +228,10 @@
     "enterClerkName": "लिपिक नाव टाका",
     "retirementReason": "सेवानिवृत्ती कारण",
     "selectReason": "कारण निवडा",
+    "add": "जोडा",
+    "edit": "संपादित करा",
+    "update": "अपडेट करा",
+    "saving": "जतन करत आहे...",
     "departments": {
       "Health Department": "आरोग्य विभाग",
       "Labor Administration Department": "कामगार प्रशासन विभाग",
