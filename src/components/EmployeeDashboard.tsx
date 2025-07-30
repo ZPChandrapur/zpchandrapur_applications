@@ -16,6 +16,12 @@ import {
 } from 'lucide-react';
 import { ermsClient } from '../lib/supabase';
 
+interface Clerk {
+  user_id: string;
+  name: string;
+  role_name: string;
+}
+
 interface EmployeeDashboardProps {
   onBack?: () => void;
 }
@@ -80,6 +86,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
   });
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
+  const [clerks, setClerks] = useState<Clerk[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState('All Departments');
@@ -116,6 +123,25 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     try {
       setIsLoading(true);
       console.log('🔄 Fetching Employee Dashboard Data...');
+      
+      // Fetch clerks from public.user_roles table
+      console.log('👥 Fetching clerks from public.user_roles...');
+      const { data: clerksData, error: clerksError } = await supabase
+        .from('user_roles')
+        .select('user_id, name, roles!inner(name)')
+        .eq('roles.name', 'clerk');
+      
+      if (clerksError) {
+        console.error('❌ Clerks fetch error:', clerksError);
+      } else {
+        const formattedClerks = clerksData?.map(clerk => ({
+          user_id: clerk.user_id,
+          name: clerk.name || 'Unknown',
+          role_name: clerk.roles?.name || 'clerk'
+        })) || [];
+        setClerks(formattedClerks);
+        console.log('✅ Clerks fetched:', formattedClerks.length);
+      }
       
       // Fetch employees
       console.log('📊 Fetching employees from erms.employee...');
@@ -167,7 +193,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         totalEmployees,
         upcomingRetirements,
         departments: departmentsData?.length || 0,
-        totalClerks: 16,
+        totalClerks: clerksData?.length || 0,
         assignedEmployees,
         unassignedEmployees
       });
@@ -576,8 +602,8 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option>{t('erms.allClerks')}</option>
-                {Array.from(new Set(employees.map(emp => emp.assigned_clerk).filter(Boolean))).map(clerk => (
-                  <option key={clerk} value={clerk}>{clerk}</option>
+                {clerks.map(clerk => (
+                  <option key={clerk.user_id} value={clerk.name}>{clerk.name}</option>
                 ))}
               </select>
               
@@ -756,13 +782,16 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     {t('erms.assignedClerk')}
                   </label>
-                  <input
-                    type="text"
+                  <select
                     value={newEmployee.assigned_clerk}
                     onChange={(e) => setNewEmployee({ ...newEmployee, assigned_clerk: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder={t('erms.enterClerkName')}
-                  />
+                  >
+                    <option value="">{t('erms.selectClerk')}</option>
+                    {clerks.map(clerk => (
+                      <option key={clerk.user_id} value={clerk.name}>{clerk.name}</option>
+                    ))}
+                  </select>
                 </div>
                 
                 <div>
