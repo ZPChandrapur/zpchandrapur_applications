@@ -32,7 +32,7 @@ interface Employee {
 
 interface Department {
   dept_id: string;
-  dept_name: string;
+  department: string;
 }
 
 interface KPIData {
@@ -171,7 +171,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       const count = employeesData.filter(emp => emp.dept_id === dept.dept_id).length;
       const percentage = employeesData.length > 0 ? Math.round((count / employeesData.length) * 100) : 0;
       return {
-        name: dept.dept_name || dept.dept_id,
+        name: dept.department || dept.dept_id,
         count,
         percentage,
         color: colors[index % colors.length]
@@ -492,7 +492,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
               >
                 <option>All Departments</option>
                 {departments.map(dept => (
-                  <option key={dept.dept_id} value={dept.dept_id}>{dept.dept_name}</option>
+                  <option key={dept.dept_id} value={dept.dept_id}>{dept.department}</option>
                 ))}
               </select>
               
@@ -547,7 +547,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {departments.find(d => d.dept_id === employee.dept_id)?.dept_name || employee.dept_id}
+                      {departments.find(d => d.dept_id === employee.dept_id)?.department || employee.dept_id}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{employee.designation}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{employee.age}</td>

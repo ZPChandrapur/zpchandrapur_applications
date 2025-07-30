@@ -23,7 +23,7 @@ interface OrganizationSetupProps {
 
 interface Department {
   id: string;
-  name: string;
+  department: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -125,7 +125,7 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
       const { data, error } = await ermsClient
         .from('department')
         .select('*')
-        .order('name');
+        .order('department');
       
       if (error) throw error;
       console.log('✅ Departments fetched:', data?.length || 0);
@@ -176,7 +176,7 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
   const handleEdit = (item: any) => {
     setEditingItem(item);
     if (activeTab === 'departments') {
-      setFormData({ id: item.id, name: item.name, address: '', taluka_id: '' });
+      setFormData({ id: item.id, name: item.department, address: '', taluka_id: '' });
     } else if (activeTab === 'talukas') {
       setFormData({ id: item.id, name: item.name, address: '', taluka_id: '' });
     } else if (activeTab === 'offices') {
@@ -197,13 +197,13 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
         if (editingItem) {
           const { error } = await ermsClient
             .from('department')
-            .update({ name: formData.name })
+            .update({ department: formData.name })
             .eq('id', formData.id);
           if (error) throw error;
         } else {
           const { error } = await ermsClient
             .from('department')
-            .insert({ id: formData.id, name: formData.name });
+            .insert({ id: formData.id, department: formData.name });
           if (error) throw error;
         }
         await fetchDepartments();
@@ -299,7 +299,7 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
 
     return data.filter(item => {
       const searchFields = activeTab === 'departments' 
-        ? [item.id, item.name]
+        ? [item.id, item.department]
         : activeTab === 'talukas'
         ? [item.id, item.name]
         : [item.id, item.name, item.address];
@@ -469,7 +469,7 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
                         {item.id}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {item.name}
+                        {activeTab === 'departments' ? item.department : item.name}
                       </td>
                       {activeTab === 'offices' && (
                         <>
