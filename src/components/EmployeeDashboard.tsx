@@ -124,23 +124,37 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       setIsLoading(true);
       console.log('🔄 Fetching Employee Dashboard Data...');
       
-      // Fetch clerks from public.user_roles table
-      console.log('👥 Fetching clerks from public.user_roles...');
-      const { data: clerksData, error: clerksError } = await supabase
-        .from('user_roles')
-        .select('user_id, name, roles!inner(name)')
-        .eq('roles.name', 'clerk');
+      // First, get the clerk role ID to avoid RLS policy recursion
+      console.log('🔍 Fetching clerk role ID...');
+      const { data: clerkRole, error: roleError } = await supabase
+        .from('roles')
+        .select('id')
+        .eq('name', 'clerk')
+        .single();
       
-      if (clerksError) {
-        console.error('❌ Clerks fetch error:', clerksError);
+      if (roleError) {
+        console.error('❌ Role fetch error:', roleError);
+        setClerks([]);
       } else {
-        const formattedClerks = clerksData?.map(clerk => ({
-          user_id: clerk.user_id,
-          name: clerk.name || 'Unknown',
-          role_name: clerk.roles?.name || 'clerk'
-        })) || [];
-        setClerks(formattedClerks);
-        console.log('✅ Clerks fetched:', formattedClerks.length);
+        // Now fetch clerks using the role_id
+        console.log('👥 Fetching clerks from public.user_roles...');
+        const { data: clerksData, error: clerksError } = await supabase
+          .from('user_roles')
+          .select('user_id, name')
+          .eq('role_id', clerkRole.id);
+        
+        if (clerksError) {
+          console.error('❌ Clerks fetch error:', clerksError);
+          setClerks([]);
+        } else {
+          const formattedClerks = clerksData?.map(clerk => ({
+            user_id: clerk.user_id,
+            name: clerk.name || 'Unknown',
+            role_name: 'clerk'
+          })) || [];
+          setClerks(formattedClerks);
+          console.log('✅ Clerks fetched:', formattedClerks.length);
+        }
       }
       
       // Fetch employees
