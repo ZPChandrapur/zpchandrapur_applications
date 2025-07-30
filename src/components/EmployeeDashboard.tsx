@@ -14,7 +14,7 @@ import {
   TrendingUp,
   X
 } from 'lucide-react';
-import { ermsClient } from '../lib/supabase';
+import { ermsClient, supabase } from '../lib/supabase';
 
 interface Clerk {
   user_id: string;
