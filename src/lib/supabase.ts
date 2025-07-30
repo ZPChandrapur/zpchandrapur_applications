@@ -81,3 +81,5 @@ export const testERMSConnection = async () => {
     console.log('✅ Basic Supabase connection successful');
     
     // Test 2: ERMS schema access with detailed logging
+  }
+}
