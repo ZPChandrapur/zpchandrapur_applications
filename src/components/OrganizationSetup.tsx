@@ -22,22 +22,22 @@ interface OrganizationSetupProps {
 }
 
 interface Department {
-  dept_id: string;
-  dept_name: string;
+  id: string;
+  name: string;
   created_at?: string;
   updated_at?: string;
 }
 
 interface Taluka {
-  taluka_id: string;
-  taluka_name: string;
+  id: string;
+  name: string;
   created_at?: string;
   updated_at?: string;
 }
 
 interface OfficeLocation {
-  office_id: string;
-  office_name: string;
+  id: string;
+  name: string;
   address?: string;
   taluka_id?: string;
   created_at?: string;
@@ -125,7 +125,7 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
       const { data, error } = await ermsClient
         .from('department')
         .select('*')
-        .order('dept_name');
+        .order('name');
       
       if (error) throw error;
       console.log('✅ Departments fetched:', data?.length || 0);
@@ -139,9 +139,9 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
     try {
       console.log('🗺️ Fetching talukas...');
       const { data, error } = await ermsClient
-        .from('taluka')
+        .from('talukas')
         .select('*')
-        .order('taluka_name');
+        .order('name');
       
       if (error) throw error;
       console.log('✅ Talukas fetched:', data?.length || 0);
@@ -155,9 +155,9 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
     try {
       console.log('🏢 Fetching office locations...');
       const { data, error } = await ermsClient
-        .from('office_location')
+        .from('office_locations')
         .select('*')
-        .order('office_name');
+        .order('name');
       
       if (error) throw error;
       console.log('✅ Office locations fetched:', data?.length || 0);
@@ -176,11 +176,11 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
   const handleEdit = (item: any) => {
     setEditingItem(item);
     if (activeTab === 'departments') {
-      setFormData({ id: item.dept_id, name: item.dept_name, address: '', taluka_id: '' });
+      setFormData({ id: item.id, name: item.name, address: '', taluka_id: '' });
     } else if (activeTab === 'talukas') {
-      setFormData({ id: item.taluka_id, name: item.taluka_name, address: '', taluka_id: '' });
+      setFormData({ id: item.id, name: item.name, address: '', taluka_id: '' });
     } else if (activeTab === 'offices') {
-      setFormData({ id: item.office_id, name: item.office_name, address: item.address || '', taluka_id: item.taluka_id || '' });
+      setFormData({ id: item.id, name: item.name, address: item.address || '', taluka_id: item.taluka_id || '' });
     }
     setShowAddModal(true);
   };
@@ -197,47 +197,47 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
         if (editingItem) {
           const { error } = await ermsClient
             .from('department')
-            .update({ dept_name: formData.name })
-            .eq('dept_id', formData.id);
+            .update({ name: formData.name })
+            .eq('id', formData.id);
           if (error) throw error;
         } else {
           const { error } = await ermsClient
             .from('department')
-            .insert({ dept_id: formData.id, dept_name: formData.name });
+            .insert({ id: formData.id, name: formData.name });
           if (error) throw error;
         }
         await fetchDepartments();
       } else if (activeTab === 'talukas') {
         if (editingItem) {
           const { error } = await ermsClient
-            .from('taluka')
-            .update({ taluka_name: formData.name })
-            .eq('taluka_id', formData.id);
+            .from('talukas')
+            .update({ name: formData.name })
+            .eq('id', formData.id);
           if (error) throw error;
         } else {
           const { error } = await ermsClient
-            .from('taluka')
-            .insert({ taluka_id: formData.id, taluka_name: formData.name });
+            .from('talukas')
+            .insert({ id: formData.id, name: formData.name });
           if (error) throw error;
         }
         await fetchTalukas();
       } else if (activeTab === 'offices') {
         if (editingItem) {
           const { error } = await ermsClient
-            .from('office_location')
+            .from('office_locations')
             .update({ 
-              office_name: formData.name,
+              name: formData.name,
               address: formData.address,
               taluka_id: formData.taluka_id || null
             })
-            .eq('office_id', formData.id);
+            .eq('id', formData.id);
           if (error) throw error;
         } else {
           const { error } = await ermsClient
-            .from('office_location')
+            .from('office_locations')
             .insert({ 
-              office_id: formData.id,
-              office_name: formData.name,
+              id: formData.id,
+              name: formData.name,
               address: formData.address,
               taluka_id: formData.taluka_id || null
             });
@@ -265,21 +265,21 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
         const { error } = await ermsClient
           .from('department')
           .delete()
-          .eq('dept_id', item.dept_id);
+          .eq('id', item.id);
         if (error) throw error;
         await fetchDepartments();
       } else if (activeTab === 'talukas') {
         const { error } = await ermsClient
-          .from('taluka')
+          .from('talukas')
           .delete()
-          .eq('taluka_id', item.taluka_id);
+          .eq('id', item.id);
         if (error) throw error;
         await fetchTalukas();
       } else if (activeTab === 'offices') {
         const { error } = await ermsClient
-          .from('office_location')
+          .from('office_locations')
           .delete()
-          .eq('office_id', item.office_id);
+          .eq('id', item.id);
         if (error) throw error;
         await fetchOfficeLocations();
       }
@@ -299,10 +299,10 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
 
     return data.filter(item => {
       const searchFields = activeTab === 'departments' 
-        ? [item.dept_id, item.dept_name]
+        ? [item.id, item.name]
         : activeTab === 'talukas'
-        ? [item.taluka_id, item.taluka_name]
-        : [item.office_id, item.office_name, item.address];
+        ? [item.id, item.name]
+        : [item.id, item.name, item.address];
       
       return searchFields.some(field => 
         field?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -464,12 +464,12 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
                   </tr>
                 ) : (
                   filteredData.map((item) => (
-                    <tr key={item.dept_id || item.taluka_id || item.office_id} className="hover:bg-gray-50">
+                    <tr key={item.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {item.dept_id || item.taluka_id || item.office_id}
+                        {item.id}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {item.dept_name || item.taluka_name || item.office_name}
+                        {item.name}
                       </td>
                       {activeTab === 'offices' && (
                         <>
@@ -477,7 +477,7 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
                             {item.address || '-'}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {talukas.find(t => t.taluka_id === item.taluka_id)?.taluka_name || '-'}
+                            {talukas.find(t => t.id === item.taluka_id)?.name || '-'}
                           </td>
                         </>
                       )}
@@ -598,7 +598,7 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
             <div className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {activeTab === 'departments' ? t('erms.departmentId') : 
+                  {activeTab === 'departments' ? 'Department ID' : 
                    activeTab === 'talukas' ? 'Taluka ID' : 'Office ID'}
                 </label>
                 <input
@@ -613,7 +613,7 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {activeTab === 'departments' ? t('erms.departmentName') : 
+                  {activeTab === 'departments' ? 'Department Name' : 
                    activeTab === 'talukas' ? 'Taluka Name' : 'Office Name'}
                 </label>
                 <input
@@ -647,8 +647,8 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
                     >
                       <option value="">Select Taluka</option>
                       {talukas.map(taluka => (
-                        <option key={taluka.taluka_id} value={taluka.taluka_id}>
-                          {taluka.taluka_name}
+                        <option key={taluka.id} value={taluka.id}>
+                          {taluka.name}
                         </option>
                       ))}
                     </select>
