@@ -549,7 +549,13 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
           {sidebarItems.map((item) => (
             <button
               key={item.id}
-              onClick={() => setActiveSection(item.id)}
+              onClick={() => {
+                if (item.id === 'employee-dashboard') {
+                  handleModuleClick(item.id);
+                } else {
+                  setActiveSection(item.id);
+                }
+              }}
               className={`w-full text-left p-3 rounded-lg mb-1 transition-all duration-200 ${
                 activeSection === item.id
                   ? 'bg-blue-500 text-white shadow-md'
