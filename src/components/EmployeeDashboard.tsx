@@ -80,6 +80,12 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     '#06B6D4', '#84CC16', '#F97316', '#EC4899', '#6366F1'
   ];
 
+  // Department name translation helper
+  const translateDepartmentName = (deptName: string) => {
+    const key = `erms.departments.${deptName}`;
+    const translated = t(key);
+    return translated !== key ? translated : deptName;
+  };
   useEffect(() => {
     fetchDashboardData();
   }, []);
@@ -171,7 +177,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       const count = employeesData.filter(emp => emp.dept_id === dept.dept_id).length;
       const percentage = employeesData.length > 0 ? Math.round((count / employeesData.length) * 100) : 0;
       return {
-        name: dept.department || dept.dept_id,
+        name: translateDepartmentName(dept.department || dept.dept_id),
         count,
         percentage,
         color: colors[index % colors.length]
@@ -237,9 +243,9 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
   const filteredEmployees = employees.filter(emp => {
     const matchesSearch = emp.emp_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          emp.emp_id?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesDepartment = selectedDepartment === 'All Departments' || emp.dept_id === selectedDepartment;
-    const matchesClerk = selectedClerk === 'All Clerks' || emp.assigned_clerk === selectedClerk;
-    const matchesReason = selectedReason === 'All Reasons' || emp.reason === selectedReason;
+    const matchesDepartment = selectedDepartment === t('erms.allDepartments') || emp.dept_id === selectedDepartment;
+    const matchesClerk = selectedClerk === t('erms.allClerks') || emp.assigned_clerk === selectedClerk;
+    const matchesReason = selectedReason === t('erms.allReasons') || emp.reason === selectedReason;
     
     return matchesSearch && matchesDepartment && matchesClerk && matchesReason;
   });
@@ -259,8 +265,8 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         <div className="px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Employee Dashboard</h1>
-              <p className="text-sm text-gray-500 mt-1">Comprehensive employee management and analytics</p>
+              <h1 className="text-2xl font-bold text-gray-900">{t('erms.employeeDashboardTitle')}</h1>
+              <p className="text-sm text-gray-500 mt-1">{t('erms.employeeDashboardSubtitle')}</p>
             </div>
             <div className="flex items-center space-x-3">
               <button 
@@ -268,11 +274,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                 className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
               >
                 <RefreshCw className="h-4 w-4" />
-                <span className="text-sm font-medium">Refresh</span>
-              </button>
-              <button className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200">
-                <Plus className="h-4 w-4" />
-                <span className="text-sm font-medium">Add Employee</span>
+                <span className="text-sm font-medium">{t('erms.refresh')}</span>
               </button>
             </div>
           </div>
@@ -286,7 +288,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Total Employees</p>
+                <p className="text-sm text-gray-600 mb-1">{t('erms.totalEmployees')}</p>
                 <p className="text-2xl font-bold text-gray-900">{kpiData.totalEmployees}</p>
               </div>
               <div className="bg-blue-100 p-3 rounded-lg">
@@ -298,9 +300,9 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Upcoming Retirements</p>
+                <p className="text-sm text-gray-600 mb-1">{t('erms.upcomingRetirements')}</p>
                 <p className="text-2xl font-bold text-orange-600">{kpiData.upcomingRetirements}</p>
-                <p className="text-xs text-gray-500">Next 6 months</p>
+                <p className="text-xs text-gray-500">{t('erms.nextSixMonths')}</p>
               </div>
               <div className="bg-orange-100 p-3 rounded-lg">
                 <Calendar className="h-6 w-6 text-orange-600" />
@@ -311,7 +313,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Departments</p>
+                <p className="text-sm text-gray-600 mb-1">{t('erms.departments')}</p>
                 <p className="text-2xl font-bold text-green-600">{kpiData.departments}</p>
               </div>
               <div className="bg-green-100 p-3 rounded-lg">
@@ -335,7 +337,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Assigned/Unassigned</p>
+                <p className="text-sm text-gray-600 mb-1">{t('erms.assignedUnassigned')}</p>
                 <p className="text-2xl font-bold text-indigo-600">{kpiData.assignedEmployees}/{kpiData.unassignedEmployees}</p>
               </div>
               <div className="bg-indigo-100 p-3 rounded-lg">
@@ -351,7 +353,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="flex items-center space-x-2 mb-4">
               <BarChart3 className="h-5 w-5 text-gray-600" />
-              <h3 className="text-lg font-semibold text-gray-900">Department-wise Employee Count</h3>
+              <h3 className="text-lg font-semibold text-gray-900">{t('erms.departmentWiseEmployeeCount')}</h3>
             </div>
             <div className="space-y-3">
               {chartData.departmentWiseCount.slice(0, 10).map((item, index) => (
@@ -369,7 +371,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   <div className="text-sm font-medium text-gray-900 w-12 text-right">{item.percentage}%</div>
                 </div>
               ))}
-              <p className="text-xs text-gray-500 mt-2">Showing top 10 results</p>
+              <p className="text-xs text-gray-500 mt-2">{t('erms.showingTopResults', { count: 10 })}</p>
             </div>
           </div>
 
@@ -377,7 +379,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="flex items-center space-x-2 mb-4">
               <BarChart3 className="h-5 w-5 text-gray-600" />
-              <h3 className="text-lg font-semibold text-gray-900">Clerk-wise Employee Count</h3>
+              <h3 className="text-lg font-semibold text-gray-900">{t('erms.clerkWiseEmployeeCount')}</h3>
             </div>
             <div className="space-y-3">
               {chartData.clerkWiseCount.map((item, index) => (
@@ -402,11 +404,11 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="flex items-center space-x-2 mb-4">
               <PieChart className="h-5 w-5 text-gray-600" />
-              <h3 className="text-lg font-semibold text-gray-900">Assigned vs Unassigned Employees</h3>
+              <h3 className="text-lg font-semibold text-gray-900">{t('erms.assignedVsUnassignedEmployees')}</h3>
             </div>
             <div className="space-y-3">
               <div className="flex items-center space-x-3">
-                <div className="w-20 text-sm text-gray-600">Assigned</div>
+                <div className="w-20 text-sm text-gray-600">{t('erms.assigned')}</div>
                 <div className="flex-1 bg-gray-200 rounded-full h-2">
                   <div
                     className="h-2 rounded-full bg-blue-500"
@@ -420,7 +422,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                 </div>
               </div>
               <div className="flex items-center space-x-3">
-                <div className="w-20 text-sm text-gray-600">Unassigned</div>
+                <div className="w-20 text-sm text-gray-600">{t('erms.unassigned')}</div>
                 <div className="flex-1 bg-gray-200 rounded-full h-2">
                   <div
                     className="h-2 rounded-full bg-green-500"
@@ -440,7 +442,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="flex items-center space-x-2 mb-4">
               <PieChart className="h-5 w-5 text-gray-600" />
-              <h3 className="text-lg font-semibold text-gray-900">Employee Retirement Count by Reason</h3>
+              <h3 className="text-lg font-semibold text-gray-900">{t('erms.employeeRetirementCountByReason')}</h3>
             </div>
             <div className="space-y-3">
               {chartData.retirementReasons.map((item, index) => (
@@ -466,9 +468,9 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
           <div className="p-6 border-b border-gray-200">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Employee Records</h3>
+              <h3 className="text-lg font-semibold text-gray-900">{t('erms.employeeRecords')}</h3>
               <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">
-                Clear Filters
+                {t('erms.clearFilters')}
               </button>
             </div>
             
@@ -478,7 +480,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Search employees..."
+                  placeholder={t('erms.searchEmployees')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -490,9 +492,9 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                 onChange={(e) => setSelectedDepartment(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option>All Departments</option>
+                <option>{t('erms.allDepartments')}</option>
                 {departments.map(dept => (
-                  <option key={dept.dept_id} value={dept.dept_id}>{dept.department}</option>
+                  <option key={dept.dept_id} value={dept.dept_id}>{translateDepartmentName(dept.department)}</option>
                 ))}
               </select>
               
@@ -501,7 +503,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                 onChange={(e) => setSelectedClerk(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option>All Clerks</option>
+                <option>{t('erms.allClerks')}</option>
                 {Array.from(new Set(employees.map(emp => emp.assigned_clerk).filter(Boolean))).map(clerk => (
                   <option key={clerk} value={clerk}>{clerk}</option>
                 ))}
@@ -512,7 +514,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                 onChange={(e) => setSelectedReason(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option>All Reasons</option>
+                <option>{t('erms.allReasons')}</option>
                 <option value="Retirement Due to Death">Retirement Due to Death</option>
                 <option value="Retirement Due to Prescribed Age">Retirement Due to Prescribed Age</option>
                 <option value="Voluntary Retirement">Voluntary Retirement</option>
@@ -520,7 +522,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
             </div>
             
             <p className="text-sm text-gray-500">
-              Showing {filteredEmployees.length} of {employees.length} employees
+              {t('erms.showingEmployees', { filtered: filteredEmployees.length, total: employees.length })}
             </p>
           </div>
           
@@ -529,12 +531,12 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Designation</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Age</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Retirement Date</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assigned Clerk</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.employee')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.department')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.designation')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.age')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.retirementDate')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.assignedClerk')}</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -547,7 +549,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {departments.find(d => d.dept_id === employee.dept_id)?.department || employee.dept_id}
+                      {translateDepartmentName(departments.find(d => d.dept_id === employee.dept_id)?.department || employee.dept_id)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{employee.designation}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{employee.age}</td>
@@ -555,13 +557,21 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                       {employee.retirement_date ? new Date(employee.retirement_date).toLocaleDateString() : '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {employee.assigned_clerk || 'Unassigned'}
+                      {employee.assigned_clerk || t('erms.unassigned')}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
+        </div>
+        
+        {/* Add Employee Button - Moved to bottom */}
+        <div className="mt-6 flex justify-center">
+          <button className="flex items-center space-x-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-lg">
+            <Plus className="h-5 w-5" />
+            <span className="font-medium">{t('erms.addEmployee')}</span>
+          </button>
         </div>
       </div>
     </div>
