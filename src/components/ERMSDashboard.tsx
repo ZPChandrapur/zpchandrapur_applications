@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ermsClient } from '../lib/supabase';
 import { LanguageSwitcher } from './LanguageSwitcher';
+import { EmployeeDashboard } from './EmployeeDashboard';
 import { 
   ArrowLeft,
   Building2,
@@ -65,6 +66,7 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState<'departments' | 'talukas' | 'office-locations'>('departments');
+  const [selectedModule, setSelectedModule] = useState<string | null>(null);
 
   // Function to get translated department name using i18n
   const getTranslatedDepartmentName = (departmentName: string) => {
@@ -97,6 +99,20 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
       setOfficeLocations(prevOffices => [...prevOffices]);
     }
   }, [i18n.language]);
+
+  // Handle module selection
+  const handleModuleClick = (moduleId: string) => {
+    setSelectedModule(moduleId);
+  };
+
+  const handleBackToMain = () => {
+    setSelectedModule(null);
+  };
+
+  // Render specific module dashboard
+  if (selectedModule === 'employee-dashboard') {
+    return <EmployeeDashboard onBack={handleBackToMain} />;
+  }
 
   const fetchCounts = async () => {
     try {
