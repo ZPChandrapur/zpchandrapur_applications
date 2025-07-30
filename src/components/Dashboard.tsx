@@ -266,7 +266,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
 
                       <div className="border-t border-gray-100 pt-2">
                         <button
-                            alert(`Profile Details:\nName: ${userProfile?.name || 'Not set'}\nEmail: ${userProfile?.email || 'Not available'}\nPhone: ${userProfile?.phone_number || 'Not set'}\nRole: ${userProfile?.role_name || 'Not assigned'}`);
+                          onClick={handleSignOut}
                           className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center space-x-3"
                         >
                           <LogOut className="h-4 w-4" />
