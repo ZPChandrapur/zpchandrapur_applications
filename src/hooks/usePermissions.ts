@@ -11,10 +11,17 @@ export interface UserPermission {
   role_name: string;
 }
 
+export interface UserProfile {
+  name: string | null;
+  role_name: string | null;
+  email: string | null;
+  phone: string | null;
+}
 export interface PermissionCheck {
   hasAccess: (app: string, permission?: 'read' | 'write' | 'delete' | 'admin') => boolean;
   permissions: UserPermission[];
   userRole: string | null;
+  userProfile: UserProfile | null;
   isLoading: boolean;
   error: string | null;
 }
@@ -22,6 +29,7 @@ export interface PermissionCheck {
 export const usePermissions = (user: User | null): PermissionCheck => {
   const [permissions, setPermissions] = useState<UserPermission[]>([]);
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -29,6 +37,7 @@ export const usePermissions = (user: User | null): PermissionCheck => {
     if (!user) {
       setPermissions([]);
       setUserRole(null);
+      setUserProfile(null);
       setIsLoading(false);
       return;
     }
@@ -52,9 +61,41 @@ export const usePermissions = (user: User | null): PermissionCheck => {
         if (data && data.length > 0) {
           setUserRole(data[0].role_name);
         }
+
+        // Fetch user profile information from user_roles table
+        const { data: userRoleData, error: userRoleError } = await supabase
+          .from('user_roles')
+          .select('name, phone, roles(name)')
+          .eq('user_id', user.id)
+          .single();
+
+        if (userRoleError) {
+          console.error('Error fetching user profile:', userRoleError);
+          // Set basic profile with email only
+          setUserProfile({
+            name: null,
+            role_name: data && data.length > 0 ? data[0].role_name : null,
+            email: user.email || null,
+            phone: null
+          });
+        } else {
+          setUserProfile({
+            name: userRoleData?.name || null,
+            role_name: userRoleData?.roles?.name || (data && data.length > 0 ? data[0].role_name : null),
+            email: user.email || null,
+            phone: userRoleData?.phone || null
+          });
+        }
       } catch (err) {
         console.error('Error fetching permissions:', err);
         setError(err instanceof Error ? err.message : 'Failed to fetch permissions');
+        // Set basic profile with email only on error
+        setUserProfile({
+          name: null,
+          role_name: null,
+          email: user?.email || null,
+          phone: null
+        });
       } finally {
         setIsLoading(false);
       }
@@ -85,6 +126,7 @@ export const usePermissions = (user: User | null): PermissionCheck => {
     hasAccess,
     permissions,
     userRole,
+    userProfile,
     isLoading,
     error
   };
