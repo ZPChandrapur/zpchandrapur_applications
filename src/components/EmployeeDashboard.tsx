@@ -124,43 +124,42 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       setIsLoading(true);
       console.log('🔄 Fetching Employee Dashboard Data...');
       
-      // First, get the clerk role ID to avoid RLS policy recursion
-      console.log('🔍 Fetching clerk role ID...');
-      const { data: clerkRole, error: roleError } = await supabase
-        .from('roles')
-        .select('id')
-        .eq('name', 'clerk')
-        .single();
+      // Fetch clerks from user_roles table
+      console.log('👥 Fetching clerks from public.user_roles...');
+      const { data: clerksData, error: clerksError } = await supabase
+        .from('user_roles')
+        .select('user_id, name, roles!inner(name)')
+        .eq('roles.name', 'clerk');
       
-      if (roleError) {
-        console.error('❌ Role fetch error:', roleError);
-        setClerks([]);
-      } else {
-        // Now fetch clerks using the role_id
-        console.log('👥 Fetching clerks from public.user_roles...');
-        const { data: clerksData, error: clerksError } = await supabase
+      if (clerksError) {
+        console.error('❌ Clerks fetch error:', clerksError);
+        // Try alternative approach if the join fails
+        const { data: allUserRoles, error: altError } = await supabase
           .from('user_roles')
-          .select('user_id, name')
-          .eq('role_id', clerkRole.id);
+          .select('user_id, name, role_id');
         
-        if (clerksError) {
-          console.error('❌ Clerks fetch error:', clerksError);
+        if (altError) {
+          console.error('❌ Alternative clerks fetch error:', altError);
           setClerks([]);
         } else {
-          const formattedClerks = clerksData?.map(clerk => ({
+          // Filter for clerk role_id (assuming clerk role has id = 5 based on your schema)
+          const clerkUserRoles = allUserRoles?.filter(ur => ur.role_id === 5) || [];
+          const formattedClerks = clerkUserRoles.map(clerk => ({
             user_id: clerk.user_id,
             name: clerk.name || 'Unknown',
             role_name: 'clerk'
-          })) || [];
-          setClerks(formattedClerks);
-          console.log('✅ Clerks fetched:', formattedClerks.length);
-          
-          // Update KPI with actual clerk count
-          setKpiData(prev => ({
-            ...prev,
-            totalClerks: formattedClerks.length
           }));
+          setClerks(formattedClerks);
+          console.log('✅ Clerks fetched (alternative):', formattedClerks.length);
         }
+      } else {
+        const formattedClerks = clerksData?.map(clerk => ({
+          user_id: clerk.user_id,
+          name: clerk.name || 'Unknown',
+          role_name: 'clerk'
+        })) || [];
+        setClerks(formattedClerks);
+        console.log('✅ Clerks fetched:', formattedClerks.length);
       }
       
       // Fetch employees
@@ -203,17 +202,21 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       const assignedEmployees = employeesData?.filter(emp => emp.assigned_clerk).length || 0;
       const unassignedEmployees = totalEmployees - assignedEmployees;
 
+      // Get actual clerk count
+      const actualClerkCount = clerks.length;
+
       console.log('📈 KPI Calculations:', {
         totalEmployees,
         upcomingRetirements,
         assignedEmployees,
-        unassignedEmployees
+        unassignedEmployees,
+        actualClerkCount
       });
       setKpiData({
         totalEmployees,
         upcomingRetirements,
         departments: departmentsData?.length || 0,
-        totalClerks: 0, // Will be updated when clerks are fetched
+        totalClerks: actualClerkCount,
         assignedEmployees,
         unassignedEmployees
       });
@@ -360,9 +363,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     const matchesSearch = emp.emp_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          emp.emp_id?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesDepartment = selectedDepartment === t('erms.allDepartments') || emp.dept_id === selectedDepartment;
-    const matchesClerk = selectedClerk === t('erms.allClerks') || 
-                        emp.assigned_clerk === selectedClerk ||
-                        clerks.find(c => c.user_id === emp.assigned_clerk)?.name === selectedClerk;
+    const matchesClerk = selectedClerk === t('erms.allClerks') || emp.assigned_clerk === selectedClerk;
     const matchesReason = selectedReason === t('erms.allReasons') || emp.reason === selectedReason;
     
     return matchesSearch && matchesDepartment && matchesClerk && matchesReason;
@@ -628,7 +629,9 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
               >
                 <option>{t('erms.allClerks')}</option>
                 {clerks.map(clerk => (
-                  <option key={clerk.user_id} value={clerk.user_id}>{clerk.name}</option>
+                  <option key={clerk.user_id} value={clerk.user_id}>
+                    {clerk.name}
+                  </option>
                 ))}
               </select>
               
@@ -695,7 +698,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {employee.assigned_clerk ? 
                         (clerks.find(c => c.user_id === employee.assigned_clerk)?.name || employee.assigned_clerk) : 
-                        t('erms.unassigned')
+                        <span className="text-gray-400 italic">{t('erms.unassigned')}</span>
                       }
                     </td>
                   </tr>
