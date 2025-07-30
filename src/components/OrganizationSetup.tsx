@@ -78,7 +78,7 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
   const tabs = [
     {
       id: 'departments',
-      name: t('erms.departments'),
+      name: t('erms.department'),
       icon: Building2,
       color: 'bg-blue-500'
     },
@@ -412,19 +412,19 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
         title: t('erms.departments'), 
         addText: t('erms.addDepartment'),
         color: 'bg-blue-600 hover:bg-blue-700',
-        columns: ['ID', 'Name', 'Created Date', 'Actions']
+        columns: [t('erms.departmentId'), t('erms.departmentName'), t('erms.createdDate'), t('erms.actions')]
       },
       talukas: { 
         title: t('erms.talukas'), 
         addText: t('erms.addTaluka'),
         color: 'bg-orange-600 hover:bg-orange-700',
-        columns: ['ID', 'Name', 'Created Date', 'Actions']
+        columns: [t('erms.talukaId'), t('erms.talukaName'), t('erms.createdDate'), t('erms.actions')]
       },
       offices: { 
         title: t('erms.offices'), 
         addText: t('erms.addOffice'),
         color: 'bg-teal-600 hover:bg-teal-700',
-        columns: ['ID', 'Name', 'Created Date', 'Actions']
+        columns: [t('erms.officeId'), t('erms.officeName'), t('erms.createdDate'), t('erms.actions')]
       }
     };
 
@@ -629,12 +629,12 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
                   value={formData.id}
                   onChange={(e) => setFormData({ ...formData, id: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder={t('common.enter') + ' ' + (
-                    activeTab === 'departments' ? t('erms.departmentId') : 
-                    activeTab === 'designations' ? t('erms.designationId') :
-                    activeTab === 'talukas' ? t('erms.talukaId') : 
-                    activeTab === 'offices' ? t('erms.officeId') : t('common.id')
-                  )}
+                  placeholder={
+                    activeTab === 'departments' ? t('erms.enterDepartmentId') : 
+                    activeTab === 'designations' ? t('erms.enterDesignationId') :
+                    activeTab === 'talukas' ? t('erms.enterTalukaId') : 
+                    activeTab === 'offices' ? t('erms.enterOfficeId') : ''
+                  }
                   required
                 />
               </div>
@@ -651,12 +651,12 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder={t('common.enter') + ' ' + (
-                    activeTab === 'departments' ? t('erms.departmentName') : 
-                    activeTab === 'designations' ? t('erms.designationName') :
-                    activeTab === 'talukas' ? t('erms.talukaName') : 
-                    activeTab === 'offices' ? t('erms.officeName') : t('common.name')
-                  )}
+                  placeholder={
+                    activeTab === 'departments' ? t('erms.enterDepartmentName') : 
+                    activeTab === 'designations' ? t('erms.enterDesignationName') :
+                    activeTab === 'talukas' ? t('erms.enterTalukaName') : 
+                    activeTab === 'offices' ? t('erms.enterOfficeName') : ''
+                  }
                 />
               </div>
             </div>
