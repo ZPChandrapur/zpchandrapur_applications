@@ -63,7 +63,7 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
   const [newOfficeLocation, setNewOfficeLocation] = useState({ office_id: '', name: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const [activeTab, setActiveTab] = useState('departments');
+  const [activeTab, setActiveTab] = useState<'departments' | 'talukas' | 'office-locations'>('departments');
 
   // Function to get translated department name using i18n
   const getTranslatedDepartmentName = (departmentName: string) => {
@@ -136,16 +136,15 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
       
       const { data, error } = await ermsClient
         .from('talukas')
-        .select('*');
+        .select('*')
+        .order('created_at', { ascending: false });
       
       if (error) {
+        console.error('Error fetching talukas:', error.message);
         throw error;
-      }
-      
-      if (data) {
-        setTalukas(data);
       } else {
-        setTalukas([]);
+        console.log('Talukas fetched successfully:', data);
+        setTalukas(data || []);
       }
       
     } catch (err: any) {
@@ -161,16 +160,15 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
       
       const { data, error } = await ermsClient
         .from('office_locations')
-        .select('*');
+        .select('*')
+        .order('created_at', { ascending: false });
       
       if (error) {
+        console.error('Error fetching office locations:', error.message);
         throw error;
-      }
-      
-      if (data) {
-        setOfficeLocations(data);
       } else {
-        setOfficeLocations([]);
+        console.log('Office locations fetched successfully:', data);
+        setOfficeLocations(data || []);
       }
       
     } catch (err: any) {
