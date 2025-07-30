@@ -5,12 +5,9 @@ import {
   Calendar, 
   Building2, 
   UserCheck, 
-  UserX,
   RefreshCw,
   Plus,
   Search,
-  Filter,
-  ChevronDown,
   ArrowLeft,
   BarChart3,
   PieChart,
@@ -90,20 +87,31 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
   const fetchDashboardData = async () => {
     try {
       setIsLoading(true);
+      console.log('🔄 Fetching Employee Dashboard Data...');
       
       // Fetch employees
+      console.log('📊 Fetching employees from erms.employee...');
       const { data: employeesData, error: empError } = await ermsClient
         .from('employee')
         .select('*');
       
-      if (empError) throw empError;
+      if (empError) {
+        console.error('❌ Employee fetch error:', empError);
+        throw empError;
+      }
+      console.log('✅ Employees fetched:', employeesData?.length || 0);
 
       // Fetch departments
+      console.log('🏢 Fetching departments from erms.department...');
       const { data: departmentsData, error: deptError } = await ermsClient
         .from('department')
         .select('*');
       
-      if (deptError) throw deptError;
+      if (deptError) {
+        console.error('❌ Department fetch error:', deptError);
+        throw deptError;
+      }
+      console.log('✅ Departments fetched:', departmentsData?.length || 0);
 
       setEmployees(employeesData || []);
       setDepartments(departmentsData || []);
@@ -121,11 +129,17 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       const assignedEmployees = employeesData?.filter(emp => emp.assigned_clerk).length || 0;
       const unassignedEmployees = totalEmployees - assignedEmployees;
 
+      console.log('📈 KPI Calculations:', {
+        totalEmployees,
+        upcomingRetirements,
+        assignedEmployees,
+        unassignedEmployees
+      });
       setKpiData({
         totalEmployees,
         upcomingRetirements,
         departments: departmentsData?.length || 0,
-        totalClerks: 16, // Mock data as per image
+        totalClerks: 16,
         assignedEmployees,
         unassignedEmployees
       });
@@ -135,51 +149,86 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
 
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
+      // Set some default data to show the UI structure
+      setKpiData({
+        totalEmployees: 0,
+        upcomingRetirements: 0,
+        departments: 0,
+        totalClerks: 0,
+        assignedEmployees: 0,
+        unassignedEmployees: 0
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
   const calculateChartData = (employeesData: Employee[], departmentsData: Department[]) => {
+    console.log('📊 Calculating chart data...');
+    
     // Department-wise count
     const deptCounts = departmentsData.map((dept, index) => {
       const count = employeesData.filter(emp => emp.dept_id === dept.dept_id).length;
       const percentage = employeesData.length > 0 ? Math.round((count / employeesData.length) * 100) : 0;
       return {
-        name: dept.dept_name,
+        name: dept.dept_name || dept.dept_id,
         count,
         percentage,
         color: colors[index % colors.length]
       };
     }).sort((a, b) => b.count - a.count);
 
-    // Mock clerk-wise data (as per image)
+    // Get unique clerks from employee data
+    const clerkCounts = new Map();
+    employeesData.forEach(emp => {
+      if (emp.assigned_clerk) {
+        clerkCounts.set(emp.assigned_clerk, (clerkCounts.get(emp.assigned_clerk) || 0) + 1);
+      }
+    });
+    
     const clerkWiseCount = [
-      { name: 'pr@chandrapur', count: 8, percentage: 100, color: colors[0] },
-      { name: 'pr@chandrapur', count: 7, percentage: 88, color: colors[1] },
-      { name: 'pr@chandrapur', count: 5, percentage: 63, color: colors[2] },
-      { name: 'pr@mul', count: 5, percentage: 63, color: colors[3] },
-      { name: 'pr@ballarshah', count: 4, percentage: 50, color: colors[4] },
-      { name: 'health@chandrapur', count: 3, percentage: 38, color: colors[5] },
-      { name: 'pr@chimur', count: 3, percentage: 38, color: colors[6] },
-      { name: 'pr@warora', count: 3, percentage: 38, color: colors[7] },
-      { name: 'pr@chandrapur', count: 3, percentage: 38, color: colors[8] },
-      { name: 'pr@chandrapur', count: 3, percentage: 38, color: colors[9] }
+      ...Array.from(clerkCounts.entries()).map(([clerk, count], index) => {
+        const maxCount = Math.max(...clerkCounts.values());
+        const percentage = maxCount > 0 ? Math.round((count / maxCount) * 100) : 0;
+        return {
+          name: clerk,
+          count,
+          percentage,
+          color: colors[index % colors.length]
+        };
+      }).sort((a, b) => b.count - a.count)
     ];
 
     // Retirement reasons
-    const retirementReasons = [
-      { reason: 'Superannuation', count: 12, percentage: 100, color: colors[0] },
-      { reason: 'Voluntary Retirement', count: 1, percentage: 8, color: colors[1] },
-      { reason: 'Death', count: 0, percentage: 0, color: colors[2] }
-    ];
+    const reasonCounts = new Map();
+    employeesData.forEach(emp => {
+      if (emp.reason) {
+        reasonCounts.set(emp.reason, (reasonCounts.get(emp.reason) || 0) + 1);
+      }
+    });
+    
+    const retirementReasons = Array.from(reasonCounts.entries()).map(([reason, count], index) => {
+      const maxCount = Math.max(...reasonCounts.values());
+      const percentage = maxCount > 0 ? Math.round((count / maxCount) * 100) : 0;
+      return {
+        reason,
+        count,
+        percentage,
+        color: colors[index % colors.length]
+      };
+    }).sort((a, b) => b.count - a.count);
 
+    console.log('📊 Chart data calculated:', {
+      deptCounts: deptCounts.length,
+      clerkWiseCount: clerkWiseCount.length,
+      retirementReasons: retirementReasons.length
+    });
     setChartData({
       departmentWiseCount: deptCounts,
       clerkWiseCount,
       assignedVsUnassigned: {
-        assigned: kpiData.assignedEmployees,
-        unassigned: kpiData.unassignedEmployees
+        assigned: employeesData.filter(emp => emp.assigned_clerk).length,
+        unassigned: employeesData.filter(emp => !emp.assigned_clerk).length
       },
       retirementReasons
     });
@@ -458,10 +507,9 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option>All Clerks</option>
-                <option>pr@chandrapur</option>
-                <option>pr@mul</option>
-                <option>pr@ballarshah</option>
-                <option>health@chandrapur</option>
+                {Array.from(new Set(employees.map(emp => emp.assigned_clerk).filter(Boolean))).map(clerk => (
+                  <option key={clerk} value={clerk}>{clerk}</option>
+                ))}
               </select>
               
               <select
@@ -470,9 +518,9 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option>All Reasons</option>
-                <option>Retirement Due to Death</option>
-                <option>Retirement Due to Prescribed Age</option>
-                <option>Voluntary Retirement</option>
+                <option value="Retirement Due to Death">Retirement Due to Death</option>
+                <option value="Retirement Due to Prescribed Age">Retirement Due to Prescribed Age</option>
+                <option value="Voluntary Retirement">Voluntary Retirement</option>
               </select>
             </div>
             
