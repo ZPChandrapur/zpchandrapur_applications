@@ -736,7 +736,7 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                {t('erms.departments')} ({departments?.length || 0})
+                {t('erms.departmentsTab')} ({departments?.length || 0})
               </button>
               <button
                 onClick={() => setActiveTab('talukas')}
