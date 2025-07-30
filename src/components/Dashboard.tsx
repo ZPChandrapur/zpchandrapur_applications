@@ -250,7 +250,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
                               {userProfile?.role_name ? t(`roles.${userProfile.role_name}`) : t(`roles.${userRole}`)}
                             </div>
                           </div>
-                      </>
+                        </div>
+                      </div>
 
                       <div className="py-2">
                         <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-3">
