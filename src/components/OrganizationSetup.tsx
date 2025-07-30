@@ -45,8 +45,9 @@ interface OfficeLocation {
 }
 
 interface Designation {
-  id: string;
+  designation_id: string;
   designation: string;
+  department_id?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -125,7 +126,7 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
     try {
       console.log('📋 Fetching designations...');
       const { data, error } = await ermsClient
-        .from('designation')
+        .from('designations')
         .select('*')
         .order('designation');
       
@@ -200,7 +201,7 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
       const maxId = Math.max(...officeLocations.map(o => parseInt(o.id) || 0), 0);
       nextId = (maxId + 1).toString();
     } else if (activeTab === 'designations') {
-      const maxId = Math.max(...designations.map(d => parseInt(d.id) || 0), 0);
+      const maxId = Math.max(...designations.map(d => parseInt(d.designation_id) || 0), 0);
       nextId = (maxId + 1).toString();
     }
     
@@ -213,7 +214,7 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
     if (activeTab === 'departments') {
       setFormData({ id: item.id, name: item.department, address: '', taluka_id: '' });
     } else if (activeTab === 'designations') {
-      setFormData({ id: item.id, name: item.designation, address: '', taluka_id: '' });
+      setFormData({ id: item.designation_id, name: item.designation, address: '', taluka_id: '' });
     } else if (activeTab === 'talukas') {
       setFormData({ id: item.id, name: item.name, address: '', taluka_id: '' });
     } else if (activeTab === 'offices') {
@@ -247,14 +248,14 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
       } else if (activeTab === 'designations') {
         if (editingItem) {
           const { error } = await ermsClient
-            .from('designation')
+            .from('designations')
             .update({ designation: formData.name })
-            .eq('id', formData.id);
+            .eq('designation_id', formData.id);
           if (error) throw error;
         } else {
           const { error } = await ermsClient
-            .from('designation')
-            .insert({ id: formData.id, designation: formData.name });
+            .from('designations')
+            .insert({ designation_id: formData.id, designation: formData.name });
           if (error) throw error;
         }
         await fetchDesignations();
@@ -321,9 +322,9 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
         await fetchDepartments();
       } else if (activeTab === 'designations') {
         const { error } = await ermsClient
-          .from('designation')
+          .from('designations')
           .delete()
-          .eq('id', item.id);
+          .eq('designation_id', item.designation_id);
         if (error) throw error;
         await fetchDesignations();
       } else if (activeTab === 'talukas') {
@@ -517,9 +518,9 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
                   </tr>
                 ) : (
                   filteredData.map((item) => (
-                    <tr key={item.id} className="hover:bg-gray-50">
+                    <tr key={activeTab === 'designations' ? item.designation_id : item.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {item.id}
+                        {activeTab === 'designations' ? item.designation_id : item.id}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {activeTab === 'departments' ? item.department : item.name}
