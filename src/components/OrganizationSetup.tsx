@@ -44,6 +44,13 @@ interface OfficeLocation {
   updated_at?: string;
 }
 
+interface Designation {
+  id: string;
+  designation: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) => {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('departments');
@@ -56,7 +63,7 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
   const [departments, setDepartments] = useState<Department[]>([]);
   const [talukas, setTalukas] = useState<Taluka[]>([]);
   const [officeLocations, setOfficeLocations] = useState<OfficeLocation[]>([]);
-  const [designations, setDesignations] = useState([]);
+  const [designations, setDesignations] = useState<Designation[]>([]);
   const [clerks, setClerks] = useState([]);
 
   // Form states
@@ -70,7 +77,7 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
   const tabs = [
     {
       id: 'departments',
-      name: t('erms.departmentsTab'),
+      name: t('erms.departments'),
       icon: Building2,
       color: 'bg-blue-500'
     },
@@ -88,7 +95,7 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
     },
     {
       id: 'offices',
-      name: t('erms.officeLocations'),
+      name: t('erms.offices'),
       icon: Building2,
       color: 'bg-teal-500'
     }
@@ -104,12 +111,29 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
       await Promise.all([
         fetchDepartments(),
         fetchTalukas(),
-        fetchOfficeLocations()
+        fetchOfficeLocations(),
+        fetchDesignations()
       ]);
     } catch (error) {
       console.error('Error fetching organization data:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchDesignations = async () => {
+    try {
+      console.log('📋 Fetching designations...');
+      const { data, error } = await ermsClient
+        .from('designation')
+        .select('*')
+        .order('designation');
+      
+      if (error) throw error;
+      console.log('✅ Designations fetched:', data?.length || 0);
+      setDesignations(data || []);
+    } catch (error) {
+      console.error('❌ Error fetching designations:', error);
     }
   };
 
@@ -163,7 +187,24 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
 
   const handleAdd = () => {
     setEditingItem(null);
-    setFormData({ id: '', name: '', address: '', taluka_id: '' });
+    
+    // Generate next ID based on existing data
+    let nextId = '';
+    if (activeTab === 'departments') {
+      const maxId = Math.max(...departments.map(d => parseInt(d.id) || 0), 0);
+      nextId = (maxId + 1).toString();
+    } else if (activeTab === 'talukas') {
+      const maxId = Math.max(...talukas.map(t => parseInt(t.id) || 0), 0);
+      nextId = (maxId + 1).toString();
+    } else if (activeTab === 'offices') {
+      const maxId = Math.max(...officeLocations.map(o => parseInt(o.id) || 0), 0);
+      nextId = (maxId + 1).toString();
+    } else if (activeTab === 'designations') {
+      const maxId = Math.max(...designations.map(d => parseInt(d.id) || 0), 0);
+      nextId = (maxId + 1).toString();
+    }
+    
+    setFormData({ id: nextId, name: '', address: '', taluka_id: '' });
     setShowAddModal(true);
   };
 
@@ -171,6 +212,8 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
     setEditingItem(item);
     if (activeTab === 'departments') {
       setFormData({ id: item.id, name: item.department, address: '', taluka_id: '' });
+    } else if (activeTab === 'designations') {
+      setFormData({ id: item.id, name: item.designation, address: '', taluka_id: '' });
     } else if (activeTab === 'talukas') {
       setFormData({ id: item.id, name: item.name, address: '', taluka_id: '' });
     } else if (activeTab === 'offices') {
@@ -181,7 +224,7 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
 
   const handleSave = async () => {
     if (!formData.name.trim()) {
-      alert(t('erms.fillAllFields'));
+      alert(t('common.fillAllFields'));
       return;
     }
 
@@ -201,6 +244,20 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
           if (error) throw error;
         }
         await fetchDepartments();
+      } else if (activeTab === 'designations') {
+        if (editingItem) {
+          const { error } = await ermsClient
+            .from('designation')
+            .update({ designation: formData.name })
+            .eq('id', formData.id);
+          if (error) throw error;
+        } else {
+          const { error } = await ermsClient
+            .from('designation')
+            .insert({ id: formData.id, designation: formData.name });
+          if (error) throw error;
+        }
+        await fetchDesignations();
       } else if (activeTab === 'talukas') {
         if (editingItem) {
           const { error } = await ermsClient
@@ -244,14 +301,14 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
       setFormData({ id: '', name: '', address: '', taluka_id: '' });
     } catch (error) {
       console.error('Error saving:', error);
-      alert('Error saving data. Please try again.');
+      alert(t('common.error') + ': ' + error.message);
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleDelete = async (item: any) => {
-    if (!confirm(t('erms.deleteConfirm'))) return;
+    if (!confirm(t('common.deleteConfirm'))) return;
 
     setIsLoading(true);
     try {
@@ -262,6 +319,13 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
           .eq('id', item.id);
         if (error) throw error;
         await fetchDepartments();
+      } else if (activeTab === 'designations') {
+        const { error } = await ermsClient
+          .from('designation')
+          .delete()
+          .eq('id', item.id);
+        if (error) throw error;
+        await fetchDesignations();
       } else if (activeTab === 'talukas') {
         const { error } = await ermsClient
           .from('talukas')
@@ -279,7 +343,7 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
       }
     } catch (error) {
       console.error('Error deleting:', error);
-      alert('Error deleting data. Please try again.');
+      alert(t('common.error') + ': ' + error.message);
     } finally {
       setIsLoading(false);
     }
@@ -288,12 +352,15 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
   const getFilteredData = () => {
     let data: any[] = [];
     if (activeTab === 'departments') data = departments;
+    else if (activeTab === 'designations') data = designations;
     else if (activeTab === 'talukas') data = talukas;
     else if (activeTab === 'offices') data = officeLocations;
 
     return data.filter(item => {
       const searchFields = activeTab === 'departments' 
         ? [item.id, item.department]
+        : activeTab === 'designations'
+        ? [item.id, item.designation]
         : activeTab === 'talukas'
         ? [item.id, item.name]
         : [item.id, item.name, item.address];
@@ -315,7 +382,7 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
     },
     {
       title: t('erms.totalDesignations'),
-      value: '45',
+      value: designations.length.toString(),
       subtitle: t('erms.jobPositions'),
       icon: ClipboardList,
       color: 'bg-green-100 text-green-600',
