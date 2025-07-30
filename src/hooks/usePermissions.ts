@@ -15,7 +15,7 @@ export interface UserProfile {
   name: string | null;
   role_name: string | null;
   email: string | null;
-  phone: string | null;
+  phone_number: string | null;
 }
 export interface PermissionCheck {
   hasAccess: (app: string, permission?: 'read' | 'write' | 'delete' | 'admin') => boolean;
@@ -65,7 +65,7 @@ export const usePermissions = (user: User | null): PermissionCheck => {
         // Fetch user profile information from user_roles table
         const { data: userRoleData, error: userRoleError } = await supabase
           .from('user_roles')
-          .select('name, phone, roles(name)')
+          .select('name, phone_number, roles(name)')
           .eq('user_id', user.id)
           .single();
 
@@ -76,14 +76,14 @@ export const usePermissions = (user: User | null): PermissionCheck => {
             name: null,
             role_name: data && data.length > 0 ? data[0].role_name : null,
             email: user.email || null,
-            phone: null
+            phone_number: null
           });
         } else {
           setUserProfile({
             name: userRoleData?.name || null,
             role_name: userRoleData?.roles?.name || (data && data.length > 0 ? data[0].role_name : null),
             email: user.email || null,
-            phone: userRoleData?.phone || null
+            phone_number: userRoleData?.phone_number || null
           });
         }
       } catch (err) {
@@ -94,7 +94,7 @@ export const usePermissions = (user: User | null): PermissionCheck => {
           name: null,
           role_name: null,
           email: user?.email || null,
-          phone: null
+          phone_number: null
         });
       } finally {
         setIsLoading(false);
