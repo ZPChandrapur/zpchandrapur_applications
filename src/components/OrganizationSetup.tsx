@@ -638,7 +638,12 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <h3 className="text-lg font-semibold text-gray-900">
-                {editingItem ? 'Edit' : 'Add'} {activeTab.slice(0, -1)}
+                {editingItem ? t('common.edit') : t('common.add')} {
+                  activeTab === 'departments' ? t('erms.department') :
+                  activeTab === 'designations' ? t('erms.designation') :
+                  activeTab === 'talukas' ? t('erms.taluka') :
+                  activeTab === 'offices' ? t('erms.office') : ''
+                }
               </h3>
               <button
                 onClick={() => setShowAddModal(false)}
@@ -651,54 +656,68 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
             <div className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {activeTab === 'departments' ? 'Department ID' : 
-                   activeTab === 'talukas' ? 'Taluka ID' : 'Office ID'}
+                  {activeTab === 'departments' ? t('erms.departmentId') : 
+                   activeTab === 'designations' ? t('erms.designationId') :
+                   activeTab === 'talukas' ? t('erms.talukaId') : 
+                   activeTab === 'offices' ? t('erms.officeId') : t('common.id')}
                 </label>
                 <input
                   type="text"
                   value={formData.id}
                   onChange={(e) => setFormData({ ...formData, id: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder={`Enter ${activeTab.slice(0, -1)} ID`}
+                  placeholder={t('common.enter') + ' ' + (
+                    activeTab === 'departments' ? t('erms.departmentId') : 
+                    activeTab === 'designations' ? t('erms.designationId') :
+                    activeTab === 'talukas' ? t('erms.talukaId') : 
+                    activeTab === 'offices' ? t('erms.officeId') : t('common.id')
+                  )}
                   disabled={!!editingItem}
                 />
               </div>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {activeTab === 'departments' ? 'Department Name' : 
-                   activeTab === 'talukas' ? 'Taluka Name' : 'Office Name'}
+                  {activeTab === 'departments' ? t('erms.departmentName') : 
+                   activeTab === 'designations' ? t('erms.designationName') :
+                   activeTab === 'talukas' ? t('erms.talukaName') : 
+                   activeTab === 'offices' ? t('erms.officeName') : t('common.name')}
                 </label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder={`Enter ${activeTab.slice(0, -1)} name`}
+                  placeholder={t('common.enter') + ' ' + (
+                    activeTab === 'departments' ? t('erms.departmentName') : 
+                    activeTab === 'designations' ? t('erms.designationName') :
+                    activeTab === 'talukas' ? t('erms.talukaName') : 
+                    activeTab === 'offices' ? t('erms.officeName') : t('common.name')
+                  )}
                 />
               </div>
 
               {activeTab === 'offices' && (
                 <>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('common.address')}</label>
                     <textarea
                       value={formData.address}
                       onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Enter office address"
+                      placeholder={t('common.enter') + ' ' + t('common.address')}
                       rows={3}
                     />
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Taluka</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.taluka')}</label>
                     <select
                       value={formData.taluka_id}
                       onChange={(e) => setFormData({ ...formData, taluka_id: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
-                      <option value="">Select Taluka</option>
+                      <option value="">{t('common.select') + ' ' + t('erms.taluka')}</option>
                       {talukas.map(taluka => (
                         <option key={taluka.id} value={taluka.id}>
                           {taluka.name}
@@ -715,14 +734,14 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
                 onClick={() => setShowAddModal(false)}
                 className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 onClick={handleSave}
                 disabled={isLoading}
                 className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 disabled:opacity-50"
               >
-                {isLoading ? t('erms.adding') : (editingItem ? 'Update' : 'Add')}
+                {isLoading ? t('common.saving') : (editingItem ? t('common.update') : t('common.add'))}
               </button>
             </div>
           </div>
