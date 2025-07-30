@@ -57,6 +57,7 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
   const [talukas, setTalukas] = useState<Taluka[]>([]);
   const [officeLocations, setOfficeLocations] = useState<OfficeLocation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [countsLoading, setCountsLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [newDepartment, setNewDepartment] = useState({ dept_id: '', department: '' });
   const [newTaluka, setNewTaluka] = useState({ tal_id: '', name: '' });
@@ -97,7 +98,55 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
     }
   }, [i18n.language]);
 
+  const fetchCounts = async () => {
+    try {
+      setCountsLoading(true);
+      console.log('🔍 Fetching counts for all tables...');
+      
+      // Fetch departments count
+      const { count: deptCount, error: deptError } = await ermsClient
+        .from('department')
+        .select('*', { count: 'exact', head: true });
+      
+      if (deptError) {
+        console.error('❌ Department count error:', deptError);
+      } else {
+        console.log('✅ Department count:', deptCount);
+      }
+
+      // Fetch talukas count
+      const { count: talukasCount, error: talukasError } = await ermsClient
+        .from('talukas')
+        .select('*', { count: 'exact', head: true });
+      
+      if (talukasError) {
+        console.error('❌ Talukas count error:', talukasError);
+      } else {
+        console.log('✅ Talukas count:', talukasCount);
+      }
+
+      // Fetch office locations count
+      const { count: officeCount, error: officeError } = await ermsClient
+        .from('office_locations')
+        .select('*', { count: 'exact', head: true });
+      
+      if (officeError) {
+        console.error('❌ Office locations count error:', officeError);
+      } else {
+        console.log('✅ Office locations count:', officeCount);
+      }
+      
+    } catch (error) {
+      console.error('❌ Error fetching counts:', error);
+    } finally {
+      setCountsLoading(false);
+    }
+  };
+
   const fetchAllData = async () => {
+    // Fetch counts
+    await fetchCounts();
+    
     await Promise.all([
       fetchDepartments(),
       fetchTalukas(),
@@ -141,9 +190,10 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
       
       if (error) {
         console.error('Error fetching talukas:', error.message);
+        setError(`Failed to fetch talukas: ${error.message}`);
         throw error;
       } else {
-        console.log('Talukas fetched successfully:', data);
+        console.log('✅ Talukas data:', data);
         setTalukas(data || []);
       }
       
@@ -165,9 +215,10 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
       
       if (error) {
         console.error('Error fetching office locations:', error.message);
+        setError(`Failed to fetch office locations: ${error.message}`);
         throw error;
       } else {
-        console.log('Office locations fetched successfully:', data);
+        console.log('✅ Office locations data:', data);
         setOfficeLocations(data || []);
       }
       
@@ -541,18 +592,76 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
 
           {/* KPI Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
-            {kpiCards.map((card, index) => (
-              <div key={index} className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
-                <div className="flex items-center justify-between mb-3">
-                  <div className={`${card.bgColor} p-2 rounded-lg`}>
-                    <card.icon className={`h-5 w-5 ${card.color}`} />
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow duration-200">
+              <div className="flex items-center justify-between mb-2">
+                <div className="p-2 rounded-lg bg-blue-50">
+                  <Building2 className="h-6 w-6 text-blue-600" />
+                </div>
+                <div className="text-right">
+                  <div className="text-xl font-bold text-gray-900">
+                    {countsLoading ? '...' : departments?.length || 0}
                   </div>
                 </div>
-                <div className="text-2xl font-bold text-gray-900 mb-1">{card.value}</div>
-                <div className="text-sm text-gray-600 mb-1">{card.title}</div>
-                <div className="text-xs text-gray-500">{card.subtitle}</div>
               </div>
-            ))}
+              <div className="text-sm text-gray-600">{t('erms.totalDepartments')}</div>
+              <div className="text-xs text-gray-500 mt-1">{t('erms.activeDepartments')}</div>
+            </div>
+            
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow duration-200">
+              <div className="flex items-center justify-between mb-2">
+                <div className="p-2 rounded-lg bg-green-50">
+                  <Briefcase className="h-6 w-6 text-green-600" />
+                </div>
+                <div className="text-right">
+                  <div className="text-xl font-bold text-gray-900">19</div>
+                </div>
+              </div>
+              <div className="text-sm text-gray-600">{t('erms.totalDesignations')}</div>
+              <div className="text-xs text-gray-500 mt-1">{t('erms.jobPositions')}</div>
+            </div>
+            
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow duration-200">
+              <div className="flex items-center justify-between mb-2">
+                <div className="p-2 rounded-lg bg-orange-50">
+                  <UserCheck className="h-6 w-6 text-orange-600" />
+                </div>
+                <div className="text-right">
+                  <div className="text-xl font-bold text-gray-900">29</div>
+                </div>
+              </div>
+              <div className="text-sm text-gray-600">{t('erms.totalClerks')}</div>
+              <div className="text-xs text-gray-500 mt-1">{t('erms.activeClerks')}</div>
+            </div>
+            
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow duration-200">
+              <div className="flex items-center justify-between mb-2">
+                <div className="p-2 rounded-lg bg-purple-50">
+                  <MapPin className="h-6 w-6 text-purple-600" />
+                </div>
+                <div className="text-right">
+                  <div className="text-xl font-bold text-gray-900">
+                    {countsLoading ? '...' : talukas?.length || 0}
+                  </div>
+                </div>
+              </div>
+              <div className="text-sm text-gray-600">{t('erms.totalTalukas')}</div>
+              <div className="text-xs text-gray-500 mt-1">{t('erms.administrativeUnits')}</div>
+            </div>
+            
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow duration-200">
+              <div className="flex items-center justify-between mb-2">
+                <div className="p-2 rounded-lg bg-green-50">
+                  <Building className="h-6 w-6 text-green-600" />
+                </div>
+                <div className="text-right">
+                  <div className="text-xl font-bold text-gray-900">
+                    {countsLoading ? '...' : officeLocations?.length || 0}
+                  </div>
+                </div>
+              </div>
+              <div className="text-sm text-gray-600">{t('erms.totalOfficeLocations')}</div>
+              <div className="text-xs text-gray-500 mt-1">{t('erms.workLocations')}</div>
+            </div>
           </div>
 
           {/* Charts Section */}
@@ -616,25 +725,39 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
             </div>
           </div>
 
-          {/* Tabs */}
+          {/* Tab Navigation */}
           <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-            <div className="border-b border-gray-200">
-              <div className="flex space-x-0 overflow-x-auto">
-                {tabItems.map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center space-x-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-                      activeTab === tab.id
-                        ? 'border-blue-500 text-blue-600 bg-blue-50'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-                    }`}
-                  >
-                    <tab.icon className="h-4 w-4" />
-                    <span>{tab.label}</span>
-                  </button>
-                ))}
-              </div>
+            <div className="flex flex-wrap gap-2 mb-6">
+              <button
+                onClick={() => setActiveTab('departments')}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${
+                  activeTab === 'departments'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                {t('erms.departments')} ({departments?.length || 0})
+              </button>
+              <button
+                onClick={() => setActiveTab('talukas')}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${
+                  activeTab === 'talukas'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                {t('erms.talukas')} ({talukas?.length || 0})
+              </button>
+              <button
+                onClick={() => setActiveTab('office-locations')}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${
+                  activeTab === 'office-locations'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                {t('erms.officeLocations')} ({officeLocations?.length || 0})
+              </button>
             </div>
 
             {/* Department Management Table */}
