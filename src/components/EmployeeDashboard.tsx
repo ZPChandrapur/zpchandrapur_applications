@@ -146,6 +146,8 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         if (clerksError) {
           console.error('❌ Clerks fetch error:', clerksError);
           setClerks([]);
+          // Set clerksData to empty array to avoid undefined error
+          const clerksData = [];
         } else {
           const formattedClerks = clerksData?.map(clerk => ({
             user_id: clerk.user_id,
@@ -207,7 +209,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         totalEmployees,
         upcomingRetirements,
         departments: departmentsData?.length || 0,
-        totalClerks: clerksData?.length || 0,
+        totalClerks: clerks.length || 0,
         assignedEmployees,
         unassignedEmployees
       });
