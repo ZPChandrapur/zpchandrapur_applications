@@ -231,6 +231,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
                       <div className="text-xs text-white/80">
                         {userProfile?.role_name ? t(`roles.${userProfile.role_name}`) : t(`roles.${userRole}`)}
                       </div>
+                      </div>
+                      <div className="text-xs text-white/80">
+                        {userProfile?.role_name ? t(`roles.${userProfile.role_name}`) : t(`roles.${userRole}`)}
+                      </div>
                     </div>
                     <ChevronDown className={`h-4 w-4 text-white transition-transform duration-200 ${isProfileOpen ? 'rotate-180' : ''}`} />
                   </button>
@@ -381,8 +385,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
                           <User className="h-5 w-5 text-blue-600" />
                         </div>
                         <div>
-                          <div className="font-medium text-gray-900">{userProfile?.name || user.email?.split('@')[0]}</div>
-                          <div className="text-sm text-gray-500">{t(`roles.${userRole}`)}</div>
+                          <div className="font-medium text-gray-900">
+                            {userProfile?.name || user.email?.split('@')[0]}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {userProfile?.role_name ? t(`roles.${userProfile.role_name}`) : t(`roles.${userRole}`)}
+                          </div>
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {userProfile?.role_name ? t(`roles.${userProfile.role_name}`) : t(`roles.${userRole}`)}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -393,7 +405,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
                         className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-3"
                         onClick={() => {
                           // Show user profile details
-                          alert(`Profile Details:\nName: ${userProfile?.name || 'Not set'}\nEmail: ${userProfile?.email || 'Not available'}\nPhone: ${userProfile?.phone || 'Not set'}\nRole: ${userProfile?.role_name || 'Not assigned'}`);
+                          alert(`Profile Details:\nName: ${userProfile?.name || 'Not set'}\nEmail: ${userProfile?.email || 'Not available'}\nPhone: ${userProfile?.phone_number || 'Not set'}\nRole: ${userProfile?.role_name || 'Not assigned'}`);
                         }}
                       >
                         <User className="h-4 w-4" />
