@@ -93,7 +93,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     age: 0,
     retirement_date: '',
     assigned_clerk: '',
-    reason: ''
+    reason: 'नियत वयोमान'
   });
 
   const colors = [
@@ -293,7 +293,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         age: 0,
         retirement_date: '',
         assigned_clerk: '',
-        reason: ''
+        reason: 'नियत वयोमान'
       });
       setShowAddModal(false);
       
@@ -585,9 +585,9 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option>{t('erms.allReasons')}</option>
-                <option value="Retirement Due to Death">Retirement Due to Death</option>
-                <option value="Retirement Due to Prescribed Age">Retirement Due to Prescribed Age</option>
-                <option value="Voluntary Retirement">Voluntary Retirement</option>
+                <option value="नियत वयोमान">नियत वयोमान</option>
+                <option value="मृत्यू झाल्याने">मृत्यू झाल्याने</option>
+                <option value="स्वेच्छा सेवा निवृत्ती">स्वेच्छा सेवा निवृत्ती</option>
               </select>
             </div>
             
@@ -773,9 +773,9 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="">{t('erms.selectReason')}</option>
-                    <option value="Retirement Due to Death">Retirement Due to Death</option>
-                    <option value="Retirement Due to Prescribed Age">Retirement Due to Prescribed Age</option>
-                    <option value="Voluntary Retirement">Voluntary Retirement</option>
+                    <option value="नियत वयोमान">नियत वयोमान</option>
+                    <option value="मृत्यू झाल्याने">मृत्यू झाल्याने</option>
+                    <option value="स्वेच्छा सेवा निवृत्ती">स्वेच्छा सेवा निवृत्ती</option>
                   </select>
                 </div>
               </div>
