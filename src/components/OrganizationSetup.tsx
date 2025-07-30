@@ -127,7 +127,7 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
       console.log('📋 Fetching designations...');
       const { data, error } = await ermsClient
         .from('designations')
-        .select('*')
+        .select('designation_id, designation, department_id, created_at, updated_at')
         .order('designation');
       
       if (error) throw error;
@@ -159,12 +159,12 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
       console.log('🗺️ Fetching talukas...');
       const { data, error } = await ermsClient
         .from('talukas')
-        .select('taluka_id, name, created_at, updated_at')
+        .select('id, name, created_at, updated_at')
         .order('name');
       
       if (error) throw error;
       console.log('✅ Talukas fetched:', data?.length || 0);
-      setTalukas(data?.map(t => ({ id: t.taluka_id, name: t.name, created_at: t.created_at, updated_at: t.updated_at })) || []);
+      setTalukas(data || []);
     } catch (error) {
       console.error('❌ Error fetching talukas:', error);
     }
@@ -175,12 +175,12 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
       console.log('🏢 Fetching office locations...');
       const { data, error } = await ermsClient
         .from('office_locations')
-        .select('office_id, name, created_at, updated_at')
+        .select('id, name, created_at, updated_at')
         .order('name');
       
       if (error) throw error;
       console.log('✅ Office locations fetched:', data?.length || 0);
-      setOfficeLocations(data?.map(o => ({ id: o.office_id, name: o.name, created_at: o.created_at, updated_at: o.updated_at })) || []);
+      setOfficeLocations(data || []);
     } catch (error) {
       console.error('❌ Error fetching office locations:', error);
     }
@@ -188,24 +188,7 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
 
   const handleAdd = () => {
     setEditingItem(null);
-    
-    // Generate next ID based on existing data
-    let nextId = '';
-    if (activeTab === 'departments') {
-      const maxId = Math.max(...departments.map(d => parseInt(d.id.replace('DEPT', '')) || 0), 0);
-      nextId = `DEPT${(maxId + 1).toString().padStart(3, '0')}`;
-    } else if (activeTab === 'talukas') {
-      const maxId = Math.max(...talukas.map(t => parseInt(t.id.replace('TAL', '')) || 0), 0);
-      nextId = `TAL${(maxId + 1).toString().padStart(3, '0')}`;
-    } else if (activeTab === 'offices') {
-      const maxId = Math.max(...officeLocations.map(o => parseInt(o.id.replace('OFF', '')) || 0), 0);
-      nextId = `OFF${(maxId + 1).toString().padStart(3, '0')}`;
-    } else if (activeTab === 'designations') {
-      const maxId = Math.max(...designations.map(d => parseInt(d.designation_id.replace('DES', '')) || 0), 0);
-      nextId = `DES${(maxId + 1).toString().padStart(3, '0')}`;
-    }
-    
-    setFormData({ id: nextId, name: '', address: '', taluka_id: '' });
+    setFormData({ id: '', name: '', address: '', taluka_id: '' });
     setShowAddModal(true);
   };
 
@@ -236,7 +219,7 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
           const { error } = await ermsClient
             .from('department')
             .update({ department: formData.name })
-            .eq('dept_id', formData.id);
+            .eq('dept_id', editingItem.id);
           if (error) throw error;
         } else {
           const { error } = await ermsClient
@@ -250,7 +233,7 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
           const { error } = await ermsClient
             .from('designations')
             .update({ designation: formData.name })
-            .eq('designation_id', formData.id);
+            .eq('designation_id', editingItem.designation_id);
           if (error) throw error;
         } else {
           const { error } = await ermsClient
@@ -264,12 +247,12 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
           const { error } = await ermsClient
             .from('talukas')
             .update({ name: formData.name })
-            .eq('taluka_id', formData.id);
+            .eq('id', editingItem.id);
           if (error) throw error;
         } else {
           const { error } = await ermsClient
             .from('talukas')
-            .insert({ taluka_id: formData.id, name: formData.name });
+            .insert({ id: formData.id, name: formData.name });
           if (error) throw error;
         }
         await fetchTalukas();
@@ -278,12 +261,12 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
           const { error } = await ermsClient
             .from('office_locations')
             .update({ name: formData.name })
-            .eq('office_id', formData.id);
+            .eq('id', editingItem.id);
           if (error) throw error;
         } else {
           const { error } = await ermsClient
             .from('office_locations')
-            .insert({ office_id: formData.id, name: formData.name });
+            .insert({ id: formData.id, name: formData.name });
           if (error) throw error;
         }
         await fetchOfficeLocations();
@@ -322,14 +305,14 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
         const { error } = await ermsClient
           .from('talukas')
           .delete()
-          .eq('taluka_id', item.id);
+          .eq('id', item.id);
         if (error) throw error;
         await fetchTalukas();
       } else if (activeTab === 'offices') {
         const { error } = await ermsClient
           .from('office_locations')
           .delete()
-          .eq('office_id', item.id);
+          .eq('id', item.id);
         if (error) throw error;
         await fetchOfficeLocations();
       }
@@ -652,7 +635,7 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
                     activeTab === 'talukas' ? t('erms.talukaId') : 
                     activeTab === 'offices' ? t('erms.officeId') : t('common.id')
                   )}
-                  disabled={!!editingItem}
+                  required
                 />
               </div>
               
