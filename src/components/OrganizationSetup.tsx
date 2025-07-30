@@ -36,7 +36,7 @@ interface Taluka {
 }
 
 interface OfficeLocation {
-  id: string;
+  office_id: string;
   name: string;
   address?: string;
   taluka_id?: string;
@@ -175,7 +175,7 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
       console.log('🏢 Fetching office locations...');
       const { data, error } = await ermsClient
         .from('office_locations')
-        .select('id, name, created_at, updated_at')
+        .select('office_id, name, created_at, updated_at')
         .order('name');
       
       if (error) throw error;
@@ -201,7 +201,7 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
     } else if (activeTab === 'talukas') {
       setFormData({ id: item.id, name: item.name, address: '', taluka_id: '' });
     } else if (activeTab === 'offices') {
-      setFormData({ id: item.id, name: item.name, address: item.address || '', taluka_id: item.taluka_id || '' });
+      setFormData({ id: item.office_id, name: item.name, address: item.address || '', taluka_id: item.taluka_id || '' });
     }
     setShowAddModal(true);
   };
@@ -261,12 +261,12 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
           const { error } = await ermsClient
             .from('office_locations')
             .update({ name: formData.name })
-            .eq('id', editingItem.id);
+            .eq('office_id', editingItem.office_id);
           if (error) throw error;
         } else {
           const { error } = await ermsClient
             .from('office_locations')
-            .insert({ id: formData.id, name: formData.name });
+            .insert({ office_id: formData.id, name: formData.name });
           if (error) throw error;
         }
         await fetchOfficeLocations();
@@ -312,7 +312,7 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
         const { error } = await ermsClient
           .from('office_locations')
           .delete()
-          .eq('id', item.id);
+          .eq('office_id', item.office_id);
         if (error) throw error;
         await fetchOfficeLocations();
       }
@@ -492,9 +492,9 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
                   </tr>
                 ) : (
                   filteredData.map((item) => (
-                    <tr key={activeTab === 'designations' ? item.designation_id : item.id} className="hover:bg-gray-50">
+                    <tr key={activeTab === 'designations' ? item.designation_id : activeTab === 'offices' ? item.office_id : item.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {activeTab === 'designations' ? item.designation_id : item.id}
+                        {activeTab === 'designations' ? item.designation_id : activeTab === 'offices' ? item.office_id : item.id}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {activeTab === 'departments' ? item.department : item.name}
