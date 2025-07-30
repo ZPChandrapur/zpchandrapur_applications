@@ -124,42 +124,55 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       setIsLoading(true);
       console.log('🔄 Fetching Employee Dashboard Data...');
       
-      // Fetch clerks from user_roles table
-      console.log('👥 Fetching clerks from public.user_roles...');
-      const { data: clerksData, error: clerksError } = await supabase
-        .from('user_roles')
-        .select('user_id, name, roles!inner(name)')
-        .eq('roles.name', 'clerk');
+      // First, get the clerk role ID to avoid RLS recursion issues
+      console.log('👥 Fetching clerk role ID...');
+      const { data: clerkRole, error: roleError } = await supabase
+        .from('roles')
+        .select('id')
+        .eq('name', 'clerk')
+        .single();
       
-      if (clerksError) {
-        console.error('❌ Clerks fetch error:', clerksError);
-        // Try alternative approach if the join fails
-        const { data: allUserRoles, error: altError } = await supabase
+      if (roleError) {
+        console.error('❌ Role fetch error:', roleError);
+        // Fallback: assume clerk role_id is 5 (common default)
+        console.log('🔄 Using fallback clerk role_id = 5');
+        const { data: clerksData, error: clerksError } = await supabase
           .from('user_roles')
-          .select('user_id, name, role_id');
-        
-        if (altError) {
-          console.error('❌ Alternative clerks fetch error:', altError);
+          .select('user_id, name, role_id')
+          .eq('role_id', 5);
+          
+        if (clerksError) {
+          console.error('❌ Fallback clerks fetch error:', clerksError);
           setClerks([]);
         } else {
-          // Filter for clerk role_id (assuming clerk role has id = 5 based on your schema)
-          const clerkUserRoles = allUserRoles?.filter(ur => ur.role_id === 5) || [];
-          const formattedClerks = clerkUserRoles.map(clerk => ({
+          const formattedClerks = clerksData?.map(clerk => ({
             user_id: clerk.user_id,
             name: clerk.name || 'Unknown',
             role_name: 'clerk'
-          }));
+          })) || [];
           setClerks(formattedClerks);
-          console.log('✅ Clerks fetched (alternative):', formattedClerks.length);
+          console.log('✅ Clerks fetched (fallback):', formattedClerks.length);
         }
       } else {
-        const formattedClerks = clerksData?.map(clerk => ({
-          user_id: clerk.user_id,
-          name: clerk.name || 'Unknown',
-          role_name: 'clerk'
-        })) || [];
-        setClerks(formattedClerks);
-        console.log('✅ Clerks fetched:', formattedClerks.length);
+        // Now fetch clerks using the role_id to avoid recursion
+        console.log('👥 Fetching clerks with role_id:', clerkRole.id);
+        const { data: clerksData, error: clerksError } = await supabase
+          .from('user_roles')
+          .select('user_id, name, role_id')
+          .eq('role_id', clerkRole.id);
+          
+        if (clerksError) {
+          console.error('❌ Clerks fetch error:', clerksError);
+          setClerks([]);
+        } else {
+          const formattedClerks = clerksData?.map(clerk => ({
+            user_id: clerk.user_id,
+            name: clerk.name || 'Unknown',
+            role_name: 'clerk'
+          })) || [];
+          setClerks(formattedClerks);
+          console.log('✅ Clerks fetched:', formattedClerks.length);
+        }
       }
       
       // Fetch employees
