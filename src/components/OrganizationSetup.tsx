@@ -159,12 +159,12 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
       console.log('🗺️ Fetching talukas...');
       const { data, error } = await ermsClient
         .from('talukas')
-        .select('id, name, created_at, updated_at')
+        .select('tal_id, name, created_at, updated_at')
         .order('name');
       
       if (error) throw error;
       console.log('✅ Talukas fetched:', data?.length || 0);
-      setTalukas(data || []);
+      setTalukas(data?.map(t => ({ id: t.tal_id, name: t.name, created_at: t.created_at, updated_at: t.updated_at })) || []);
     } catch (error) {
       console.error('❌ Error fetching talukas:', error);
     }
@@ -247,12 +247,12 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
           const { error } = await ermsClient
             .from('talukas')
             .update({ name: formData.name })
-            .eq('id', editingItem.id);
+            .eq('tal_id', editingItem.id);
           if (error) throw error;
         } else {
           const { error } = await ermsClient
             .from('talukas')
-            .insert({ id: formData.id, name: formData.name });
+            .insert({ tal_id: formData.id, name: formData.name });
           if (error) throw error;
         }
         await fetchTalukas();
@@ -305,7 +305,7 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
         const { error } = await ermsClient
           .from('talukas')
           .delete()
-          .eq('id', item.id);
+          .eq('tal_id', item.id);
         if (error) throw error;
         await fetchTalukas();
       } else if (activeTab === 'offices') {
@@ -409,7 +409,7 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
     const filteredData = getFilteredData();
     const tabConfig = {
       departments: { 
-        title: t('erms.departments'), 
+        title: t('erms.department'), 
         addText: t('erms.addDepartment'),
         color: 'bg-blue-600 hover:bg-blue-700',
         columns: [t('erms.departmentId'), t('erms.departmentName'), t('erms.createdDate'), t('erms.actions')]
