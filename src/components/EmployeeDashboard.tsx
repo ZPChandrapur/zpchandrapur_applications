@@ -11,7 +11,8 @@ import {
   ArrowLeft,
   BarChart3,
   PieChart,
-  TrendingUp
+  TrendingUp,
+  X
 } from 'lucide-react';
 import { ermsClient } from '../lib/supabase';
 
