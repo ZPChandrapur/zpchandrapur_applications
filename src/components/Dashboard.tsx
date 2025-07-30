@@ -46,13 +46,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
 
   // Close profile dropdown when clicking outside
   useEffect(() => {
-    // Test auth metadata capabilities when dashboard loads
-    const testAuthMetadata = async () => {
-      const result = await testERMSConnection();
-      console.log('Auth metadata test result:', result);
-    };
-    testAuthMetadata();
-    
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Element;
       if (!target.closest('.user-profile-dropdown')) {
