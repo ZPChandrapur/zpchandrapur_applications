@@ -158,13 +158,13 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
     try {
       console.log('🗺️ Fetching talukas...');
       const { data, error } = await ermsClient
-        .from('taluka')
-        .select('taluka_id, taluka_name, created_at, updated_at')
+        .from('talukas')
+        .select('taluka_id, name, created_at, updated_at')
         .order('name');
       
       if (error) throw error;
       console.log('✅ Talukas fetched:', data?.length || 0);
-      setTalukas(data?.map(t => ({ id: t.taluka_id, name: t.taluka_name, created_at: t.created_at, updated_at: t.updated_at })) || []);
+      setTalukas(data?.map(t => ({ id: t.taluka_id, name: t.name, created_at: t.created_at, updated_at: t.updated_at })) || []);
     } catch (error) {
       console.error('❌ Error fetching talukas:', error);
     }
@@ -175,12 +175,12 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
       console.log('🏢 Fetching office locations...');
       const { data, error } = await ermsClient
         .from('office_locations')
-        .select('office_id, office_name, created_at, updated_at')
+        .select('office_id, name, created_at, updated_at')
         .order('name');
       
       if (error) throw error;
       console.log('✅ Office locations fetched:', data?.length || 0);
-      setOfficeLocations(data?.map(o => ({ id: o.office_id, name: o.office_name, created_at: o.created_at, updated_at: o.updated_at })) || []);
+      setOfficeLocations(data?.map(o => ({ id: o.office_id, name: o.name, created_at: o.created_at, updated_at: o.updated_at })) || []);
     } catch (error) {
       console.error('❌ Error fetching office locations:', error);
     }
@@ -262,14 +262,14 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
       } else if (activeTab === 'talukas') {
         if (editingItem) {
           const { error } = await ermsClient
-            .from('taluka')
-            .update({ taluka_name: formData.name })
+            .from('talukas')
+            .update({ name: formData.name })
             .eq('taluka_id', formData.id);
           if (error) throw error;
         } else {
           const { error } = await ermsClient
-            .from('taluka')
-            .insert({ taluka_id: formData.id, taluka_name: formData.name });
+            .from('talukas')
+            .insert({ taluka_id: formData.id, name: formData.name });
           if (error) throw error;
         }
         await fetchTalukas();
@@ -277,13 +277,13 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
         if (editingItem) {
           const { error } = await ermsClient
             .from('office_locations')
-            .update({ office_name: formData.name })
+            .update({ name: formData.name })
             .eq('office_id', formData.id);
           if (error) throw error;
         } else {
           const { error } = await ermsClient
             .from('office_locations')
-            .insert({ office_id: formData.id, office_name: formData.name });
+            .insert({ office_id: formData.id, name: formData.name });
           if (error) throw error;
         }
         await fetchOfficeLocations();
@@ -320,7 +320,7 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
         await fetchDesignations();
       } else if (activeTab === 'talukas') {
         const { error } = await ermsClient
-          .from('taluka')
+          .from('talukas')
           .delete()
           .eq('taluka_id', item.id);
         if (error) throw error;
