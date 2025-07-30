@@ -20,11 +20,12 @@ i18n
   .use(initReactI18next)
   .init({
     resources,
-    fallbackLng: 'en',
+    fallbackLng: 'mr',
+    lng: 'mr', // Set default language to Marathi
     debug: false,
     
     detection: {
-      order: ['localStorage', 'navigator', 'htmlTag'],
+      order: ['localStorage', 'htmlTag', 'navigator'],
       caches: ['localStorage'],
       lookupLocalStorage: 'i18nextLng',
     },

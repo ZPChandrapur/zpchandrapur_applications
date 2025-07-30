@@ -11,7 +11,7 @@ export const LanguageSwitcher: React.FC = () => {
   const { i18n } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
 
-  const currentLanguage = languages.find(lang => lang.code === i18n.language) || languages[0];
+  const currentLanguage = languages.find(lang => lang.code === i18n.language) || languages[1]; // Default to Marathi (index 1)
 
   const handleLanguageChange = (languageCode: string) => {
     console.log('Changing language to:', languageCode);
