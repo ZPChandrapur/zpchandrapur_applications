@@ -119,6 +119,16 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     fetchDashboardData();
   }, []);
 
+  // Update KPI data whenever clerks change
+  useEffect(() => {
+    if (clerks.length > 0) {
+      setKpiData(prev => ({
+        ...prev,
+        totalClerks: clerks.length
+      }));
+    }
+  }, [clerks]);
+
   const fetchDashboardData = async () => {
     try {
       setIsLoading(true);
@@ -202,9 +212,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       setEmployees(employeesData || []);
       setDepartments(departmentsData || []);
       
-      // Get the actual clerk count from the fetched clerks
-      const actualClerkCount = clerks.length;
-
       // Calculate KPIs
       const totalEmployees = employeesData?.length || 0;
       const upcomingRetirements = employeesData?.filter(emp => {
@@ -223,13 +230,13 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         upcomingRetirements,
         assignedEmployees,
         unassignedEmployees,
-        actualClerkCount
+        totalClerks: formattedClerks.length
       });
       setKpiData({
         totalEmployees,
         upcomingRetirements,
         departments: departmentsData?.length || 0,
-        totalClerks: clerks.length,
+        totalClerks: formattedClerks.length,
         assignedEmployees,
         unassignedEmployees
       });
