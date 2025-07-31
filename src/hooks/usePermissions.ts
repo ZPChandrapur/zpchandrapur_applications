@@ -47,45 +47,70 @@ export const usePermissions = (user: User | null): PermissionCheck => {
         setIsLoading(true);
         setError(null);
 
-        // Call the database function to get user permissions
-        const { data, error: permError } = await supabase
-          .rpc('get_user_permissions', { user_uuid: user.id }, { schema: 'public' });
-
-        if (permError) {
-          throw permError;
-        }
-
-        setPermissions(data || []);
-        
-        // Set the primary role (assuming user has one primary role)
-        if (data && data.length > 0) {
-          setUserRole(data[0].role_name);
-        }
-
-        // Fetch user profile information from user_roles table
-        const { data: userRoleData, error: userRoleError } = await supabase
+        // Fetch user roles and permissions directly without RPC function
+        const { data: userRolesData, error: userRolesError } = await supabase
           .from('user_roles')
-          .select('name, phone_number')
-          .eq('user_id', user.id)
-          .single();
+          .select(`
+            name,
+            phone_number,
+            role_id,
+            roles!inner(name)
+          `)
+          .eq('user_id', user.id);
 
-        if (userRoleError) {
-          console.error('Error fetching user profile:', userRoleError);
-          // Set basic profile with email only
-          setUserProfile({
-            name: null,
-            role_name: data && data.length > 0 ? data[0].role_name : null,
-            email: user.email || null,
-            phone_number: null
-          });
-        } else {
-          setUserProfile({
-            name: userRoleData?.name || null,
-            role_name: data && data.length > 0 ? data[0].role_name : null,
-            email: user.email || null,
-            phone_number: userRoleData?.phone_number || null
-          });
+        if (userRolesError) {
+          console.error('Error fetching user roles:', userRolesError);
+          throw userRolesError;
         }
+
+        // Get role IDs for permission lookup
+        const roleIds = userRolesData?.map(ur => ur.role_id) || [];
+        const primaryRole = userRolesData?.[0]?.roles?.name || null;
+        
+        setUserRole(primaryRole);
+
+        // Fetch permissions for user's roles
+        let permissionsData: UserPermission[] = [];
+        if (roleIds.length > 0) {
+          const { data: permsData, error: permsError } = await supabase
+            .from('application_permissions')
+            .select(`
+              application_name,
+              can_read,
+              can_write,
+              can_delete,
+              can_admin,
+              roles!inner(name)
+            `)
+            .in('role_id', roleIds);
+
+          if (permsError) {
+            console.error('Error fetching permissions:', permsError);
+            // Continue without permissions rather than failing
+            permissionsData = [];
+          } else {
+            permissionsData = permsData?.map(p => ({
+              application_name: p.application_name,
+              can_read: p.can_read,
+              can_write: p.can_write,
+              can_delete: p.can_delete,
+              can_admin: p.can_admin,
+              role_name: p.roles?.name || primaryRole || 'unknown'
+            })) || [];
+          }
+        }
+
+        setPermissions(permissionsData);
+
+        // Set user profile from the fetched data
+        const primaryUserRole = userRolesData?.[0];
+        setUserProfile({
+          name: primaryUserRole?.name || null,
+          role_name: primaryRole,
+          email: user.email || null,
+          phone_number: primaryUserRole?.phone_number || null
+        });
+
       } catch (err) {
         console.error('Error fetching permissions:', err);
         setError(err instanceof Error ? err.message : 'Failed to fetch permissions');
