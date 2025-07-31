@@ -143,9 +143,9 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     reason: 'नियत वयोमान'
   });
 
-  const colors = [
-    '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6',
-    '#06B6D4', '#84CC16', '#F97316', '#EC4899', '#6366F1'
+    'नियत वयोमान',
+    'मृत्यू झाल्याने',
+    'स्वेच्छा सेवा निवृत्ती'
   ];
 
   // Calculate age from date of birth
