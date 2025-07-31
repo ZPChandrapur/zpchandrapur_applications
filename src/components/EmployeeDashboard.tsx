@@ -457,7 +457,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         .from('employee')
         .insert({
           emp_id: newEmployee.emp_id,
-          emp_name: newEmployee.emp_name,
+          employee_name: newEmployee.emp_name,
           date_of_birth: newEmployee.date_of_birth,
           dept_id: newEmployee.dept_id,
           designation_id: newEmployee.designation_id,
@@ -523,7 +523,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       const { error } = await ermsClient
         .from('employee')
         .update({
-          emp_name: newEmployee.emp_name,
+          employee_name: newEmployee.emp_name,
           date_of_birth: newEmployee.date_of_birth,
           dept_id: newEmployee.dept_id,
           designation_id: newEmployee.designation_id,
