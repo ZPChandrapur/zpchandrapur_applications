@@ -452,7 +452,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
   };
 
   const handleAddEmployee = async () => {
-    if (!newEmployee.emp_id || !newEmployee.emp_name || !newEmployee.dept_id || !newEmployee.date_of_birth) {
+    if (!newEmployee.emp_name || !newEmployee.dept_id || !newEmployee.date_of_birth) {
       alert(t('erms.fillAllFields'));
       return;
     }
