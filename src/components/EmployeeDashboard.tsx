@@ -484,7 +484,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         dept_id: '',
         designation_id: '',
         tal_id: '',
-        .eq('employee_id', editingEmployee.employee_id);
+        office_id: '',
         retirement_date: '',
         assigned_clerk: '',
         reason: 'नियत वयोमान'
@@ -971,6 +971,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     onChange={(e) => setNewEmployee({ ...newEmployee, emp_id: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder={t('erms.enterEmployeeId')}
+                    disabled={true} // Always disable since it's auto-generated
                   />
                 </div>
                 
