@@ -429,7 +429,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       const percentage = maxCount > 0 ? Math.round((count / maxCount) * 100) : 0;
       return {
         reason,
-        count,
+        String(emp.emp_id || ''),
         percentage,
         color: colors[index % colors.length]
       };
@@ -439,8 +439,10 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       deptCounts: deptCounts.length,
       clerkWiseCount: clerkWiseCount.length,
       retirementReasons: retirementReasons.length
-    });
-    setChartData({
+      const matchesSearch = searchTerm === '' || searchFields.some(field => {
+        if (field === null || field === undefined) return false;
+        return String(field).toLowerCase().includes(searchTerm.toLowerCase());
+      }
       departmentWiseCount: deptCounts,
       clerkWiseCount,
       assignedVsUnassigned: {
