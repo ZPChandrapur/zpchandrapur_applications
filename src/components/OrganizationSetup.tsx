@@ -340,7 +340,7 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
         : [item.office_id, item.name];
       
       return searchFields.some(field => 
-        field?.toLowerCase().includes(searchTerm.toLowerCase())
+        String(field || '').toLowerCase().includes(searchTerm.toLowerCase())
       );
     });
   };
