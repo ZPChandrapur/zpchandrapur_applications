@@ -29,12 +29,16 @@ interface EmployeeDashboardProps {
 interface Employee {
   emp_id: string;
   emp_name: string;
+  date_of_birth?: string;
   dept_id: string;
+  office_id?: string;
   designation: string;
-  age: number;
+  designation_id?: string;
+  tal_id?: string;
   retirement_date: string;
-  assigned_clerk: string;
   reason?: string;
+  assigned_clerk: string;
+  date_of_assignment?: string;
 }
 
 interface Department {
@@ -694,36 +698,55 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.employee')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.employeeId')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.employeeName')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date of Birth</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.department')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Office ID</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.designation')}</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.age')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Taluka ID</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.retirementDate')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reason</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.assignedClerk')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date of Assignment</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredEmployees.map((employee) => (
                   <tr key={employee.emp_id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">{employee.emp_name}</div>
-                        <div className="text-sm text-gray-500">{employee.emp_id}</div>
-                      </div>
+                      <div className="text-sm font-medium text-gray-900">{employee.emp_id}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">{employee.emp_name}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {translateDepartmentName(departments.find(d => d.dept_id === employee.dept_id)?.department || employee.dept_id)}
+                      {employee.date_of_birth ? new Date(employee.date_of_birth).toLocaleDateString() : '-'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {employee.dept_id}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {employee.office_id || '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{employee.designation}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{employee.age}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {employee.tal_id || '-'}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {employee.retirement_date ? new Date(employee.retirement_date).toLocaleDateString() : '-'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {employee.reason || '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {employee.assigned_clerk ? 
                         (clerks.find(c => c.user_id === employee.assigned_clerk)?.name || employee.assigned_clerk) : 
                         <span className="text-gray-400 italic">{t('erms.unassigned')}</span>
                       }
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {employee.date_of_assignment ? new Date(employee.date_of_assignment).toLocaleDateString() : '-'}
                     </td>
                   </tr>
                 ))}
