@@ -459,10 +459,10 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
 
     setIsLoading(true);
     try {
+      // For new employees, omit employee_id to let database auto-generate it
       const { error } = await ermsClient
         .from('employee')
         .insert({
-          emp_id: newEmployee.emp_id,
           employee_name: newEmployee.emp_name,
           date_of_birth: newEmployee.date_of_birth,
           dept_id: newEmployee.dept_id,
@@ -484,7 +484,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         dept_id: '',
         designation_id: '',
         tal_id: '',
-        office_id: '',
+        .eq('employee_id', editingEmployee.employee_id);
         retirement_date: '',
         assigned_clerk: '',
         reason: 'नियत वयोमान'
@@ -526,6 +526,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
 
     setIsLoading(true);
     try {
+      // For updates, use the existing employee_id in the where clause
       const { error } = await ermsClient
         .from('employee')
         .update({
