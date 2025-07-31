@@ -100,6 +100,17 @@ interface ChartData {
   retirementReasons: { reason: string; count: number; percentage: number; color: string }[];
 }
 
+const colors = [
+  '#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6',
+  '#EC4899', '#14B8A6', '#F97316', '#6366F1', '#84CC16'
+];
+
+const retirementReasons = [
+  'नियत वयोमान',
+  'मृत्यू झाल्याने',
+  'स्वेच्छा सेवा निवृत्ती'
+];
+
 export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) => {
   const { t } = useTranslation();
   const [kpiData, setKpiData] = useState<KPIData>({
@@ -142,11 +153,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     assigned_clerk: '',
     reason: 'नियत वयोमान'
   });
-
-    'नियत वयोमान',
-    'मृत्यू झाल्याने',
-    'स्वेच्छा सेवा निवृत्ती'
-  ];
 
   // Calculate age from date of birth
   const calculateAge = (dateOfBirth: string): number => {
