@@ -439,10 +439,12 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       deptCounts: deptCounts.length,
       clerkWiseCount: clerkWiseCount.length,
       retirementReasons: retirementReasons.length
-      const matchesSearch = searchTerm === '' || searchFields.some(field => {
+    };
+
+    const matchesSearch = searchTerm === '' || searchFields.some(field => {
         if (field === null || field === undefined) return false;
         return String(field).toLowerCase().includes(searchTerm.toLowerCase());
-      }
+      });
       departmentWiseCount: deptCounts,
       clerkWiseCount,
       assignedVsUnassigned: {
