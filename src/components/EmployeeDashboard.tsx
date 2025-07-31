@@ -12,7 +12,8 @@ import {
   BarChart3,
   PieChart,
   TrendingUp,
-  X
+  X,
+  Edit
 } from 'lucide-react';
 import { ermsClient, supabase } from '../lib/supabase';
 
@@ -45,6 +46,10 @@ interface Employee {
   assigned_clerk: string;
   assigned_clerk_name?: string;
   date_of_assignment?: string;
+  department?: { dept_id: string; department: string };
+  designations?: { designation_id: string; designation: string };
+  talukas?: { tal_id: string; name: string };
+  office_locations?: { office_id: string; name: string };
 }
 
 interface Department {
@@ -568,6 +573,11 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     return matchesSearch && matchesDepartment && matchesClerk && matchesReason;
   });
 
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white shadow-sm border-b border-gray-200">
+        <div className="px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">{t('erms.employeeDashboardTitle')}</h1>
