@@ -429,7 +429,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       const percentage = maxCount > 0 ? Math.round((count / maxCount) * 100) : 0;
       return {
         reason,
-        String(emp.emp_id || ''),
+        employeeId: String(emp.emp_id || ''),
         percentage,
         color: colors[index % colors.length]
       };
