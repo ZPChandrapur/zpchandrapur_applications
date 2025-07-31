@@ -134,6 +134,8 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       setIsLoading(true);
       console.log('🔄 Fetching Employee Dashboard Data...');
       
+      let finalClerks: Clerk[] = [];
+      
       // First, get the clerk role ID to avoid RLS recursion issues
       console.log('👥 Fetching clerk role ID...');
       const { data: clerkRole, error: roleError } = await supabase
@@ -160,6 +162,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
             name: clerk.name || 'Unknown',
             role_name: 'clerk'
           })) || [];
+          finalClerks = formattedClerks;
           setClerks(formattedClerks);
           console.log('✅ Clerks fetched (fallback):', formattedClerks.length);
         }
@@ -180,6 +183,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
             name: clerk.name || 'Unknown',
             role_name: 'clerk'
           })) || [];
+          finalClerks = formattedClerks;
           setClerks(formattedClerks);
           console.log('✅ Clerks fetched:', formattedClerks.length);
         }
@@ -230,13 +234,13 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         upcomingRetirements,
         assignedEmployees,
         unassignedEmployees,
-        totalClerks: formattedClerks.length
+        totalClerks: finalClerks.length
       });
       setKpiData({
         totalEmployees,
         upcomingRetirements,
         departments: departmentsData?.length || 0,
-        totalClerks: formattedClerks.length,
+        totalClerks: finalClerks.length,
         assignedEmployees,
         unassignedEmployees
       });
