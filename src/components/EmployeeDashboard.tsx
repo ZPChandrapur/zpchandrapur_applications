@@ -242,7 +242,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         .from('employee')
         .select(`
           emp_id,
-          emp_name,
+          employee_name,
           date_of_birth,
           dept_id,
           office_id,
