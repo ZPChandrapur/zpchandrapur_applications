@@ -18,6 +18,7 @@ import {
 import { OrganizationSetup } from './OrganizationSetup';
 import { EmployeeDashboard } from './EmployeeDashboard';
 import { RetirementDashboard } from './RetirementDashboard';
+import { RetirementTracker } from './RetirementTracker';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 interface ERMSDashboardProps {
@@ -105,13 +106,7 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, onBack }) =>
       case 'retirement-dashboard':
         return <RetirementDashboard user={user} onBack={handleBackToMain} />;
       case 'retirement-tracker':
-        return (
-          <div className="p-8 text-center">
-            <TrendingUp className="h-16 w-16 text-purple-500 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Retirement Tracker</h3>
-            <p className="text-gray-600">Retirement tracking features coming soon...</p>
-          </div>
-        );
+        return <RetirementTracker user={user} onBack={handleBackToMain} />;
       case 'retirement-file-tracker':
         return (
           <div className="p-8 text-center">
