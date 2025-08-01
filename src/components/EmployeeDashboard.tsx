@@ -267,7 +267,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
           designations:designation_id(designation_id, designation),
           talukas:tal_id(tal_id, name),
           office_locations:office_id(office_id, name)
-        `);
+        .not('emp_id', 'is', null)
       
       if (empError) {
         console.error('❌ Employee fetch error:', empError);
