@@ -36,14 +36,28 @@ interface PayCommissionRecord {
   assigned_clerk: string | null;
   department: string | null;
   status: string | null;
-  // Pay Commission specific fields - placeholder for now
+  // Pay Commission specific fields
   pay_scale: string | null;
   basic_pay: string | null;
   grade_pay: string | null;
+  da_percentage: string | null;
+  hra_percentage: string | null;
+  total_salary: string | null;
   commission_applied: string | null;
   commission_date: string | null;
   arrears_calculated: string | null;
+  arrears_amount: string | null;
   arrears_paid: string | null;
+  arrears_paid_date: string | null;
+  new_pay_scale: string | null;
+  new_basic_pay: string | null;
+  new_grade_pay: string | null;
+  new_da_percentage: string | null;
+  new_hra_percentage: string | null;
+  new_total_salary: string | null;
+  pay_fixation_order: string | null;
+  pay_fixation_date: string | null;
+  remarks: string | null;
   overall_comment: string | null;
   created_at?: string;
   updated_at?: string;
@@ -101,10 +115,8 @@ export const PayCommission: React.FC<PayCommissionProps> = ({ user }) => {
 
   const fetchPayCommissionRecords = async () => {
     try {
-      // For now, we'll use the retirement_progress table as a placeholder
-      // In production, this should be replaced with the actual pay commission table
       const { data, error } = await ermsClient
-        .from('retirement_progress')
+        .from('pay_comission')
         .select(`
           id,
           emp_id,
@@ -113,6 +125,27 @@ export const PayCommission: React.FC<PayCommissionProps> = ({ user }) => {
           assigned_clerk,
           department,
           status,
+          pay_scale,
+          basic_pay,
+          grade_pay,
+          da_percentage,
+          hra_percentage,
+          total_salary,
+          commission_applied,
+          commission_date,
+          arrears_calculated,
+          arrears_amount,
+          arrears_paid,
+          arrears_paid_date,
+          new_pay_scale,
+          new_basic_pay,
+          new_grade_pay,
+          new_da_percentage,
+          new_hra_percentage,
+          new_total_salary,
+          pay_fixation_order,
+          pay_fixation_date,
+          remarks,
           overall_comment,
           created_at,
           updated_at
@@ -121,19 +154,7 @@ export const PayCommission: React.FC<PayCommissionProps> = ({ user }) => {
       
       if (error) throw error;
       
-      // Map to PayCommissionRecord format with placeholder fields
-      const mappedRecords = (data || []).map(record => ({
-        ...record,
-        pay_scale: null,
-        basic_pay: null,
-        grade_pay: null,
-        commission_applied: null,
-        commission_date: null,
-        arrears_calculated: null,
-        arrears_paid: null
-      }));
-      
-      setPayCommissionRecords(mappedRecords);
+      setPayCommissionRecords(data || []);
     } catch (error) {
       console.error('Error fetching pay commission records:', error);
     }
@@ -213,15 +234,28 @@ export const PayCommission: React.FC<PayCommissionProps> = ({ user }) => {
   };
 
   const getProgressStatus = (record: PayCommissionRecord) => {
-    // Placeholder logic - should be updated based on actual pay commission fields
     const progressFields = [
       record.pay_scale,
       record.basic_pay,
       record.grade_pay,
+      record.da_percentage,
+      record.hra_percentage,
+      record.total_salary,
       record.commission_applied,
       record.commission_date,
       record.arrears_calculated,
-      record.arrears_paid
+      record.arrears_amount,
+      record.arrears_paid,
+      record.arrears_paid_date,
+      record.new_pay_scale,
+      record.new_basic_pay,
+      record.new_grade_pay,
+      record.new_da_percentage,
+      record.new_hra_percentage,
+      record.new_total_salary,
+      record.pay_fixation_order,
+      record.pay_fixation_date,
+      record.remarks
     ];
 
     const filledFields = progressFields.filter(field => field && field.trim() !== '').length;
@@ -277,11 +311,31 @@ export const PayCommission: React.FC<PayCommissionProps> = ({ user }) => {
       const newStatus = getProgressStatus(editingRecord);
       
       const { error } = await ermsClient
-        .from('retirement_progress') // Should be pay commission table in production
+        .from('pay_comission')
         .update({
+          pay_scale: editingRecord.pay_scale,
+          basic_pay: editingRecord.basic_pay,
+          grade_pay: editingRecord.grade_pay,
+          da_percentage: editingRecord.da_percentage,
+          hra_percentage: editingRecord.hra_percentage,
+          total_salary: editingRecord.total_salary,
+          commission_applied: editingRecord.commission_applied,
+          commission_date: editingRecord.commission_date,
+          arrears_calculated: editingRecord.arrears_calculated,
+          arrears_amount: editingRecord.arrears_amount,
+          arrears_paid: editingRecord.arrears_paid,
+          arrears_paid_date: editingRecord.arrears_paid_date,
+          new_pay_scale: editingRecord.new_pay_scale,
+          new_basic_pay: editingRecord.new_basic_pay,
+          new_grade_pay: editingRecord.new_grade_pay,
+          new_da_percentage: editingRecord.new_da_percentage,
+          new_hra_percentage: editingRecord.new_hra_percentage,
+          new_total_salary: editingRecord.new_total_salary,
+          pay_fixation_order: editingRecord.pay_fixation_order,
+          pay_fixation_date: editingRecord.pay_fixation_date,
+          remarks: editingRecord.remarks,
           status: newStatus,
           overall_comment: editingRecord.overall_comment
-          // Add other pay commission fields here
         })
         .eq('id', editingRecord.id);
 
@@ -689,9 +743,251 @@ export const PayCommission: React.FC<PayCommissionProps> = ({ user }) => {
 
               {/* Pay Commission Fields - Placeholder */}
               <div className="space-y-4">
-                <div className="text-sm text-gray-600 bg-blue-50 p-4 rounded-lg">
-                  <p className="font-medium">Pay Commission Dashboard</p>
-                  <p>This is a placeholder for pay commission specific fields. The actual fields will be implemented based on the pay commission table structure.</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Pay Scale</label>
+                    <input
+                      type="text"
+                      value={editingRecord.pay_scale || ''}
+                      onChange={(e) => setEditingRecord({ ...editingRecord, pay_scale: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Enter pay scale"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Basic Pay</label>
+                    <input
+                      type="number"
+                      value={editingRecord.basic_pay || ''}
+                      onChange={(e) => setEditingRecord({ ...editingRecord, basic_pay: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Enter basic pay"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Grade Pay</label>
+                    <input
+                      type="number"
+                      value={editingRecord.grade_pay || ''}
+                      onChange={(e) => setEditingRecord({ ...editingRecord, grade_pay: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Enter grade pay"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">DA Percentage</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={editingRecord.da_percentage || ''}
+                      onChange={(e) => setEditingRecord({ ...editingRecord, da_percentage: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Enter DA percentage"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">HRA Percentage</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={editingRecord.hra_percentage || ''}
+                      onChange={(e) => setEditingRecord({ ...editingRecord, hra_percentage: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Enter HRA percentage"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Total Salary</label>
+                    <input
+                      type="number"
+                      value={editingRecord.total_salary || ''}
+                      onChange={(e) => setEditingRecord({ ...editingRecord, total_salary: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Enter total salary"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Commission Applied</label>
+                    <select
+                      value={editingRecord.commission_applied || ''}
+                      onChange={(e) => setEditingRecord({ ...editingRecord, commission_applied: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="">Select Status</option>
+                      <option value="Yes">Yes</option>
+                      <option value="No">No</option>
+                      <option value="Pending">Pending</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Commission Date</label>
+                    <input
+                      type="date"
+                      value={editingRecord.commission_date || ''}
+                      onChange={(e) => setEditingRecord({ ...editingRecord, commission_date: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Arrears Calculated</label>
+                    <select
+                      value={editingRecord.arrears_calculated || ''}
+                      onChange={(e) => setEditingRecord({ ...editingRecord, arrears_calculated: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="">Select Status</option>
+                      <option value="Yes">Yes</option>
+                      <option value="No">No</option>
+                      <option value="Pending">Pending</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Arrears Amount</label>
+                    <input
+                      type="number"
+                      value={editingRecord.arrears_amount || ''}
+                      onChange={(e) => setEditingRecord({ ...editingRecord, arrears_amount: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Enter arrears amount"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Arrears Paid</label>
+                    <select
+                      value={editingRecord.arrears_paid || ''}
+                      onChange={(e) => setEditingRecord({ ...editingRecord, arrears_paid: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="">Select Status</option>
+                      <option value="Yes">Yes</option>
+                      <option value="No">No</option>
+                      <option value="Pending">Pending</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Arrears Paid Date</label>
+                    <input
+                      type="date"
+                      value={editingRecord.arrears_paid_date || ''}
+                      onChange={(e) => setEditingRecord({ ...editingRecord, arrears_paid_date: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">New Pay Scale</label>
+                    <input
+                      type="text"
+                      value={editingRecord.new_pay_scale || ''}
+                      onChange={(e) => setEditingRecord({ ...editingRecord, new_pay_scale: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Enter new pay scale"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">New Basic Pay</label>
+                    <input
+                      type="number"
+                      value={editingRecord.new_basic_pay || ''}
+                      onChange={(e) => setEditingRecord({ ...editingRecord, new_basic_pay: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Enter new basic pay"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">New Grade Pay</label>
+                    <input
+                      type="number"
+                      value={editingRecord.new_grade_pay || ''}
+                      onChange={(e) => setEditingRecord({ ...editingRecord, new_grade_pay: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Enter new grade pay"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">New DA Percentage</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={editingRecord.new_da_percentage || ''}
+                      onChange={(e) => setEditingRecord({ ...editingRecord, new_da_percentage: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Enter new DA percentage"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">New HRA Percentage</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={editingRecord.new_hra_percentage || ''}
+                      onChange={(e) => setEditingRecord({ ...editingRecord, new_hra_percentage: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Enter new HRA percentage"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">New Total Salary</label>
+                    <input
+                      type="number"
+                      value={editingRecord.new_total_salary || ''}
+                      onChange={(e) => setEditingRecord({ ...editingRecord, new_total_salary: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Enter new total salary"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Pay Fixation Order</label>
+                    <select
+                      value={editingRecord.pay_fixation_order || ''}
+                      onChange={(e) => setEditingRecord({ ...editingRecord, pay_fixation_order: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="">Select Status</option>
+                      <option value="Issued">Issued</option>
+                      <option value="Pending">Pending</option>
+                      <option value="Not Required">Not Required</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Pay Fixation Date</label>
+                    <input
+                      type="date"
+                      value={editingRecord.pay_fixation_date || ''}
+                      onChange={(e) => setEditingRecord({ ...editingRecord, pay_fixation_date: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+                
+                {/* Remarks */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Remarks</label>
+                  <textarea
+                    value={editingRecord.remarks || ''}
+                    onChange={(e) => setEditingRecord({ ...editingRecord, remarks: e.target.value })}
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Enter remarks"
+                  />
                 </div>
                 
                 {/* Overall Comment */}
