@@ -15,7 +15,7 @@ import {
   Download,
   Eye
 } from 'lucide-react';
-import { ermsClient } from '../lib/supabase';
+import { ermsClient, supabase } from '../lib/supabase';
 
 interface ClerkData {
   user_id: string;
@@ -192,13 +192,14 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
 
   const fetchClerks = async () => {
     try {
-      const { data, error } = await ermsClient
+      const { data, error } = await supabase
         .from('user_roles')
         .select(`
           user_id,
           name,
           roles!inner(name)
         `)
+        .eq('roles.name', 'clerk')
         .not('name', 'is', null);
       
       if (error) throw error;
