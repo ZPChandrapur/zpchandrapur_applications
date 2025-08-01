@@ -530,7 +530,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
 
     setIsLoading(true);
     try {
-      // For updates, use the existing employee_id in the where clause
+      // For updates, use the existing emp_id in the where clause
       const { error } = await ermsClient
         .from('employee')
         .update({
