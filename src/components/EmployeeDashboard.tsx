@@ -31,9 +31,11 @@ interface Employee {
   emp_id: string;
   employee_name: string;
   date_of_birth: string;
+  age?: number;
   dept_id: string;
   office_id: string;
   retirement_date: string;
+  voluntary_retirement_date?: string;
   reason: string;
   assigned_clerk: string;
   date_of_assignment: string;
@@ -89,10 +91,10 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
   const [newEmployee, setNewEmployee] = useState<Employee>({
     emp_id: '',
     employee_name: '',
-    date_of_birth: '',
     dept_id: '',
     office_id: '',
     retirement_date: '',
+    voluntary_retirement_date: '',
     reason: '',
     assigned_clerk: '',
     date_of_assignment: ''
@@ -240,10 +242,10 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       setNewEmployee({
         emp_id: '',
         employee_name: '',
-        date_of_birth: '',
         dept_id: '',
         office_id: '',
         retirement_date: '',
+        voluntary_retirement_date: '',
         reason: '',
         assigned_clerk: '',
         date_of_assignment: ''
