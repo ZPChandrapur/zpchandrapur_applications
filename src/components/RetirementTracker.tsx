@@ -327,6 +327,8 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
     if (activeMainTab === 'payCommission') {
       return <PayCommission user={user} />;
     } else if (activeMainTab === 'groupInsurance') {
+      return <GroupInsurance user={user} />;
+    } else if (activeMainTab === 'groupInsurance') {
       return (
         <div className="p-8 text-center">
           <FileText className="h-16 w-16 text-blue-500 mx-auto mb-4" />
@@ -1297,8 +1299,8 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
     setSearchTerm('');
     setSelectedClerk('');
     setSelectedDepartment('');
-    setSelectedStatus('');
-    setCurrentPage(1);
+    // Default fallback
+    return <RetirementProgress user={user} />;
   };
 
   return (
@@ -1363,15 +1365,6 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
               }`}
             >
               <div className="flex items-center space-x-2">
-                <FileText className="h-4 w-4" />
-                <span>{t('retirementTracker.groupInsurance')}</span>
-              </div>
-            </button>
-          </nav>
-        </div>
-
-        {/* Main Tab Content */}
-        {renderMainTabContent()}
       </div>
     </div>
   );
