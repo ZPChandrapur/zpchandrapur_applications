@@ -31,11 +31,9 @@ interface Employee {
   emp_id: string;
   employee_name: string;
   date_of_birth: string;
-  age?: number;
   dept_id: string;
   office_id: string;
   retirement_date: string;
-  voluntary_retirement_date?: string;
   reason: string;
   assigned_clerk: string;
   date_of_assignment: string;
@@ -91,10 +89,10 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
   const [newEmployee, setNewEmployee] = useState<Employee>({
     emp_id: '',
     employee_name: '',
+    date_of_birth: '',
     dept_id: '',
     office_id: '',
     retirement_date: '',
-    voluntary_retirement_date: '',
     reason: '',
     assigned_clerk: '',
     date_of_assignment: ''
@@ -242,10 +240,10 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       setNewEmployee({
         emp_id: '',
         employee_name: '',
+        date_of_birth: '',
         dept_id: '',
         office_id: '',
         retirement_date: '',
-        voluntary_retirement_date: '',
         reason: '',
         assigned_clerk: '',
         date_of_assignment: ''
@@ -718,7 +716,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredEmployees.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                    <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
                       No employees found matching your criteria.
                     </td>
                   </tr>
@@ -856,18 +854,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                       </option>
                     ))}
                   </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.retirementDate')}
-                  </label>
-                  <input
-                    type="date"
-                    value={newEmployee.retirement_date}
-                    readOnly
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
-                  />
                 </div>
                 
                 <div>
@@ -1013,18 +999,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                       </option>
                     ))}
                   </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.retirementDate')}
-                  </label>
-                  <input
-                    type="date"
-                    value={newEmployee.retirement_date}
-                    onChange={(e) => setNewEmployee({ ...newEmployee, retirement_date: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
                 </div>
                 
                 <div>
