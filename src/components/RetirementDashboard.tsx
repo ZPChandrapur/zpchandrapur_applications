@@ -34,7 +34,7 @@ interface RetirementEmployee {
   retirement_date: string | null;
   reason: string;
   designation_time_of_retirement: string | null;
-  assigned_clerk_name: string | null;
+  assigned_clerk: string | null;
   department: string | null;
   designation: string | null;
   date_of_submission: string | null;
@@ -111,7 +111,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
           retirement_date,
           reason,
           designation_time_of_retirement,
-          assigned_clerk_name,
+          assigned_clerk,
           department,
           designation,
           date_of_submission,
@@ -169,14 +169,14 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
     // Role-based filtering
     if (userRole === 'clerk' && userProfile?.name) {
       // Clerk can only see their assigned employees
-      filtered = filtered.filter(emp => emp.assigned_clerk_name === userProfile.name);
+      filtered = filtered.filter(emp => emp.assigned_clerk === userProfile.name);
     }
 
     // Clerk filter (for non-clerk users)
     if (selectedClerk && userRole !== 'clerk') {
       const selectedClerkName = clerks.find(c => c.user_id === selectedClerk)?.name;
       if (selectedClerkName) {
-        filtered = filtered.filter(emp => emp.assigned_clerk_name === selectedClerkName);
+        filtered = filtered.filter(emp => emp.assigned_clerk === selectedClerkName);
       }
     }
 
@@ -264,7 +264,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
     const clerkCounts: { [key: string]: number } = {};
     
     filteredEmployees.forEach(emp => {
-      const clerk = emp.assigned_clerk_name || 'Unassigned';
+      const clerk = emp.assigned_clerk || 'Unassigned';
       clerkCounts[clerk] = (clerkCounts[clerk] || 0) + 1;
     });
 
@@ -302,7 +302,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
         .from('employee_retirement')
         .update({
           designation_time_of_retirement: editingEmployee.designation_time_of_retirement,
-          assigned_clerk_name: editingEmployee.assigned_clerk_name,
+          assigned_clerk: editingEmployee.assigned_clerk,
           date_of_submission: editingEmployee.date_of_submission,
           department_submitted: editingEmployee.department_submitted,
           type_of_pension: editingEmployee.type_of_pension,
@@ -677,7 +677,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
                           {employee.retirement_date ? new Date(employee.retirement_date).toLocaleDateString() : '-'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {employee.assigned_clerk_name || t('erms.unassigned')}
+                          {employee.assigned_clerk || t('erms.unassigned')}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -795,8 +795,8 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
                     <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.assignedClerk')}</label>
                     <input
                       type="text"
-                      value={editingEmployee.assigned_clerk_name || ''}
-                      onChange={(e) => setEditingEmployee({ ...editingEmployee, assigned_clerk_name: e.target.value })}
+                      value={editingEmployee.assigned_clerk || ''}
+                      onChange={(e) => setEditingEmployee({ ...editingEmployee, assigned_clerk: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
