@@ -23,16 +23,14 @@ interface EmployeeDashboardProps {
 
 interface Employee {
   emp_id: string;
-  emp_name: string;
+  employee_name: string;
   date_of_birth: string;
-  age: number;
   dept_id: string;
-  designation_id: string;
-  tal_id: string;
   office_id: string;
   retirement_date: string;
-  assigned_clerk: string;
   reason: string;
+  assigned_clerk: string;
+  date_of_assignment: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -83,16 +81,14 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
   // Form state for new/edit employee
   const [newEmployee, setNewEmployee] = useState<Employee>({
     emp_id: '',
-    emp_name: '',
+    employee_name: '',
     date_of_birth: '',
-    age: 0,
     dept_id: '',
-    designation_id: '',
-    tal_id: '',
     office_id: '',
     retirement_date: '',
+    reason: '',
     assigned_clerk: '',
-    reason: ''
+    date_of_assignment: ''
   });
 
   useEffect(() => {
@@ -122,7 +118,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       const { data, error } = await ermsClient
         .from('employee')
         .select('*')
-        .order('emp_name');
+        .order('employee_name');
       
       if (error) throw error;
       setEmployees(data || []);
@@ -206,7 +202,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
   };
 
   const handleAddEmployee = async () => {
-    if (!newEmployee.emp_id || !newEmployee.emp_name) {
+    if (!newEmployee.emp_id || !newEmployee.employee_name) {
       alert(t('common.fillAllFields'));
       return;
     }
@@ -223,16 +219,14 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       setShowAddModal(false);
       setNewEmployee({
         emp_id: '',
-        emp_name: '',
+        employee_name: '',
         date_of_birth: '',
-        age: 0,
         dept_id: '',
-        designation_id: '',
-        tal_id: '',
         office_id: '',
         retirement_date: '',
+        reason: '',
         assigned_clerk: '',
-        reason: ''
+        date_of_assignment: ''
       });
     } catch (error) {
       console.error('Error adding employee:', error);
@@ -248,7 +242,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
   };
 
   const handleUpdateEmployee = async () => {
-    if (!newEmployee.emp_id || !newEmployee.emp_name) {
+    if (!newEmployee.emp_id || !newEmployee.employee_name) {
       alert(t('common.fillAllFields'));
       return;
     }
@@ -296,10 +290,8 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     return employees.filter(employee => {
       const searchFields = [
         employee.emp_id,
-        employee.emp_name,
+        employee.employee_name,
         departments.find(d => d.dept_id === employee.dept_id)?.department,
-        designations.find(d => d.designation_id === employee.designation_id)?.designation,
-        talukas.find(t => t.tal_id === employee.tal_id)?.name,
         officeLocations.find(o => o.office_id === employee.office_id)?.name,
         employee.reason
       ];
@@ -682,9 +674,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.employeeId')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.employeeName')}</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.age')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.department')}</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.designation')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.retirementDate')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.assignedClerk')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.actions')}</th>
@@ -693,7 +683,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredEmployees.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="px-6 py-8 text-center text-gray-500">
+                    <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
                       No employees found matching your criteria.
                     </td>
                   </tr>
@@ -704,16 +694,10 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                         {employee.emp_id}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {employee.emp_name}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {employee.age}
+                        {employee.employee_name}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {translateDepartmentName(departments.find(d => d.dept_id === employee.dept_id)?.department || '')}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {designations.find(d => d.designation_id === employee.designation_id)?.designation || '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {employee.retirement_date ? new Date(employee.retirement_date).toLocaleDateString() : '-'}
@@ -781,8 +765,8 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   </label>
                   <input
                     type="text"
-                    value={newEmployee.emp_name}
-                    onChange={(e) => setNewEmployee({ ...newEmployee, emp_name: e.target.value })}
+                    value={newEmployee.employee_name}
+                    onChange={(e) => setNewEmployee({ ...newEmployee, employee_name: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder={t('erms.enterEmployeeName')}
                   />
@@ -813,42 +797,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     {departments.map(dept => (
                       <option key={dept.dept_id} value={dept.dept_id}>
                         {translateDepartmentName(dept.department)}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.designation')}
-                  </label>
-                  <select
-                    value={newEmployee.designation_id}
-                    onChange={(e) => setNewEmployee({ ...newEmployee, designation_id: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="">{t('erms.selectDesignation')}</option>
-                    {designations.map(desig => (
-                      <option key={desig.designation_id} value={desig.designation_id}>
-                        {desig.designation}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.taluka')}
-                  </label>
-                  <select
-                    value={newEmployee.tal_id}
-                    onChange={(e) => setNewEmployee({ ...newEmployee, tal_id: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="">{t('erms.selectTaluka')}</option>
-                    {talukas.map(taluka => (
-                      <option key={taluka.tal_id} value={taluka.tal_id}>
-                        {taluka.name}
                       </option>
                     ))}
                   </select>
@@ -914,6 +862,18 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     <option value="मृत्यू झाल्याने">मृत्यू झाल्याने</option>
                     <option value="स्वेच्छा सेवा निवृत्ती">स्वेच्छा सेवा निवृत्ती</option>
                   </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Date of Assignment
+                  </label>
+                  <input
+                    type="date"
+                    value={newEmployee.date_of_assignment}
+                    onChange={(e) => setNewEmployee({ ...newEmployee, date_of_assignment: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
                 </div>
               </div>
             </div>
@@ -971,8 +931,8 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   </label>
                   <input
                     type="text"
-                    value={newEmployee.emp_name}
-                    onChange={(e) => setNewEmployee({ ...newEmployee, emp_name: e.target.value })}
+                    value={newEmployee.employee_name}
+                    onChange={(e) => setNewEmployee({ ...newEmployee, employee_name: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder={t('erms.enterEmployeeName')}
                   />
@@ -1003,42 +963,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     {departments.map(dept => (
                       <option key={dept.dept_id} value={dept.dept_id}>
                         {translateDepartmentName(dept.department)}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.designation')}
-                  </label>
-                  <select
-                    value={newEmployee.designation_id}
-                    onChange={(e) => setNewEmployee({ ...newEmployee, designation_id: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="">{t('erms.selectDesignation')}</option>
-                    {designations.map(desig => (
-                      <option key={desig.designation_id} value={desig.designation_id}>
-                        {desig.designation}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.taluka')}
-                  </label>
-                  <select
-                    value={newEmployee.tal_id}
-                    onChange={(e) => setNewEmployee({ ...newEmployee, tal_id: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="">{t('erms.selectTaluka')}</option>
-                    {talukas.map(taluka => (
-                      <option key={taluka.tal_id} value={taluka.tal_id}>
-                        {taluka.name}
                       </option>
                     ))}
                   </select>
@@ -1104,6 +1028,18 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     <option value="मृत्यू झाल्याने">मृत्यू झाल्याने</option>
                     <option value="स्वेच्छा सेवा निवृत्ती">स्वेच्छा सेवा निवृत्ती</option>
                   </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Date of Assignment
+                  </label>
+                  <input
+                    type="date"
+                    value={newEmployee.date_of_assignment}
+                    onChange={(e) => setNewEmployee({ ...newEmployee, date_of_assignment: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
                 </div>
               </div>
             </div>
