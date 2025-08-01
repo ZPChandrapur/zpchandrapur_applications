@@ -71,6 +71,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<EditingEmployee | null>(null);
+  const [activeTab, setActiveTab] = useState<'inProgress' | 'completed'>('inProgress');
   
   // Data states
   const [retirementEmployees, setRetirementEmployees] = useState<RetirementEmployee[]>([]);
@@ -286,6 +287,17 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
       .map(([name, count]) => ({ name, count }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 10);
+  };
+
+  const getTabFilteredEmployees = () => {
+    if (activeTab === 'completed') {
+      return filteredEmployees.filter(emp => getProgressStatus(emp) === 'completed');
+    } else {
+      return filteredEmployees.filter(emp => {
+        const status = getProgressStatus(emp);
+        return status === 'processing' || status === 'pending';
+      });
+    }
   };
 
   const handleEditEmployee = (employee: RetirementEmployee) => {
@@ -520,9 +532,9 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
         {/* Charts Row */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           {/* Department-wise Count */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 flex flex-col">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('erms.departmentWiseRetirementCount')}</h3>
-            <div className="space-y-3">
+            <div className="space-y-3 overflow-y-auto max-h-80 flex-1">
               {departmentWiseData.slice(0, 10).map((item, index) => (
                 <div key={index} className="flex items-center justify-between">
                   <div className="flex-1">
@@ -545,13 +557,15 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
                 </div>
               ))}
             </div>
-            <p className="text-xs text-gray-500 mt-3">{t('erms.showingTopResults', { count: 10 })}</p>
+            <div className="mt-3 pt-3 border-t border-gray-100">
+              <p className="text-xs text-gray-500">{t('erms.showingTopResults', { count: 10 })}</p>
+            </div>
           </div>
 
           {/* Designation vs Employee Count */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 flex flex-col">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('erms.designationVsEmployeeCount')}</h3>
-            <div className="space-y-3">
+            <div className="space-y-3 overflow-y-auto max-h-80 flex-1">
               {designationWiseData.map((item, index) => (
                 <div key={index} className="flex items-center justify-between">
                   <div className="flex-1">
@@ -574,12 +588,15 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
                 </div>
               ))}
             </div>
+            <div className="mt-3 pt-3 border-t border-gray-100">
+              <p className="text-xs text-gray-500">{t('erms.showingTopResults', { count: 10 })}</p>
+            </div>
           </div>
 
           {/* Clerk-wise Employee Count */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 flex flex-col">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('erms.clerkWiseEmployeeCount')}</h3>
-            <div className="space-y-3">
+            <div className="space-y-3 overflow-y-auto max-h-80 flex-1">
               {clerkWiseData.map((item, index) => (
                 <div key={index} className="flex items-center justify-between">
                   <div className="flex-1">
@@ -602,6 +619,9 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
                 </div>
               ))}
             </div>
+            <div className="mt-3 pt-3 border-t border-gray-100">
+              <p className="text-xs text-gray-500">{t('erms.showingTopResults', { count: 10 })}</p>
+            </div>
           </div>
         </div>
 
@@ -616,6 +636,32 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
                   <span className="text-sm">{t('common.export')}</span>
                 </button>
               </div>
+            </div>
+            
+            {/* Tabs */}
+            <div className="mt-4">
+              <nav className="flex space-x-8">
+                <button
+                  onClick={() => setActiveTab('inProgress')}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
+                    activeTab === 'inProgress'
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  {t('erms.inProgressAndPending')} ({statusCounts.processing + statusCounts.pending})
+                </button>
+                <button
+                  onClick={() => setActiveTab('completed')}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
+                    activeTab === 'completed'
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  {t('erms.completed')} ({statusCounts.completed})
+                </button>
+              </nav>
             </div>
           </div>
 
@@ -634,14 +680,14 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredEmployees.length === 0 ? (
+                {getTabFilteredEmployees().length === 0 ? (
                   <tr>
                     <td colSpan={8} className="px-6 py-8 text-center text-gray-500">
                       {isLoading ? t('erms.loadingRetirementData') : t('erms.noRetirementRecordsFound')}
                     </td>
                   </tr>
                 ) : (
-                  filteredEmployees.map((employee) => {
+                  getTabFilteredEmployees().map((employee) => {
                     const status = getProgressStatus(employee);
                     const progressFields = [
                       employee.date_of_submission,

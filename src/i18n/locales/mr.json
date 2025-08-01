@@ -257,6 +257,7 @@
     "progress": "प्रगती",
     "loadingRetirementData": "सेवानिवृत्ती डेटा लोड करत आहे...",
     "noRetirementRecordsFound": "कोणतेही सेवानिवृत्ती रेकॉर्ड सापडले नाहीत.",
+    "inProgressAndPending": "प्रगतीत आणि प्रलंबित",
     "editRetirementDetails": "सेवानिवृत्ती तपशील संपादित करा",
     "basicEmployeeInfo": "मूलभूत कर्मचारी माहिती",
     "designationAtRetirement": "सेवानिवृत्तीच्या वेळी पदनाम",

@@ -257,6 +257,7 @@
     "progress": "Progress",
     "loadingRetirementData": "Loading retirement data...",
     "noRetirementRecordsFound": "No retirement records found.",
+    "inProgressAndPending": "In Progress & Pending",
     "editRetirementDetails": "Edit Retirement Details",
     "basicEmployeeInfo": "Basic Employee Information",
     "designationAtRetirement": "Designation at Retirement",
