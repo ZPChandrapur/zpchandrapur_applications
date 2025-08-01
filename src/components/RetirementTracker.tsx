@@ -709,10 +709,6 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
               </div>
             </div>
           )}
-          
-          {activeMainTab === 'groupInsurance' && (
-            <GroupInsurance user={user} />
-          )}
         </div>
 
         {/* Edit Modal */}
@@ -1326,14 +1322,6 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
               </button>
             </div>
           </div>
-          
-          {activeMainTab === 'groupInsurance' && (
-            <GroupInsurance user={user} />
-          {activeMainTab === 'groupInsurance' && (
-            <div className="space-y-6">
-              <GroupInsurance user={user} />
-            </div>
-          )}
         </div>
       </div>
 
