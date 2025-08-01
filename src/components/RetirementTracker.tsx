@@ -75,6 +75,31 @@ interface RetirementProgress {
   updated_at?: string;
 }
 
+interface PayCommission {
+  id: string;
+  emp_id: string;
+  employee_name: string;
+  age: number | null;
+  assigned_clerk: string | null;
+  department: string | null;
+  status: string | null;
+  fourth_pay_commission: string | null;
+  fifth_pay_commission: string | null;
+  sixth_pay_commission: string | null;
+  seventh_pay_commission: string | null;
+  fourth_pay_commission_comment: string | null;
+  fifth_pay_commission_comment: string | null;
+  sixth_pay_commission_comment: string | null;
+  seventh_pay_commission_comment: string | null;
+  fourth_pay_commission_date: string | null;
+  fifth_pay_commission_date: string | null;
+  sixth_pay_commission_date: string | null;
+  seventh_pay_commission_date: string | null;
+  overall_comment: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
 interface ClerkData {
   user_id: string;
   name: string;
@@ -85,6 +110,10 @@ interface Department {
   dept_id: string;
   department: string;
 }
+interface EditingPayCommission extends PayCommission {
+  // All fields are already included in PayCommission
+}
+
 
 export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBack }) => {
   const { t } = useTranslation();
@@ -96,15 +125,21 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
   const [searchTerm, setSearchTerm] = useState('');
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<RetirementProgress | null>(null);
-  const [activeTab, setActiveTab] = useState<'progress' | 'payCommission' | 'groupInsurance'>('progress');
+  const [showEditPayCommissionModal, setShowEditPayCommissionModal] = useState(false);
+  const [editingPayCommission, setEditingPayCommission] = useState<EditingPayCommission | null>(null);
+  const [activeTab, setActiveTab] = useState<'retirementProgress' | 'payCommission' | 'groupInsurance'>('retirementProgress');
   const [progressTab, setProgressTab] = useState<'inProgress' | 'pending' | 'completed'>('inProgress');
+  const [payCommissionStatusTab, setPayCommissionStatusTab] = useState<'inProgress' | 'pending' | 'completed'>('inProgress');
   const [currentPage, setCurrentPage] = useState(1);
+  const [payCommissionCurrentPage, setPayCommissionCurrentPage] = useState(1);
   const recordsPerPage = 20;
   
   // Data states
   const [retirementProgress, setRetirementProgress] = useState<RetirementProgress[]>([]);
+  const [payCommissionData, setPayCommissionData] = useState<PayCommission[]>([]);
   const [clerks, setClerks] = useState<ClerkData[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
+  const [filteredPayCommission, setFilteredPayCommission] = useState<PayCommission[]>([]);
   const [filteredEmployees, setFilteredEmployees] = useState<RetirementProgress[]>([]);
 
   useEffect(() => {
@@ -113,13 +148,19 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
 
   useEffect(() => {
     filterEmployees();
+    filterPayCommission();
   }, [retirementProgress, selectedClerk, selectedDepartment, selectedStatus, searchTerm, userRole, userProfile]);
+
+  useEffect(() => {
+    filterPayCommission();
+  }, [payCommissionData, selectedClerk, selectedDepartment, selectedStatus, searchTerm, userRole, userProfile]);
 
   const fetchAllData = async () => {
     setIsLoading(true);
     try {
       await Promise.all([
         fetchRetirementProgress(),
+        fetchPayCommissionData(),
         fetchClerks(),
         fetchDepartments()
       ]);
@@ -215,6 +256,67 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
     }
   };
 
+  const fetchPayCommissionData = async () => {
+    try {
+      const { data, error } = await ermsClient
+        .from('pay_commission')
+        .select(`
+          id,
+          emp_id,
+          employee_name,
+          age,
+          assigned_clerk,
+          department,
+          status,
+          fourth_pay_commission,
+          fifth_pay_commission,
+          sixth_pay_commission,
+          seventh_pay_commission,
+          fourth_pay_commission_comment,
+          fifth_pay_commission_comment,
+          sixth_pay_commission_comment,
+          seventh_pay_commission_comment,
+          fourth_pay_commission_date,
+          fifth_pay_commission_date,
+          sixth_pay_commission_date,
+          seventh_pay_commission_date,
+          overall_comment,
+          created_at,
+          updated_at
+        `)
+        .order('age', { ascending: false });
+      
+      if (error) throw error;
+      
+      // Update status for each record based on progress and save to database
+      const payCommissionWithUpdatedStatus = await Promise.all((data || []).map(async (record) => {
+        const calculatedStatus = getPayCommissionStatus(record);
+        
+        // Only update if status has changed
+        if (record.status !== calculatedStatus) {
+          try {
+            const { error: updateError } = await ermsClient
+              .from('pay_commission')
+              .update({ status: calculatedStatus })
+              .eq('id', record.id);
+            
+            if (updateError) {
+              console.error('Error updating status for pay commission record:', record.emp_id, updateError);
+            }
+          } catch (updateError) {
+            console.error('Error updating pay commission record status:', updateError);
+          }
+        }
+        
+        return { ...record, status: calculatedStatus };
+      }));
+      
+      setPayCommissionData(payCommissionWithUpdatedStatus);
+    } catch (error) {
+      console.error('Error fetching pay commission data:', error);
+    }
+  };
+
   const fetchClerks = async () => {
     try {
       const { data, error } = await supabase
@@ -282,6 +384,47 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
 
     // Department filter
     if (selectedDepartment) {
+  const filterPayCommission = () => {
+    let filtered = payCommissionData;
+
+    // Role-based filtering
+    if (userRole === 'clerk' && userProfile?.name) {
+      filtered = filtered.filter(record => record.assigned_clerk === userProfile.name);
+    }
+
+    // Other filters
+    if (selectedClerk && userRole !== 'clerk') {
+      const selectedClerkName = clerks.find(c => c.user_id === selectedClerk)?.name;
+      if (selectedClerkName) {
+        filtered = filtered.filter(record => record.assigned_clerk === selectedClerkName);
+      }
+    }
+
+    if (selectedDepartment) {
+      filtered = filtered.filter(record => record.department === selectedDepartment);
+    }
+
+    if (selectedStatus) {
+      filtered = filtered.filter(record => record.status === selectedStatus);
+    }
+
+    if (searchTerm) {
+      filtered = filtered.filter(record => {
+        const searchFields = [
+          record.emp_id,
+          record.employee_name,
+          record.department,
+          record.assigned_clerk
+        ];
+        return searchFields.some(field => 
+          String(field || '').toLowerCase().includes(searchTerm.toLowerCase())
+        );
+      });
+    }
+
+    setFilteredPayCommission(filtered);
+  };
+
       filtered = filtered.filter(emp => emp.department === selectedDepartment);
     }
 
@@ -345,6 +488,22 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
     return 'processing';
   };
 
+  const getPayCommissionStatus = (record: PayCommission) => {
+    const progressFields = [
+      record.fourth_pay_commission,
+      record.fifth_pay_commission,
+      record.sixth_pay_commission,
+      record.seventh_pay_commission
+    ];
+
+    const filledFields = progressFields.filter(field => field && field.trim() !== '').length;
+    const hasNotAvailable = progressFields.some(field => field === 'नाही (Not Available)');
+
+    if (filledFields === 0) return 'pending';
+    if (filledFields === progressFields.length && !hasNotAvailable) return 'completed';
+    return 'processing';
+  };
+
   const getStatusCounts = () => {
     const total = filteredEmployees.length;
     const processing = filteredEmployees.filter(emp => getProgressStatus(emp) === 'processing').length;
@@ -354,9 +513,34 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
     return { total, processing, completed, pending };
   };
 
+  const getPayCommissionStatusCounts = () => {
+    const total = filteredPayCommission.length;
+    const processing = filteredPayCommission.filter(record => getPayCommissionStatus(record) === 'processing').length;
+    const completed = filteredPayCommission.filter(record => getPayCommissionStatus(record) === 'completed').length;
+    const pending = filteredPayCommission.filter(record => getPayCommissionStatus(record) === 'pending').length;
+
+    return { total, processing, completed, pending };
+  };
+
+  const getTabFilteredPayCommission = () => {
+    if (payCommissionStatusTab === 'completed') {
+      return filteredPayCommission.filter(record => getPayCommissionStatus(record) === 'completed');
+    } else if (payCommissionStatusTab === 'pending') {
+      return filteredPayCommission.filter(record => getPayCommissionStatus(record) === 'pending');
+    } else if (payCommissionStatusTab === 'inProgress') {
+      return filteredPayCommission.filter(record => getPayCommissionStatus(record) === 'processing');
+    }
+    return filteredPayCommission;
+  };
+
   const handleEditEmployee = (employee: RetirementProgress) => {
     setEditingEmployee(employee);
     setShowEditModal(true);
+  };
+
+  const handleEditPayCommission = (record: PayCommission) => {
+    setEditingPayCommission(record);
+    setShowEditPayCommissionModal(true);
   };
 
   const handleUpdateEmployee = async () => {
@@ -424,6 +608,62 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
     }
   };
 
+  const handleUpdatePayCommission = async () => {
+    if (!editingPayCommission) return;
+
+    setIsLoading(true);
+    try {
+      const newStatus = getPayCommissionStatus(editingPayCommission);
+      
+      const { error } = await ermsClient
+        .from('pay_commission')
+        .update({
+          fourth_pay_commission: editingPayCommission.fourth_pay_commission,
+          fifth_pay_commission: editingPayCommission.fifth_pay_commission,
+          sixth_pay_commission: editingPayCommission.sixth_pay_commission,
+          seventh_pay_commission: editingPayCommission.seventh_pay_commission,
+          fourth_pay_commission_comment: editingPayCommission.fourth_pay_commission_comment,
+  const tabFilteredPayCommission = getTabFilteredPayCommission();
+          fifth_pay_commission_comment: editingPayCommission.fifth_pay_commission_comment,
+          sixth_pay_commission_comment: editingPayCommission.sixth_pay_commission_comment,
+          seventh_pay_commission_comment: editingPayCommission.seventh_pay_commission_comment,
+          fourth_pay_commission_date: editingPayCommission.fourth_pay_commission_date,
+          fifth_pay_commission_date: editingPayCommission.fifth_pay_commission_date,
+          sixth_pay_commission_date: editingPayCommission.sixth_pay_commission_date,
+          seventh_pay_commission_date: editingPayCommission.seventh_pay_commission_date,
+  // Pay Commission Pagination logic
+  const payCommissionTotalPages = Math.ceil(tabFilteredPayCommission.length / recordsPerPage);
+  const payCommissionStartIndex = (payCommissionCurrentPage - 1) * recordsPerPage;
+  const payCommissionEndIndex = payCommissionStartIndex + recordsPerPage;
+  const payCommissionCurrentRecords = tabFilteredPayCommission.slice(payCommissionStartIndex, payCommissionEndIndex);
+
+          overall_comment: editingPayCommission.overall_comment,
+          status: newStatus
+        })
+        .eq('id', editingPayCommission.id);
+  const handlePayCommissionPageChange = (page: number) => {
+    setPayCommissionCurrentPage(page);
+  };
+
+
+      if (error) throw error;
+      
+      await fetchPayCommissionData();
+      setShowEditPayCommissionModal(false);
+  const handlePayCommissionTabChange = (tab: 'inProgress' | 'pending' | 'completed') => {
+    setPayCommissionStatusTab(tab);
+    setPayCommissionCurrentPage(1); // Reset to first page when changing tabs
+  };
+
+      setEditingPayCommission(null);
+    } catch (error) {
+      console.error('Error updating pay commission:', error);
+      alert(t('common.error') + ': ' + error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const getStatusIcon = (status: string | null) => {
     if (!status || status.trim() === '') {
       return <span className="text-gray-400 text-lg">○</span>;
@@ -473,6 +713,67 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
   };
 
   const statusCounts = getStatusCounts();
+  const payCommissionStatusCounts = getPayCommissionStatusCounts();
+
+  const renderPayCommissionPagination = () => {
+    if (payCommissionTotalPages <= 1) return null;
+
+    const pageNumbers = [];
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, payCommissionCurrentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(payCommissionTotalPages, startPage + maxVisiblePages - 1);
+
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pageNumbers.push(i);
+    }
+
+    return (
+      <div className="flex items-center justify-between px-6 py-3 border-t border-gray-200">
+        <div className="flex items-center text-sm text-gray-500">
+          {t('retirementTracker.showingPage', { 
+            start: payCommissionStartIndex + 1, 
+            end: Math.min(payCommissionEndIndex, tabFilteredPayCommission.length), 
+            total: tabFilteredPayCommission.length 
+          })}
+        </div>
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() => handlePayCommissionPageChange(payCommissionCurrentPage - 1)}
+            disabled={payCommissionCurrentPage === 1}
+            className="px-3 py-1 text-sm border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+          >
+            {t('common.previous')}
+          </button>
+          
+          {pageNumbers.map(number => (
+            <button
+              key={number}
+              onClick={() => handlePayCommissionPageChange(number)}
+              className={`px-3 py-1 text-sm border rounded-md ${
+                payCommissionCurrentPage === number
+                  ? 'bg-blue-600 text-white border-blue-600'
+                  : 'border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              {number}
+            </button>
+          ))}
+          
+          <button
+            onClick={() => handlePayCommissionPageChange(payCommissionCurrentPage + 1)}
+            disabled={payCommissionCurrentPage === payCommissionTotalPages}
+            className="px-3 py-1 text-sm border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+          >
+            {t('common.next')}
+          </button>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -841,6 +1142,192 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
                             >
                               <Edit className="h-4 w-4" />
                             </button>
+        {/* Pay Commission Tab */}
+        {activeTab === 'payCommission' && (
+          <>
+            {/* KPI Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">{t('retirementTracker.totalCases')}</p>
+                    <p className="text-3xl font-bold text-gray-900">{payCommissionStatusCounts.total}</p>
+                  </div>
+                  <div className="bg-blue-100 p-3 rounded-lg">
+                    <DollarSign className="h-8 w-8 text-blue-600" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">{t('retirementTracker.inProgress')}</p>
+                    <p className="text-3xl font-bold text-orange-600">{payCommissionStatusCounts.processing}</p>
+                  </div>
+                  <div className="bg-orange-100 p-3 rounded-lg">
+                    <Clock className="h-8 w-8 text-orange-600" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">{t('retirementTracker.completed')}</p>
+                    <p className="text-3xl font-bold text-green-600">{payCommissionStatusCounts.completed}</p>
+                  </div>
+                  <div className="bg-green-100 p-3 rounded-lg">
+                    <CheckCircle className="h-8 w-8 text-green-600" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">{t('retirementTracker.pending')}</p>
+                    <p className="text-3xl font-bold text-purple-600">{payCommissionStatusCounts.pending}</p>
+                  </div>
+                  <div className="bg-purple-100 p-3 rounded-lg">
+                    <AlertCircle className="h-8 w-8 text-purple-600" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Pay Commission Records Table */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+              <div className="px-6 py-4 border-b border-gray-200">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900">{t('retirementTracker.payCommission')}</h3>
+                  <div className="flex items-center space-x-3">
+                    <button className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200">
+                      <Download className="h-4 w-4" />
+                      <span className="text-sm">{t('common.export')}</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Status Tabs */}
+                <div className="mt-4">
+                  <nav className="flex space-x-8">
+                    <button
+                      onClick={() => handlePayCommissionTabChange('inProgress')}
+                      className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
+                        payCommissionStatusTab === 'inProgress'
+                          ? 'border-blue-500 text-blue-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      }`}
+                    >
+                      {t('retirementTracker.inProgress')} ({payCommissionStatusCounts.processing})
+                    </button>
+                    <button
+                      onClick={() => handlePayCommissionTabChange('pending')}
+                      className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
+                        payCommissionStatusTab === 'pending'
+                          ? 'border-blue-500 text-blue-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      }`}
+                    >
+                      {t('retirementTracker.pending')} ({payCommissionStatusCounts.pending})
+                    </button>
+                    <button
+                      onClick={() => handlePayCommissionTabChange('completed')}
+                      className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
+                        payCommissionStatusTab === 'completed'
+                          ? 'border-blue-500 text-blue-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      }`}
+                    >
+                      {t('retirementTracker.completed')} ({payCommissionStatusCounts.completed})
+                    </button>
+                  </nav>
+                </div>
+
+                <div className="mt-4">
+                  <p className="text-sm text-gray-500">
+                    {t('retirementTracker.showingRecords', { filtered: payCommissionCurrentRecords.length, total: tabFilteredPayCommission.length })}
+                  </p>
+                </div>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.employee')}</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.status')}</th>
+                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.fourthPayCommission')}</th>
+                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.fifthPayCommission')}</th>
+                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.sixthPayCommission')}</th>
+                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.seventhPayCommission')}</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.actions')}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {payCommissionCurrentRecords.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
+                          {isLoading ? t('retirementTracker.loadingData') : t('retirementTracker.noRecordsFound')}
+                        </td>
+                      </tr>
+                    ) : (
+                      payCommissionCurrentRecords.map((record) => (
+                        <tr key={record.id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div>
+                              <div className="text-sm font-medium text-gray-900">{record.employee_name}</div>
+                              <div className="text-sm text-gray-500">{record.emp_id}</div>
+                              <div className="text-sm text-gray-500">{t('retirementTracker.age')}: {record.age}</div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                              record.status === 'completed' ? 'bg-green-100 text-green-800' :
+                              record.status === 'processing' ? 'bg-orange-100 text-orange-800' :
+                              'bg-purple-100 text-purple-800'
+                            }`}>
+                              {record.status === 'completed' && <CheckCircle className="h-3 w-3 mr-1" />}
+                              {record.status === 'processing' && <Clock className="h-3 w-3 mr-1" />}
+                              {record.status === 'pending' && <AlertCircle className="h-3 w-3 mr-1" />}
+                              {t(`retirementTracker.${record.status}`)}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-center">{getStatusSymbol(record.fourth_pay_commission)}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-center">{getStatusSymbol(record.fifth_pay_commission)}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-center">{getStatusSymbol(record.sixth_pay_commission)}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-center">{getStatusSymbol(record.seventh_pay_commission)}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <div className="flex items-center space-x-2">
+                              <button
+                                onClick={() => handleEditPayCommission(record)}
+                                className="text-blue-600 hover:text-blue-900 p-1 rounded"
+                              >
+                                <Edit className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {renderPayCommissionPagination()}
+            </div>
+          </>
+        )}
+
+        {/* Group Insurance Tab */}
+        {activeTab === 'groupInsurance' && (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
+            <Shield className="h-16 w-16 text-blue-500 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('retirementTracker.groupInsurance')}</h3>
+            <p className="text-gray-600">Group insurance tracking features coming soon...</p>
+          </div>
+        )}
                           </div>
                         </td>
                       </tr>
@@ -1336,3 +1823,241 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
     </div>
   );
 };
+      {/* Edit Pay Commission Modal */}
+      {showEditPayCommissionModal && editingPayCommission && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">{t('retirementTracker.editPayCommissionDetails')}</h3>
+              <button
+                onClick={() => setShowEditPayCommissionModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            
+            <div className="p-6">
+              {/* Basic Employee Info (Read-only) */}
+              <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                <h4 className="text-md font-semibold text-gray-800 mb-3">{t('retirementTracker.basicEmployeeInfo')}</h4>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('retirementTracker.employeeId')}</label>
+                    <input
+                      type="text"
+                      value={editingPayCommission.emp_id}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('retirementTracker.employeeName')}</label>
+                    <input
+                      type="text"
+                      value={editingPayCommission.employee_name}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('retirementTracker.assignedClerk')}</label>
+                    <input
+                      type="text"
+                      value={editingPayCommission.assigned_clerk || ''}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('retirementTracker.department')}</label>
+                    <input
+                      type="text"
+                      value={editingPayCommission.department || ''}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Pay Commission Fields */}
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Fourth Pay Commission */}
+                  <div className="space-y-3">
+                    <h5 className="font-medium text-gray-900">{t('retirementTracker.fourthPayCommission')}</h5>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('retirementTracker.status')}</label>
+                      <select
+                        value={editingPayCommission.fourth_pay_commission || ''}
+                        onChange={(e) => setEditingPayCommission({ ...editingPayCommission, fourth_pay_commission: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="">{t('retirementTracker.selectStatus')}</option>
+                        <option value="आहे (Available)">आहे (Available)</option>
+                        <option value="नाही (Not Available)">नाही (Not Available)</option>
+                        <option value="लागू नाही (Not Applicable)">लागू नाही (Not Applicable)</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                      <input
+                        type="date"
+                        value={editingPayCommission.fourth_pay_commission_date || ''}
+                        onChange={(e) => setEditingPayCommission({ ...editingPayCommission, fourth_pay_commission_date: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Comment</label>
+                      <textarea
+                        value={editingPayCommission.fourth_pay_commission_comment || ''}
+                        onChange={(e) => setEditingPayCommission({ ...editingPayCommission, fourth_pay_commission_comment: e.target.value })}
+                        rows={2}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Fifth Pay Commission */}
+                  <div className="space-y-3">
+                    <h5 className="font-medium text-gray-900">{t('retirementTracker.fifthPayCommission')}</h5>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('retirementTracker.status')}</label>
+                      <select
+                        value={editingPayCommission.fifth_pay_commission || ''}
+                        onChange={(e) => setEditingPayCommission({ ...editingPayCommission, fifth_pay_commission: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="">{t('retirementTracker.selectStatus')}</option>
+                        <option value="आहे (Available)">आहे (Available)</option>
+                        <option value="नाही (Not Available)">नाही (Not Available)</option>
+                        <option value="लागू नाही (Not Applicable)">लागू नाही (Not Applicable)</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                      <input
+                        type="date"
+                        value={editingPayCommission.fifth_pay_commission_date || ''}
+                        onChange={(e) => setEditingPayCommission({ ...editingPayCommission, fifth_pay_commission_date: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Comment</label>
+                      <textarea
+                        value={editingPayCommission.fifth_pay_commission_comment || ''}
+                        onChange={(e) => setEditingPayCommission({ ...editingPayCommission, fifth_pay_commission_comment: e.target.value })}
+                        rows={2}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Sixth Pay Commission */}
+                  <div className="space-y-3">
+                    <h5 className="font-medium text-gray-900">{t('retirementTracker.sixthPayCommission')}</h5>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('retirementTracker.status')}</label>
+                      <select
+                        value={editingPayCommission.sixth_pay_commission || ''}
+                        onChange={(e) => setEditingPayCommission({ ...editingPayCommission, sixth_pay_commission: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="">{t('retirementTracker.selectStatus')}</option>
+                        <option value="आहे (Available)">आहे (Available)</option>
+                        <option value="नाही (Not Available)">नाही (Not Available)</option>
+                        <option value="लागू नाही (Not Applicable)">लागू नाही (Not Applicable)</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                      <input
+                        type="date"
+                        value={editingPayCommission.sixth_pay_commission_date || ''}
+                        onChange={(e) => setEditingPayCommission({ ...editingPayCommission, sixth_pay_commission_date: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Comment</label>
+                      <textarea
+                        value={editingPayCommission.sixth_pay_commission_comment || ''}
+                        onChange={(e) => setEditingPayCommission({ ...editingPayCommission, sixth_pay_commission_comment: e.target.value })}
+                        rows={2}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Seventh Pay Commission */}
+                  <div className="space-y-3">
+                    <h5 className="font-medium text-gray-900">{t('retirementTracker.seventhPayCommission')}</h5>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('retirementTracker.status')}</label>
+                      <select
+                        value={editingPayCommission.seventh_pay_commission || ''}
+                        onChange={(e) => setEditingPayCommission({ ...editingPayCommission, seventh_pay_commission: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="">{t('retirementTracker.selectStatus')}</option>
+                        <option value="आहे (Available)">आहे (Available)</option>
+                        <option value="नाही (Not Available)">नाही (Not Available)</option>
+                        <option value="लागू नाही (Not Applicable)">लागू नाही (Not Applicable)</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                      <input
+                        type="date"
+                        value={editingPayCommission.seventh_pay_commission_date || ''}
+                        onChange={(e) => setEditingPayCommission({ ...editingPayCommission, seventh_pay_commission_date: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Comment</label>
+                      <textarea
+                        value={editingPayCommission.seventh_pay_commission_comment || ''}
+                        onChange={(e) => setEditingPayCommission({ ...editingPayCommission, seventh_pay_commission_comment: e.target.value })}
+                        rows={2}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Overall Comment */}
+                <div className="mt-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('retirementTracker.overallComment')}</label>
+                  <textarea
+                    value={editingPayCommission.overall_comment || ''}
+                    onChange={(e) => setEditingPayCommission({ ...editingPayCommission, overall_comment: e.target.value })}
+                    rows={4}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder={t('retirementTracker.enterOverallComment')}
+                  />
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200">
+              <button
+                onClick={() => setShowEditPayCommissionModal(false)}
+                className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200"
+              >
+                {t('common.cancel')}
+              </button>
+              <button
+                onClick={handleUpdatePayCommission}
+                disabled={isLoading}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 disabled:opacity-50"
+              >
+                {isLoading ? t('common.saving') : t('common.update')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}

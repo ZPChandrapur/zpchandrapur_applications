@@ -401,7 +401,12 @@
     "selectStatus": "Select Status",
     "overallComment": "Overall Comment",
     "enterOverallComment": "Enter overall comment",
-    "showingPage": "Showing {{start}}-{{end}} of {{total}}"
+    "showingPage": "Showing {{start}}-{{end}} of {{total}}",
+    "fourthPayCommission": "Fourth Pay Commission",
+    "fifthPayCommission": "Fifth Pay Commission",
+    "sixthPayCommission": "Sixth Pay Commission",
+    "seventhPayCommission": "Seventh Pay Commission",
+    "editPayCommissionDetails": "Edit Pay Commission Details"
   },
   "errors": {
     "somethingWentWrong": "Something went wrong",
