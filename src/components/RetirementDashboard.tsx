@@ -60,7 +60,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
   const { userRole, userProfile } = usePermissions(user);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedClerk, setSelectedClerk] = useState('');
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   
   // Data states
@@ -183,15 +183,30 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
   };
 
   const getMonthWiseData = () => {
-    const monthData = Array.from({ length: 12 }, (_, i) => ({
-      month: new Date(0, i).toLocaleString('default', { month: 'short' }),
+    // Get 6 months: 3 before selected month, selected month, 2 after selected month
+    const monthData = [];
+    for (let i = -3; i <= 2; i++) {
+      const targetDate = new Date(selectedYear, selectedMonth + i, 1);
+      const monthName = targetDate.toLocaleString('default', { month: 'short' });
+      const year = targetDate.getFullYear();
+      monthData.push({
+        month: `${monthName} ${year.toString().slice(-2)}`,
+        fullDate: targetDate,
       count: 0
-    }));
+      });
+    }
 
+    // Count employees for each month
     filteredEmployees.forEach(emp => {
       if (emp.retirement_date) {
-        const retirementMonth = new Date(emp.retirement_date).getMonth();
-        monthData[retirementMonth].count++;
+        const retirementDate = new Date(emp.retirement_date);
+        const monthIndex = monthData.findIndex(m => 
+          m.fullDate.getMonth() === retirementDate.getMonth() && 
+          m.fullDate.getFullYear() === retirementDate.getFullYear()
+        );
+        if (monthIndex !== -1) {
+          monthData[monthIndex].count++;
+        }
       }
     });
 
@@ -241,8 +256,8 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
               <h1 className="text-2xl font-bold text-gray-900">{t('erms.retirementDashboard')}</h1>
               <p className="text-sm text-gray-500 mt-1">
                 {userRole === 'clerk' 
-                  ? `Interactive Clerk View - ${userProfile?.name || 'Unknown Clerk'}`
-                  : 'Global Administrative View'
+                  ? `${t('erms.interactiveClerkView')} - ${userProfile?.name || t('erms.unknownClerk')}`
+                  : t('erms.globalAdministrativeView')
                 }
               </p>
             </div>
@@ -253,7 +268,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
                   onChange={(e) => setSelectedClerk(e.target.value)}
                   className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
-                  <option value="">All Clerks (Global View)</option>
+                  <option value="">{t('erms.allClerksGlobalView')}</option>
                   {clerks.map(clerk => (
                     <option key={clerk.user_id} value={clerk.user_id}>
                       {clerk.name}
@@ -266,7 +281,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
                 className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
               >
                 <RefreshCw className="h-4 w-4" />
-                <span className="text-sm font-medium">Refresh</span>
+                <span className="text-sm font-medium">{t('erms.refresh')}</span>
               </button>
             </div>
           </div>
@@ -279,7 +294,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Total Retirements</p>
+                <p className="text-sm text-gray-600 mb-1">{t('erms.totalRetirements')}</p>
                 <p className="text-3xl font-bold text-gray-900">{statusCounts.total}</p>
               </div>
               <div className="bg-blue-100 p-3 rounded-lg">
@@ -291,9 +306,9 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Processing</p>
+                <p className="text-sm text-gray-600 mb-1">{t('erms.processing')}</p>
                 <p className="text-3xl font-bold text-orange-600">{statusCounts.processing}</p>
-                <p className="text-xs text-gray-500">With submission data</p>
+                <p className="text-xs text-gray-500">{t('erms.withSubmissionData')}</p>
               </div>
               <div className="bg-orange-100 p-3 rounded-lg">
                 <Calendar className="h-8 w-8 text-orange-600" />
@@ -304,9 +319,9 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Completed</p>
+                <p className="text-sm text-gray-600 mb-1">{t('erms.completed')}</p>
                 <p className="text-3xl font-bold text-green-600">{statusCounts.completed}</p>
-                <p className="text-xs text-gray-500">Pension approved</p>
+                <p className="text-xs text-gray-500">{t('erms.pensionApproved')}</p>
               </div>
               <div className="bg-green-100 p-3 rounded-lg">
                 <CheckCircle className="h-8 w-8 text-green-600" />
@@ -317,9 +332,9 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Pending</p>
+                <p className="text-sm text-gray-600 mb-1">{t('erms.pending')}</p>
                 <p className="text-3xl font-bold text-purple-600">{statusCounts.pending}</p>
-                <p className="text-xs text-gray-500">Awaiting approval</p>
+                <p className="text-xs text-gray-500">{t('erms.awaitingApproval')}</p>
               </div>
               <div className="bg-purple-100 p-3 rounded-lg">
                 <FileText className="h-8 w-8 text-purple-600" />
@@ -331,24 +346,36 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
         {/* Month-wise Retirement Count Chart */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold text-gray-900">Month-wise Retirement Count</h3>
+            <h3 className="text-lg font-semibold text-gray-900">{t('erms.monthWiseRetirementCount')}</h3>
             <div className="flex items-center space-x-2">
               <select
                 value={selectedYear}
                 onChange={(e) => setSelectedYear(parseInt(e.target.value))}
                 className="px-3 py-1 border border-gray-300 rounded text-sm"
               >
-                <option value={2025}>2025</option>
+                <option value={2023}>2023</option>
                 <option value={2024}>2024</option>
+                <option value={2025}>2025</option>
+                <option value={2026}>2026</option>
+                <option value={2027}>2027</option>
               </select>
               <select
                 value={selectedMonth}
                 onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
                 className="px-3 py-1 border border-gray-300 rounded text-sm"
               >
-                <option value={8}>August</option>
-                <option value={9}>September</option>
-                <option value={10}>October</option>
+                <option value={0}>{t('erms.january')}</option>
+                <option value={1}>{t('erms.february')}</option>
+                <option value={2}>{t('erms.march')}</option>
+                <option value={3}>{t('erms.april')}</option>
+                <option value={4}>{t('erms.may')}</option>
+                <option value={5}>{t('erms.june')}</option>
+                <option value={6}>{t('erms.july')}</option>
+                <option value={7}>{t('erms.august')}</option>
+                <option value={8}>{t('erms.september')}</option>
+                <option value={9}>{t('erms.october')}</option>
+                <option value={10}>{t('erms.november')}</option>
+                <option value={11}>{t('erms.december')}</option>
               </select>
             </div>
           </div>
@@ -357,7 +384,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
             {monthWiseData.map((item, index) => (
               <div key={index} className="flex items-center justify-between">
                 <div className="flex items-center space-x-3 w-20">
-                  <span className="text-sm font-medium text-gray-700">{item.month} 25</span>
+                  <span className="text-sm font-medium text-gray-700">{item.month}</span>
                 </div>
                 <div className="flex-1 mx-4">
                   <div className="w-full bg-gray-200 rounded-full h-6 relative">
@@ -380,10 +407,10 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
           
           <div className="mt-4 text-center">
             <p className="text-xs text-gray-500">
-              Showing 6 months centered around {new Date(0, selectedMonth - 1).toLocaleString('default', { month: 'long' })} {selectedYear}
-            </p>
-            <p className="text-xs text-gray-500">
-              Data extracted from actual_retirement_data in employee_retirement table
+              {t('erms.showing6MonthsCentered', { 
+                month: new Date(0, selectedMonth).toLocaleString('default', { month: 'long' }), 
+                year: selectedYear 
+              })}
             </p>
           </div>
         </div>
@@ -392,7 +419,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           {/* Department-wise Count */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Department-wise Retirement Count</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('erms.departmentWiseRetirementCount')}</h3>
             <div className="space-y-3">
               {departmentWiseData.slice(0, 10).map((item, index) => (
                 <div key={index} className="flex items-center justify-between">
@@ -416,12 +443,12 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
                 </div>
               ))}
             </div>
-            <p className="text-xs text-gray-500 mt-3">Showing top 10 results</p>
+            <p className="text-xs text-gray-500 mt-3">{t('erms.showingTopResults', { count: 10 })}</p>
           </div>
 
           {/* Designation vs Employee Count */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Designation vs Employee Count</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('erms.designationVsEmployeeCount')}</h3>
             <div className="space-y-3">
               {filteredEmployees.slice(0, 10).map((emp, index) => (
                 <div key={index} className="flex items-center justify-between">
@@ -442,7 +469,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
 
           {/* Clerk-wise Employee Count */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Clerk-wise Employee Count</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('erms.clerkWiseEmployeeCount')}</h3>
             <div className="space-y-3">
               {clerkWiseData.map((item, index) => (
                 <div key={index} className="flex items-center justify-between">
@@ -473,11 +500,11 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
           <div className="px-6 py-4 border-b border-gray-200">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900">Retirement Progress Tracker</h3>
+              <h3 className="text-lg font-semibold text-gray-900">{t('erms.retirementProgressTracker')}</h3>
               <div className="flex items-center space-x-3">
                 <button className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200">
                   <Download className="h-4 w-4" />
-                  <span className="text-sm">Export</span>
+                  <span className="text-sm">{t('common.export')}</span>
                 </button>
               </div>
             </div>
@@ -487,20 +514,20 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Designation</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Retirement Date</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assigned Clerk</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Progress</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.employee')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.designation')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.retirementDate')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.assignedClerk')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.status')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.progress')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.actions')}</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredEmployees.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
-                      {isLoading ? 'Loading retirement data...' : 'No retirement records found.'}
+                      {isLoading ? t('erms.loadingRetirementData') : t('erms.noRetirementRecordsFound')}
                     </td>
                   </tr>
                 ) : (
@@ -537,7 +564,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
                           {employee.retirement_date ? new Date(employee.retirement_date).toLocaleDateString() : '-'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {employee.assigned_clerk_name || 'Unassigned'}
+                          {employee.assigned_clerk_name || t('erms.unassigned')}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -548,7 +575,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
                             {status === 'completed' && <CheckCircle className="h-3 w-3 mr-1" />}
                             {status === 'processing' && <Clock className="h-3 w-3 mr-1" />}
                             {status === 'pending' && <AlertCircle className="h-3 w-3 mr-1" />}
-                            {status.charAt(0).toUpperCase() + status.slice(1)}
+                            {t(`erms.${status}`)}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
