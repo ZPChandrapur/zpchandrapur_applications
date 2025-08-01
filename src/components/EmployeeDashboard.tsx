@@ -463,7 +463,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
 
     setIsLoading(true);
     try {
-      // For new employees, omit employee_id to let database auto-generate it
+      // For new employees, omit emp_id to let database auto-generate it
       const { error } = await ermsClient
         .from('employee')
         .insert({
