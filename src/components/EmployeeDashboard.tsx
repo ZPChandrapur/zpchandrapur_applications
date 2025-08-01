@@ -267,7 +267,8 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
           designations:designation_id(designation_id, designation),
           talukas:tal_id(tal_id, name),
           office_locations:office_id(office_id, name)
-        .not('emp_id', 'is', null)
+        `)
+        .not('emp_id', 'is', null);
       
       if (empError) {
         console.error('❌ Employee fetch error:', empError);
@@ -429,7 +430,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       const percentage = maxCount > 0 ? Math.round((count / maxCount) * 100) : 0;
       return {
         reason,
-        employeeId: String(emp.emp_id || ''),
+        count,
         percentage,
         color: colors[index % colors.length]
       };
@@ -439,12 +440,9 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       deptCounts: deptCounts.length,
       clerkWiseCount: clerkWiseCount.length,
       retirementReasons: retirementReasons.length
-    };
+    });
 
-    const matchesSearch = searchTerm === '' || searchFields.some(field => {
-        if (field === null || field === undefined) return false;
-        return String(field).toLowerCase().includes(searchTerm.toLowerCase());
-      });
+    setChartData({
       departmentWiseCount: deptCounts,
       clerkWiseCount,
       assignedVsUnassigned: {
@@ -690,7 +688,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     <div
                       className="h-2 rounded-full"
                       style={{ 
-                        width: `${item.percentage}%`, 
+                        width: item.percentage + '%', 
                         backgroundColor: item.color 
                       }}
                     />
@@ -1308,15 +1306,3 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     </div>
   );
 };
-        )
-    }
-  }
-}
-        )
-    }
-  }
-}
-        )
-    }
-  }
-}
