@@ -36,15 +36,40 @@ interface RetirementProgress {
   assigned_clerk: string | null;
   department: string | null;
   status: string | null;
-  birth_certificate: string | null;
-  birth_doc_submitted: string | null;
+  date_of_birth_verification: string | null;
   medical_certificate: string | null;
   nomination: string | null;
   permanent_registration: string | null;
-  computer_exam: string | null;
-  language_exam: string | null;
+  computer_exam_passed: string | null;
+  marathi_hindi_exam_exemption: string | null;
   post_service_exam: string | null;
-  verification: string | null;
+  verification_completed: string | null;
+  has_undertaking_been_taken_on_21_12_2021: string | null;
+  no_objection_no_inquiry_certificate: string | null;
+  retirement_order: string | null;
+  birth_certificate_doc_submitted: string | null;
+  date_of_birth_verification_comment: string | null;
+  medical_certificate_comment: string | null;
+  nomination_comment: string | null;
+  permanent_registration_comment: string | null;
+  computer_exam_passed_comment: string | null;
+  marathi_hindi_exam_exemption_comment: string | null;
+  post_service_exam_comment: string | null;
+  verification_completed_comment: string | null;
+  has_undertaking_been_taken_on_21_12_2021_comment: string | null;
+  no_objection_no_inquiry_certificate_comment: string | null;
+  retirement_order_comment: string | null;
+  date_of_birth_verification_date: string | null;
+  medical_certificate_date: string | null;
+  nomination_date: string | null;
+  permanent_registration_date: string | null;
+  computer_exam_passed_date: string | null;
+  marathi_hindi_exam_exemption_date: string | null;
+  post_service_exam_date: string | null;
+  verification_completed_date: string | null;
+  has_undertaking_been_taken_on_21_12_2021_date: string | null;
+  no_objection_no_inquiry_certificate_date: string | null;
+  retirement_order_date: string | null;
   created_at?: string;
   updated_at?: string;
 }
@@ -113,15 +138,40 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
           assigned_clerk,
           department,
           status,
-          birth_certificate,
-          birth_doc_submitted,
+          date_of_birth_verification,
           medical_certificate,
           nomination,
           permanent_registration,
-          computer_exam,
-          language_exam,
+          computer_exam_passed,
+          marathi_hindi_exam_exemption,
           post_service_exam,
-          verification,
+          verification_completed,
+          has_undertaking_been_taken_on_21_12_2021,
+          no_objection_no_inquiry_certificate,
+          retirement_order,
+          birth_certificate_doc_submitted,
+          date_of_birth_verification_comment,
+          medical_certificate_comment,
+          nomination_comment,
+          permanent_registration_comment,
+          computer_exam_passed_comment,
+          marathi_hindi_exam_exemption_comment,
+          post_service_exam_comment,
+          verification_completed_comment,
+          has_undertaking_been_taken_on_21_12_2021_comment,
+          no_objection_no_inquiry_certificate_comment,
+          retirement_order_comment,
+          date_of_birth_verification_date,
+          medical_certificate_date,
+          nomination_date,
+          permanent_registration_date,
+          computer_exam_passed_date,
+          marathi_hindi_exam_exemption_date,
+          post_service_exam_date,
+          verification_completed_date,
+          has_undertaking_been_taken_on_21_12_2021_date,
+          no_objection_no_inquiry_certificate_date,
+          retirement_order_date,
           created_at,
           updated_at
         `)
@@ -240,15 +290,18 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
 
   const getProgressStatus = (employee: RetirementProgress) => {
     const progressFields = [
-      employee.birth_certificate,
-      employee.birth_doc_submitted,
+      employee.date_of_birth_verification,
       employee.medical_certificate,
       employee.nomination,
       employee.permanent_registration,
-      employee.computer_exam,
-      employee.language_exam,
+      employee.computer_exam_passed,
+      employee.marathi_hindi_exam_exemption,
       employee.post_service_exam,
-      employee.verification
+      employee.verification_completed,
+      employee.has_undertaking_been_taken_on_21_12_2021,
+      employee.no_objection_no_inquiry_certificate,
+      employee.retirement_order,
+      employee.birth_certificate_doc_submitted
     ];
 
     const filledFields = progressFields.filter(field => field && field.trim() !== '').length;
@@ -287,15 +340,40 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
           assigned_clerk: editingEmployee.assigned_clerk,
           department: editingEmployee.department,
           status: newStatus,
-          birth_certificate: editingEmployee.birth_certificate,
-          birth_doc_submitted: editingEmployee.birth_doc_submitted,
+          date_of_birth_verification: editingEmployee.date_of_birth_verification,
           medical_certificate: editingEmployee.medical_certificate,
           nomination: editingEmployee.nomination,
           permanent_registration: editingEmployee.permanent_registration,
-          computer_exam: editingEmployee.computer_exam,
-          language_exam: editingEmployee.language_exam,
+          computer_exam_passed: editingEmployee.computer_exam_passed,
+          marathi_hindi_exam_exemption: editingEmployee.marathi_hindi_exam_exemption,
           post_service_exam: editingEmployee.post_service_exam,
-          verification: editingEmployee.verification
+          verification_completed: editingEmployee.verification_completed,
+          has_undertaking_been_taken_on_21_12_2021: editingEmployee.has_undertaking_been_taken_on_21_12_2021,
+          no_objection_no_inquiry_certificate: editingEmployee.no_objection_no_inquiry_certificate,
+          retirement_order: editingEmployee.retirement_order,
+          birth_certificate_doc_submitted: editingEmployee.birth_certificate_doc_submitted,
+          date_of_birth_verification_comment: editingEmployee.date_of_birth_verification_comment,
+          medical_certificate_comment: editingEmployee.medical_certificate_comment,
+          nomination_comment: editingEmployee.nomination_comment,
+          permanent_registration_comment: editingEmployee.permanent_registration_comment,
+          computer_exam_passed_comment: editingEmployee.computer_exam_passed_comment,
+          marathi_hindi_exam_exemption_comment: editingEmployee.marathi_hindi_exam_exemption_comment,
+          post_service_exam_comment: editingEmployee.post_service_exam_comment,
+          verification_completed_comment: editingEmployee.verification_completed_comment,
+          has_undertaking_been_taken_on_21_12_2021_comment: editingEmployee.has_undertaking_been_taken_on_21_12_2021_comment,
+          no_objection_no_inquiry_certificate_comment: editingEmployee.no_objection_no_inquiry_certificate_comment,
+          retirement_order_comment: editingEmployee.retirement_order_comment,
+          date_of_birth_verification_date: editingEmployee.date_of_birth_verification_date,
+          medical_certificate_date: editingEmployee.medical_certificate_date,
+          nomination_date: editingEmployee.nomination_date,
+          permanent_registration_date: editingEmployee.permanent_registration_date,
+          computer_exam_passed_date: editingEmployee.computer_exam_passed_date,
+          marathi_hindi_exam_exemption_date: editingEmployee.marathi_hindi_exam_exemption_date,
+          post_service_exam_date: editingEmployee.post_service_exam_date,
+          verification_completed_date: editingEmployee.verification_completed_date,
+          has_undertaking_been_taken_on_21_12_2021_date: editingEmployee.has_undertaking_been_taken_on_21_12_2021_date,
+          no_objection_no_inquiry_certificate_date: editingEmployee.no_objection_no_inquiry_certificate_date,
+          retirement_order_date: editingEmployee.retirement_order_date
         })
         .eq('id', editingEmployee.id);
 
@@ -519,22 +597,25 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.employee')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.status')}</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.birthCertificate')}</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.birthDocSubmitted')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.dateOfBirthVerification')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.medicalCertificate')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.nomination')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.permanentRegistration')}</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.computerExam')}</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.languageExam')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.computerExamPassed')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.marathiHindiExamExemption')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.postServiceExam')}</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.verification')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.verificationCompleted')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.undertakingTaken')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.noObjectionCertificate')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.retirementOrder')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.birthCertificateSubmitted')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.actions')}</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredEmployees.length === 0 ? (
                   <tr>
-                    <td colSpan={11} className="px-6 py-8 text-center text-gray-500">
+                    <td colSpan={15} className="px-6 py-8 text-center text-gray-500">
                       {isLoading ? t('retirementTracker.loadingData') : t('retirementTracker.noRecordsFound')}
                     </td>
                   </tr>
@@ -561,10 +642,7 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-center">
-                          {getFieldIcon(employee.birth_certificate)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-center">
-                          {getFieldIcon(employee.birth_doc_submitted)}
+                          {getFieldIcon(employee.date_of_birth_verification)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-center">
                           {getFieldIcon(employee.medical_certificate)}
@@ -576,16 +654,28 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
                           {getFieldIcon(employee.permanent_registration)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-center">
-                          {getFieldIcon(employee.computer_exam)}
+                          {getFieldIcon(employee.computer_exam_passed)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-center">
-                          {getFieldIcon(employee.language_exam)}
+                          {getFieldIcon(employee.marathi_hindi_exam_exemption)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-center">
                           {getFieldIcon(employee.post_service_exam)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-center">
-                          {getFieldIcon(employee.verification)}
+                          {getFieldIcon(employee.verification_completed)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                          {getFieldIcon(employee.has_undertaking_been_taken_on_21_12_2021)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                          {getFieldIcon(employee.no_objection_no_inquiry_certificate)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                          {getFieldIcon(employee.retirement_order)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                          {getFieldIcon(employee.birth_certificate_doc_submitted)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           <div className="flex items-center space-x-2">
@@ -613,7 +703,7 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
       {/* Edit Employee Modal */}
       {showEditModal && editingEmployee && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <h3 className="text-lg font-semibold text-gray-900">{t('retirementTracker.editProgressDetails')}</h3>
               <button
@@ -659,116 +749,152 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
                 </div>
               </div>
 
-              {/* Editable Fields */}
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('retirementTracker.assignedClerk')}</label>
+              {/* Progress Fields */}
+              <div className="space-y-6">
+                <h4 className="text-md font-semibold text-gray-800">{t('retirementTracker.progressFields')}</h4>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Date of Birth Verification */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">{t('retirementTracker.dateOfBirthVerification')}</label>
                     <input
                       type="text"
-                      value={editingEmployee.assigned_clerk || ''}
-                      onChange={(e) => setEditingEmployee({ ...editingEmployee, assigned_clerk: e.target.value })}
+                      value={editingEmployee.date_of_birth_verification || ''}
+                      onChange={(e) => setEditingEmployee({ ...editingEmployee, date_of_birth_verification: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('retirementTracker.department')}</label>
                     <input
-                      type="text"
-                      value={editingEmployee.department || ''}
-                      onChange={(e) => setEditingEmployee({ ...editingEmployee, department: e.target.value })}
+                      type="date"
+                      value={editingEmployee.date_of_birth_verification_date || ''}
+                      onChange={(e) => setEditingEmployee({ ...editingEmployee, date_of_birth_verification_date: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('retirementTracker.birthCertificate')}</label>
-                    <input
-                      type="text"
-                      value={editingEmployee.birth_certificate || ''}
-                      onChange={(e) => setEditingEmployee({ ...editingEmployee, birth_certificate: e.target.value })}
+                    <textarea
+                      value={editingEmployee.date_of_birth_verification_comment || ''}
+                      onChange={(e) => setEditingEmployee({ ...editingEmployee, date_of_birth_verification_comment: e.target.value })}
+                      placeholder="Comment"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      rows={2}
                     />
                   </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('retirementTracker.birthDocSubmitted')}</label>
-                    <input
-                      type="text"
-                      value={editingEmployee.birth_doc_submitted || ''}
-                      onChange={(e) => setEditingEmployee({ ...editingEmployee, birth_doc_submitted: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('retirementTracker.medicalCertificate')}</label>
+
+                  {/* Medical Certificate */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">{t('retirementTracker.medicalCertificate')}</label>
                     <input
                       type="text"
                       value={editingEmployee.medical_certificate || ''}
                       onChange={(e) => setEditingEmployee({ ...editingEmployee, medical_certificate: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
+                    <input
+                      type="date"
+                      value={editingEmployee.medical_certificate_date || ''}
+                      onChange={(e) => setEditingEmployee({ ...editingEmployee, medical_certificate_date: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    <textarea
+                      value={editingEmployee.medical_certificate_comment || ''}
+                      onChange={(e) => setEditingEmployee({ ...editingEmployee, medical_certificate_comment: e.target.value })}
+                      placeholder="Comment"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      rows={2}
+                    />
                   </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('retirementTracker.nomination')}</label>
+
+                  {/* Nomination */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">{t('retirementTracker.nomination')}</label>
                     <input
                       type="text"
                       value={editingEmployee.nomination || ''}
                       onChange={(e) => setEditingEmployee({ ...editingEmployee, nomination: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
+                    <input
+                      type="date"
+                      value={editingEmployee.nomination_date || ''}
+                      onChange={(e) => setEditingEmployee({ ...editingEmployee, nomination_date: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    <textarea
+                      value={editingEmployee.nomination_comment || ''}
+                      onChange={(e) => setEditingEmployee({ ...editingEmployee, nomination_comment: e.target.value })}
+                      placeholder="Comment"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      rows={2}
+                    />
                   </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('retirementTracker.permanentRegistration')}</label>
+
+                  {/* Permanent Registration */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">{t('retirementTracker.permanentRegistration')}</label>
                     <input
                       type="text"
                       value={editingEmployee.permanent_registration || ''}
                       onChange={(e) => setEditingEmployee({ ...editingEmployee, permanent_registration: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('retirementTracker.computerExam')}</label>
                     <input
-                      type="text"
-                      value={editingEmployee.computer_exam || ''}
-                      onChange={(e) => setEditingEmployee({ ...editingEmployee, computer_exam: e.target.value })}
+                      type="date"
+                      value={editingEmployee.permanent_registration_date || ''}
+                      onChange={(e) => setEditingEmployee({ ...editingEmployee, permanent_registration_date: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('retirementTracker.languageExam')}</label>
-                    <input
-                      type="text"
-                      value={editingEmployee.language_exam || ''}
-                      onChange={(e) => setEditingEmployee({ ...editingEmployee, language_exam: e.target.value })}
+                    <textarea
+                      value={editingEmployee.permanent_registration_comment || ''}
+                      onChange={(e) => setEditingEmployee({ ...editingEmployee, permanent_registration_comment: e.target.value })}
+                      placeholder="Comment"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      rows={2}
                     />
                   </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('retirementTracker.postServiceExam')}</label>
+
+                  {/* Computer Exam Passed */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">{t('retirementTracker.computerExamPassed')}</label>
                     <input
                       type="text"
-                      value={editingEmployee.post_service_exam || ''}
-                      onChange={(e) => setEditingEmployee({ ...editingEmployee, post_service_exam: e.target.value })}
+                      value={editingEmployee.computer_exam_passed || ''}
+                      onChange={(e) => setEditingEmployee({ ...editingEmployee, computer_exam_passed: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
+                    <input
+                      type="date"
+                      value={editingEmployee.computer_exam_passed_date || ''}
+                      onChange={(e) => setEditingEmployee({ ...editingEmployee, computer_exam_passed_date: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    <textarea
+                      value={editingEmployee.computer_exam_passed_comment || ''}
+                      onChange={(e) => setEditingEmployee({ ...editingEmployee, computer_exam_passed_comment: e.target.value })}
+                      placeholder="Comment"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      rows={2}
+                    />
                   </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('retirementTracker.verification')}</label>
+
+                  {/* Marathi Hindi Exam Exemption */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">{t('retirementTracker.marathiHindiExamExemption')}</label>
                     <input
                       type="text"
-                      value={editingEmployee.verification || ''}
-                      onChange={(e) => setEditingEmployee({ ...editingEmployee, verification: e.target.value })}
+                      value={editingEmployee.marathi_hindi_exam_exemption || ''}
+                      onChange={(e) => setEditingEmployee({ ...editingEmployee, marathi_hindi_exam_exemption: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    <input
+                      type="date"
+                      value={editingEmployee.marathi_hindi_exam_exemption_date || ''}
+                      onChange={(e) => setEditingEmployee({ ...editingEmployee, marathi_hindi_exam_exemption_date: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    <textarea
+                      value={editingEmployee.marathi_hindi_exam_exemption_comment || ''}
+                      onChange={(e) => setEditingEmployee({ ...editingEmployee, marathi_hindi_exam_exemption_comment: e.target.value })}
+                      placeholder="Comment"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      rows={2}
                     />
                   </div>
                 </div>
