@@ -179,7 +179,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
   if (selectedApp) {
     // Special handling for ERMS
     if (selectedApp === 'erms') {
-      return <ERMSDashboard onBack={handleBackToDashboard} />;
+      return <ERMSDashboard user={user} onBack={handleBackToDashboard} />;
     }
 
     const app = systems.find(s => s.id === selectedApp);

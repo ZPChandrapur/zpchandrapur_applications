@@ -17,12 +17,15 @@ import {
 } from 'lucide-react';
 import { OrganizationSetup } from './OrganizationSetup';
 import { EmployeeDashboard } from './EmployeeDashboard';
+import { RetirementDashboard } from './RetirementDashboard';
+import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 interface ERMSDashboardProps {
+  user: SupabaseUser;
   onBack: () => void;
 }
 
-export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
+export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, onBack }) => {
   const { t } = useTranslation();
   const [activeModule, setActiveModule] = useState('employee-dashboard');
 
@@ -100,13 +103,7 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ onBack }) => {
       case 'organization-setup':
         return <OrganizationSetup onBack={handleBackToMain} />;
       case 'retirement-dashboard':
-        return (
-          <div className="p-8 text-center">
-            <Calendar className="h-16 w-16 text-orange-500 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Retirement Dashboard</h3>
-            <p className="text-gray-600">Retirement management features coming soon...</p>
-          </div>
-        );
+        return <RetirementDashboard user={user} onBack={handleBackToMain} />;
       case 'retirement-tracker':
         return (
           <div className="p-8 text-center">
