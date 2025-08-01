@@ -392,7 +392,11 @@
     "employeeName": "Employee Name",
     "assignedClerk": "Assigned Clerk",
     "department": "Department",
-    "designation": "Designation"
+    "designation": "Designation",
+    "selectStatus": "Select Status",
+    "overallComment": "Overall Comment",
+    "enterOverallComment": "Enter overall comment",
+    "showingPage": "Showing {{start}}-{{end}} of {{total}}"
   },
   "errors": {
     "somethingWentWrong": "Something went wrong",

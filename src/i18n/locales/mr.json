@@ -391,8 +391,12 @@
     "employeeId": "कर्मचारी आयडी",
     "employeeName": "कर्मचारी नाव",
     "assignedClerk": "नियुक्त लिपिक",
-    "department": "विभाग",
-    "designation": "पदनाम"
+    "department": "विभाग", 
+    "designation": "पदनाम",
+    "selectStatus": "स्थिती निवडा",
+    "overallComment": "एकूण टिप्पणी",
+    "enterOverallComment": "एकूण टिप्पणी टाका",
+    "showingPage": "{{total}} पैकी {{start}}-{{end}} दाखवत आहे"
   },
   "errors": {
     "somethingWentWrong": "काहीतरी चूक झाली",

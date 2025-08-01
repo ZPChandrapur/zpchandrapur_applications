@@ -70,6 +70,7 @@ interface RetirementProgress {
   has_undertaking_been_taken_on_21_12_2021_date: string | null;
   no_objection_no_inquiry_certificate_date: string | null;
   retirement_order_date: string | null;
+  overall_comment: string | null;
   created_at?: string;
   updated_at?: string;
 }
@@ -96,6 +97,9 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<RetirementProgress | null>(null);
   const [activeTab, setActiveTab] = useState<'progress' | 'payCommission' | 'groupInsurance'>('progress');
+  const [progressTab, setProgressTab] = useState<'inProgress' | 'pending' | 'completed'>('inProgress');
+  const [currentPage, setCurrentPage] = useState(1);
+  const recordsPerPage = 20;
   
   // Data states
   const [retirementProgress, setRetirementProgress] = useState<RetirementProgress[]>([]);
@@ -172,6 +176,7 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
           has_undertaking_been_taken_on_21_12_2021_date,
           no_objection_no_inquiry_certificate_date,
           retirement_order_date,
+          overall_comment,
           created_at,
           updated_at
         `)
@@ -288,6 +293,32 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
     setFilteredEmployees(filtered);
   };
 
+  const getTabFilteredEmployees = () => {
+    let filtered = filteredEmployees;
+    
+    if (progressTab === 'completed') {
+      filtered = filtered.filter(emp => getProgressStatus(emp) === 'completed');
+    } else if (progressTab === 'pending') {
+      filtered = filtered.filter(emp => getProgressStatus(emp) === 'pending');
+    } else if (progressTab === 'inProgress') {
+      filtered = filtered.filter(emp => getProgressStatus(emp) === 'processing');
+    }
+    
+    return filtered;
+  };
+
+  const getPaginatedEmployees = () => {
+    const tabFiltered = getTabFilteredEmployees();
+    const startIndex = (currentPage - 1) * recordsPerPage;
+    const endIndex = startIndex + recordsPerPage;
+    return tabFiltered.slice(startIndex, endIndex);
+  };
+
+  const getTotalPages = () => {
+    const tabFiltered = getTabFilteredEmployees();
+    return Math.ceil(tabFiltered.length / recordsPerPage);
+  };
+
   const getProgressStatus = (employee: RetirementProgress) => {
     const progressFields = [
       employee.date_of_birth_verification,
@@ -373,7 +404,8 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
           verification_completed_date: editingEmployee.verification_completed_date,
           has_undertaking_been_taken_on_21_12_2021_date: editingEmployee.has_undertaking_been_taken_on_21_12_2021_date,
           no_objection_no_inquiry_certificate_date: editingEmployee.no_objection_no_inquiry_certificate_date,
-          retirement_order_date: editingEmployee.retirement_order_date
+          retirement_order_date: editingEmployee.retirement_order_date,
+          overall_comment: editingEmployee.overall_comment
         })
         .eq('id', editingEmployee.id);
 
@@ -401,11 +433,19 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
     return <CheckCircle className="h-4 w-4 text-green-500" />;
   };
 
+  const getVerificationOptions = () => [
+    { value: 'आहे (Available)', label: 'आहे (Available)' },
+    { value: 'नाही (Not Available)', label: 'नाही (Not Available)' },
+    { value: 'लागू नाही (Not Applicable)', label: 'लागू नाही (Not Applicable)' },
+    { value: 'सुट आहे (Exempted)', label: 'सुट आहे (Exempted)' }
+  ];
+
   const clearFilters = () => {
     setSearchTerm('');
     setSelectedClerk('');
     setSelectedDepartment('');
     setSelectedStatus('');
+    setCurrentPage(1);
   };
 
   const statusCounts = getStatusCounts();
@@ -584,9 +624,98 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
               )}
             </div>
 
+            {/* Tabs */}
+            <div className="mt-4 border-b border-gray-200">
+              <nav className="flex space-x-8">
+                <button
+                  onClick={() => setActiveTab('progress')}
+                  className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
+                    activeTab === 'progress'
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  <FileText className="h-4 w-4" />
+                  <span>{t('retirementTracker.retirementProgress')}</span>
+                </button>
+                <button
+                  onClick={() => setActiveTab('payCommission')}
+                  className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
+                    activeTab === 'payCommission'
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  <TrendingUp className="h-4 w-4" />
+                  <span>{t('retirementTracker.payCommission')}</span>
+                </button>
+                <button
+                  onClick={() => setActiveTab('groupInsurance')}
+                  className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
+                    activeTab === 'groupInsurance'
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  <Users className="h-4 w-4" />
+                  <span>{t('retirementTracker.groupInsurance')}</span>
+                </button>
+              </nav>
+            </div>
+            
+            {/* Progress Sub-tabs */}
+            {activeTab === 'progress' && (
+              <div className="mt-4">
+                <nav className="flex space-x-8">
+                  <button
+                    onClick={() => {
+                      setProgressTab('inProgress');
+                      setCurrentPage(1);
+                    }}
+                    className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
+                      progressTab === 'inProgress'
+                        ? 'border-blue-500 text-blue-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
+                  >
+                    {t('retirementTracker.inProgress')} ({statusCounts.processing})
+                  </button>
+                  <button
+                    onClick={() => {
+                      setProgressTab('pending');
+                      setCurrentPage(1);
+                    }}
+                    className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
+                      progressTab === 'pending'
+                        ? 'border-blue-500 text-blue-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
+                  >
+                    {t('retirementTracker.pending')} ({statusCounts.pending})
+                  </button>
+                  <button
+                    onClick={() => {
+                      setProgressTab('completed');
+                      setCurrentPage(1);
+                    }}
+                    className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
+                      progressTab === 'completed'
+                        ? 'border-blue-500 text-blue-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
+                  >
+                    {t('retirementTracker.completed')} ({statusCounts.completed})
+                  </button>
+                </nav>
+              </div>
+            )}
+
             <div className="mt-4">
               <p className="text-sm text-gray-500">
-                {t('retirementTracker.showingRecords', { filtered: filteredEmployees.length, total: retirementProgress.length })}
+                {t('retirementTracker.showingRecords', { 
+                  filtered: getTabFilteredEmployees().length, 
+                  total: retirementProgress.length 
+                })}
               </p>
             </div>
           </div>
@@ -613,14 +742,14 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredEmployees.length === 0 ? (
+                {getPaginatedEmployees().length === 0 ? (
                   <tr>
                     <td colSpan={15} className="px-6 py-8 text-center text-gray-500">
                       {isLoading ? t('retirementTracker.loadingData') : t('retirementTracker.noRecordsFound')}
                     </td>
                   </tr>
                 ) : (
-                  filteredEmployees.map((employee) => {
+                  getPaginatedEmployees().map((employee) => {
                     const status = getProgressStatus(employee);
                     return (
                       <tr key={employee.id} className="hover:bg-gray-50">
@@ -697,6 +826,52 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
               </tbody>
             </table>
           </div>
+          
+          {/* Pagination */}
+          {activeTab === 'progress' && getTotalPages() > 1 && (
+            <div className="px-6 py-4 border-t border-gray-200">
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-700">
+                  {t('retirementTracker.showingPage', {
+                    start: (currentPage - 1) * recordsPerPage + 1,
+                    end: Math.min(currentPage * recordsPerPage, getTabFilteredEmployees().length),
+                    total: getTabFilteredEmployees().length
+                  })}
+                </div>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                    disabled={currentPage === 1}
+                    className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {t('common.previous')}
+                  </button>
+                  
+                  {Array.from({ length: getTotalPages() }, (_, i) => i + 1).map((page) => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`px-3 py-1 text-sm border rounded-md ${
+                        currentPage === page
+                          ? 'bg-blue-600 text-white border-blue-600'
+                          : 'border-gray-300 hover:bg-gray-50'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                  
+                  <button
+                    onClick={() => setCurrentPage(Math.min(getTotalPages(), currentPage + 1))}
+                    disabled={currentPage === getTotalPages()}
+                    className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {t('common.next')}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -757,12 +932,16 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
                   {/* Date of Birth Verification */}
                   <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700">{t('retirementTracker.dateOfBirthVerification')}</label>
-                    <input
-                      type="text"
+                    <select
                       value={editingEmployee.date_of_birth_verification || ''}
                       onChange={(e) => setEditingEmployee({ ...editingEmployee, date_of_birth_verification: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
+                    >
+                      <option value="">{t('retirementTracker.selectStatus')}</option>
+                      {getVerificationOptions().map(option => (
+                        <option key={option.value} value={option.value}>{option.label}</option>
+                      ))}
+                    </select>
                     <input
                       type="date"
                       value={editingEmployee.date_of_birth_verification_date || ''}
@@ -781,12 +960,16 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
                   {/* Medical Certificate */}
                   <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700">{t('retirementTracker.medicalCertificate')}</label>
-                    <input
-                      type="text"
+                    <select
                       value={editingEmployee.medical_certificate || ''}
                       onChange={(e) => setEditingEmployee({ ...editingEmployee, medical_certificate: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
+                    >
+                      <option value="">{t('retirementTracker.selectStatus')}</option>
+                      {getVerificationOptions().map(option => (
+                        <option key={option.value} value={option.value}>{option.label}</option>
+                      ))}
+                    </select>
                     <input
                       type="date"
                       value={editingEmployee.medical_certificate_date || ''}
@@ -805,12 +988,16 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
                   {/* Nomination */}
                   <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700">{t('retirementTracker.nomination')}</label>
-                    <input
-                      type="text"
+                    <select
                       value={editingEmployee.nomination || ''}
                       onChange={(e) => setEditingEmployee({ ...editingEmployee, nomination: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
+                    >
+                      <option value="">{t('retirementTracker.selectStatus')}</option>
+                      {getVerificationOptions().map(option => (
+                        <option key={option.value} value={option.value}>{option.label}</option>
+                      ))}
+                    </select>
                     <input
                       type="date"
                       value={editingEmployee.nomination_date || ''}
@@ -829,12 +1016,16 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
                   {/* Permanent Registration */}
                   <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700">{t('retirementTracker.permanentRegistration')}</label>
-                    <input
-                      type="text"
+                    <select
                       value={editingEmployee.permanent_registration || ''}
                       onChange={(e) => setEditingEmployee({ ...editingEmployee, permanent_registration: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
+                    >
+                      <option value="">{t('retirementTracker.selectStatus')}</option>
+                      {getVerificationOptions().map(option => (
+                        <option key={option.value} value={option.value}>{option.label}</option>
+                      ))}
+                    </select>
                     <input
                       type="date"
                       value={editingEmployee.permanent_registration_date || ''}
@@ -853,12 +1044,16 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
                   {/* Computer Exam Passed */}
                   <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700">{t('retirementTracker.computerExamPassed')}</label>
-                    <input
-                      type="text"
+                    <select
                       value={editingEmployee.computer_exam_passed || ''}
                       onChange={(e) => setEditingEmployee({ ...editingEmployee, computer_exam_passed: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
+                    >
+                      <option value="">{t('retirementTracker.selectStatus')}</option>
+                      {getVerificationOptions().map(option => (
+                        <option key={option.value} value={option.value}>{option.label}</option>
+                      ))}
+                    </select>
                     <input
                       type="date"
                       value={editingEmployee.computer_exam_passed_date || ''}
@@ -877,12 +1072,16 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
                   {/* Marathi Hindi Exam Exemption */}
                   <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700">{t('retirementTracker.marathiHindiExamExemption')}</label>
-                    <input
-                      type="text"
+                    <select
                       value={editingEmployee.marathi_hindi_exam_exemption || ''}
                       onChange={(e) => setEditingEmployee({ ...editingEmployee, marathi_hindi_exam_exemption: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
+                    >
+                      <option value="">{t('retirementTracker.selectStatus')}</option>
+                      {getVerificationOptions().map(option => (
+                        <option key={option.value} value={option.value}>{option.label}</option>
+                      ))}
+                    </select>
                     <input
                       type="date"
                       value={editingEmployee.marathi_hindi_exam_exemption_date || ''}
@@ -897,6 +1096,173 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
                       rows={2}
                     />
                   </div>
+
+                  {/* Post Service Exam */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">{t('retirementTracker.postServiceExam')}</label>
+                    <select
+                      value={editingEmployee.post_service_exam || ''}
+                      onChange={(e) => setEditingEmployee({ ...editingEmployee, post_service_exam: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="">{t('retirementTracker.selectStatus')}</option>
+                      {getVerificationOptions().map(option => (
+                        <option key={option.value} value={option.value}>{option.label}</option>
+                      ))}
+                    </select>
+                    <input
+                      type="date"
+                      value={editingEmployee.post_service_exam_date || ''}
+                      onChange={(e) => setEditingEmployee({ ...editingEmployee, post_service_exam_date: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    <textarea
+                      value={editingEmployee.post_service_exam_comment || ''}
+                      onChange={(e) => setEditingEmployee({ ...editingEmployee, post_service_exam_comment: e.target.value })}
+                      placeholder="Comment"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      rows={2}
+                    />
+                  </div>
+
+                  {/* Verification Completed */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">{t('retirementTracker.verificationCompleted')}</label>
+                    <select
+                      value={editingEmployee.verification_completed || ''}
+                      onChange={(e) => setEditingEmployee({ ...editingEmployee, verification_completed: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="">{t('retirementTracker.selectStatus')}</option>
+                      {getVerificationOptions().map(option => (
+                        <option key={option.value} value={option.value}>{option.label}</option>
+                      ))}
+                    </select>
+                    <input
+                      type="date"
+                      value={editingEmployee.verification_completed_date || ''}
+                      onChange={(e) => setEditingEmployee({ ...editingEmployee, verification_completed_date: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    <textarea
+                      value={editingEmployee.verification_completed_comment || ''}
+                      onChange={(e) => setEditingEmployee({ ...editingEmployee, verification_completed_comment: e.target.value })}
+                      placeholder="Comment"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      rows={2}
+                    />
+                  </div>
+
+                  {/* Undertaking Taken */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">{t('retirementTracker.undertakingTaken')}</label>
+                    <select
+                      value={editingEmployee.has_undertaking_been_taken_on_21_12_2021 || ''}
+                      onChange={(e) => setEditingEmployee({ ...editingEmployee, has_undertaking_been_taken_on_21_12_2021: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="">{t('retirementTracker.selectStatus')}</option>
+                      {getVerificationOptions().map(option => (
+                        <option key={option.value} value={option.value}>{option.label}</option>
+                      ))}
+                    </select>
+                    <input
+                      type="date"
+                      value={editingEmployee.has_undertaking_been_taken_on_21_12_2021_date || ''}
+                      onChange={(e) => setEditingEmployee({ ...editingEmployee, has_undertaking_been_taken_on_21_12_2021_date: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    <textarea
+                      value={editingEmployee.has_undertaking_been_taken_on_21_12_2021_comment || ''}
+                      onChange={(e) => setEditingEmployee({ ...editingEmployee, has_undertaking_been_taken_on_21_12_2021_comment: e.target.value })}
+                      placeholder="Comment"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      rows={2}
+                    />
+                  </div>
+
+                  {/* No Objection Certificate */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">{t('retirementTracker.noObjectionCertificate')}</label>
+                    <select
+                      value={editingEmployee.no_objection_no_inquiry_certificate || ''}
+                      onChange={(e) => setEditingEmployee({ ...editingEmployee, no_objection_no_inquiry_certificate: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="">{t('retirementTracker.selectStatus')}</option>
+                      {getVerificationOptions().map(option => (
+                        <option key={option.value} value={option.value}>{option.label}</option>
+                      ))}
+                    </select>
+                    <input
+                      type="date"
+                      value={editingEmployee.no_objection_no_inquiry_certificate_date || ''}
+                      onChange={(e) => setEditingEmployee({ ...editingEmployee, no_objection_no_inquiry_certificate_date: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    <textarea
+                      value={editingEmployee.no_objection_no_inquiry_certificate_comment || ''}
+                      onChange={(e) => setEditingEmployee({ ...editingEmployee, no_objection_no_inquiry_certificate_comment: e.target.value })}
+                      placeholder="Comment"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      rows={2}
+                    />
+                  </div>
+
+                  {/* Retirement Order */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">{t('retirementTracker.retirementOrder')}</label>
+                    <select
+                      value={editingEmployee.retirement_order || ''}
+                      onChange={(e) => setEditingEmployee({ ...editingEmployee, retirement_order: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="">{t('retirementTracker.selectStatus')}</option>
+                      {getVerificationOptions().map(option => (
+                        <option key={option.value} value={option.value}>{option.label}</option>
+                      ))}
+                    </select>
+                    <input
+                      type="date"
+                      value={editingEmployee.retirement_order_date || ''}
+                      onChange={(e) => setEditingEmployee({ ...editingEmployee, retirement_order_date: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    <textarea
+                      value={editingEmployee.retirement_order_comment || ''}
+                      onChange={(e) => setEditingEmployee({ ...editingEmployee, retirement_order_comment: e.target.value })}
+                      placeholder="Comment"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      rows={2}
+                    />
+                  </div>
+
+                  {/* Birth Certificate Submitted */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">{t('retirementTracker.birthCertificateSubmitted')}</label>
+                    <select
+                      value={editingEmployee.birth_certificate_doc_submitted || ''}
+                      onChange={(e) => setEditingEmployee({ ...editingEmployee, birth_certificate_doc_submitted: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="">{t('retirementTracker.selectStatus')}</option>
+                      {getVerificationOptions().map(option => (
+                        <option key={option.value} value={option.value}>{option.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                
+                {/* Overall Comment */}
+                <div className="mt-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('retirementTracker.overallComment')}</label>
+                  <textarea
+                    value={editingEmployee.overall_comment || ''}
+                    onChange={(e) => setEditingEmployee({ ...editingEmployee, overall_comment: e.target.value })}
+                    placeholder={t('retirementTracker.enterOverallComment')}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    rows={4}
+                  />
                 </div>
               </div>
             </div>
