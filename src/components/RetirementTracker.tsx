@@ -1329,6 +1329,10 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
           
           {activeMainTab === 'groupInsurance' && (
             <GroupInsurance user={user} />
+          {activeMainTab === 'groupInsurance' && (
+            <div className="space-y-6">
+              <GroupInsurance user={user} />
+            </div>
           )}
         </div>
       </div>
