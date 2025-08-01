@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { PayCommission } from './PayCommission';
 import { 
   Users,
   Calendar,
@@ -649,6 +650,17 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
             </div>
 
             {/* Tabs */}
+          {activeTab === 'payCommission' && (
+            <PayCommission user={user} />
+          )}
+
+          {activeTab === 'groupInsurance' && (
+            <div className="text-center py-12">
+              <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('retirementTracker.groupInsurance')}</h3>
+              <p className="text-gray-600">Group Insurance features coming soon...</p>
+            </div>
+          )}
             <div className="mt-4 border-b border-gray-200">
               <nav className="flex space-x-8">
                 <button
