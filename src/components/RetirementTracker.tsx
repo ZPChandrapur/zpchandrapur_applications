@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PayCommission } from './PayCommission';
 import { GroupInsurance } from './GroupInsurance';
+import { GroupInsurance } from './GroupInsurance';
 import { 
   Users,
   Calendar,
@@ -1326,6 +1327,10 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
               </button>
             </div>
           </div>
+          
+          {activeMainTab === 'groupInsurance' && (
+            <GroupInsurance user={user} />
+          )}
         </div>
       </div>
 
