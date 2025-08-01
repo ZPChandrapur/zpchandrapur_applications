@@ -194,7 +194,7 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
 
   const fetchSavedTemplates = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await ermsClient
         .from('report_templates')
         .select('*')
         .eq('user_id', user.id)
@@ -215,26 +215,36 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
 
     setIsLoading(true);
     try {
-      let query = ermsClient.from(selectedTables[0]).select(selectedColumns.join(', '));
+      // Remove table prefixes from column names for the select query
+      const cleanColumns = selectedColumns.map(col => {
+        const parts = col.split('.');
+        return parts.length > 1 ? parts[1] : col;
+      });
+      
+      let query = ermsClient.from(selectedTables[0]).select(cleanColumns.join(', '));
       
       // Apply filters if any
       filters.forEach(filter => {
         if (filter.column && filter.operator && filter.value) {
+          // Clean the filter column name too
+          const cleanFilterColumn = filter.column.includes('.') ? 
+            filter.column.split('.')[1] : filter.column;
+          
           switch (filter.operator) {
             case 'eq':
-              query = query.eq(filter.column, filter.value);
+              query = query.eq(cleanFilterColumn, filter.value);
               break;
             case 'neq':
-              query = query.neq(filter.column, filter.value);
+              query = query.neq(cleanFilterColumn, filter.value);
               break;
             case 'gt':
-              query = query.gt(filter.column, filter.value);
+              query = query.gt(cleanFilterColumn, filter.value);
               break;
             case 'lt':
-              query = query.lt(filter.column, filter.value);
+              query = query.lt(cleanFilterColumn, filter.value);
               break;
             case 'like':
-              query = query.ilike(filter.column, `%${filter.value}%`);
+              query = query.ilike(cleanFilterColumn, `%${filter.value}%`);
               break;
           }
         }
@@ -245,7 +255,7 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
       if (error) throw error;
       
       setReportData(data || []);
-      setReportColumns(selectedColumns);
+      setReportColumns(cleanColumns);
       setActiveTab('results');
     } catch (error) {
       console.error('Error executing report:', error);
@@ -263,7 +273,7 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
 
     setIsLoading(true);
     try {
-      const { error } = await supabase
+      const { error } = await ermsClient
         .from('report_templates')
         .insert({
           name: reportName,
