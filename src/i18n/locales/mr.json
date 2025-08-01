@@ -401,12 +401,7 @@
     "selectStatus": "स्थिती निवडा",
     "overallComment": "एकूण टिप्पणी",
     "enterOverallComment": "एकूण टिप्पणी टाका",
-    "showingPage": "{{total}} पैकी {{start}}-{{end}} दाखवत आहे",
-    "fourthPayCommission": "चौथा वेतन आयोग",
-    "fifthPayCommission": "पाचवा वेतन आयोग",
-    "sixthPayCommission": "सहावा वेतन आयोग",
-    "seventhPayCommission": "सातवा वेतन आयोग",
-    "editPayCommissionDetails": "वेतन आयोग तपशील संपादित करा"
+    "showingPage": "{{total}} पैकी {{start}}-{{end}} दाखवत आहे"
   },
   "errors": {
     "somethingWentWrong": "काहीतरी चूक झाली",
