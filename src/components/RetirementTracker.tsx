@@ -1299,8 +1299,7 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
     setSearchTerm('');
     setSelectedClerk('');
     setSelectedDepartment('');
-    // Default fallback
-    return <RetirementProgress user={user} />;
+    setSelectedStatus('');
   };
 
   return (
@@ -1365,6 +1364,15 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
               }`}
             >
               <div className="flex items-center space-x-2">
+                <FileText className="h-4 w-4" />
+                <span>{t('retirementTracker.groupInsurance')}</span>
+              </div>
+            </button>
+          </nav>
+        </div>
+
+        {/* Tab Content */}
+        {renderMainTabContent()}
       </div>
     </div>
   );
