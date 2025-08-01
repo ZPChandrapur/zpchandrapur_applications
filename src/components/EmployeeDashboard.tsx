@@ -17,6 +17,12 @@ import {
 } from 'lucide-react';
 import { ermsClient } from '../lib/supabase';
 
+interface ClerkData {
+  user_id: string;
+  name: string;
+  role_name: string;
+}
+
 interface EmployeeDashboardProps {
   onBack: () => void;
 }
@@ -58,6 +64,7 @@ interface OfficeLocation {
 interface Clerk {
   user_id: string;
   name: string;
+  role_name: string;
 }
 
 export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) => {
@@ -76,7 +83,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
   const [designations, setDesignations] = useState<Designation[]>([]);
   const [talukas, setTalukas] = useState<Taluka[]>([]);
   const [officeLocations, setOfficeLocations] = useState<OfficeLocation[]>([]);
-  const [clerks, setClerks] = useState<Clerk[]>([]);
+  const [clerks, setClerks] = useState<ClerkData[]>([]);
 
   // Form state for new/edit employee
   const [newEmployee, setNewEmployee] = useState<Employee>({
@@ -185,12 +192,24 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
 
   const fetchClerks = async () => {
     try {
-      // Mock data for clerks - replace with actual query when available
-      setClerks([
-        { user_id: '1', name: 'Clerk 1' },
-        { user_id: '2', name: 'Clerk 2' },
-        { user_id: '3', name: 'Clerk 3' }
-      ]);
+      const { data, error } = await ermsClient
+        .from('user_roles')
+        .select(`
+          user_id,
+          name,
+          roles!inner(name)
+        `)
+        .not('name', 'is', null);
+      
+      if (error) throw error;
+      
+      const clerksData = data?.map(clerk => ({
+        user_id: clerk.user_id,
+        name: clerk.name,
+        role_name: clerk.roles?.name || 'Unknown'
+      })) || [];
+      
+      setClerks(clerksData);
     } catch (error) {
       console.error('Error fetching clerks:', error);
     }
@@ -341,7 +360,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     const departmentCounts = departments.map(dept => {
       const count = employees.filter(emp => emp.dept_id === dept.dept_id).length;
       return {
-        name: translateDepartmentName(dept.department),
+        name: dept.department, // Keep original Marathi names
         count,
         percentage: employees.length > 0 ? Math.round((count / employees.length) * 100) : 0,
         color: `hsl(${Math.random() * 360}, 70%, 50%)`
@@ -352,15 +371,25 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
   };
 
   const getClerkWiseData = () => {
-    const clerkCounts = clerks.map(clerk => {
+    // Add "Unassigned" as a special case
+    const unassignedCount = employees.filter(emp => !emp.assigned_clerk || emp.assigned_clerk === '').length;
+    
+    const clerkCounts = [
+      {
+        name: 'अनियुक्त', // Unassigned in Marathi
+        count: unassignedCount,
+        percentage: employees.length > 0 ? Math.round((unassignedCount / employees.length) * 100) : 0,
+        color: '#ef4444' // Red color for unassigned
+      },
+      ...clerks.map(clerk => {
       const count = employees.filter(emp => emp.assigned_clerk === clerk.user_id).length;
       return {
-        name: clerk.name,
+        name: `${clerk.name} (${clerk.role_name})`,
         count,
         percentage: employees.length > 0 ? Math.round((count / employees.length) * 100) : 0,
         color: `hsl(${Math.random() * 360}, 70%, 50%)`
       };
-    }).filter(item => item.count > 0).sort((a, b) => b.count - a.count);
+    })].filter(item => item.count > 0).sort((a, b) => b.count - a.count);
 
     return clerkCounts.slice(0, 10); // Top 10
   };
@@ -625,7 +654,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                 <option value="">{t('erms.allDepartments')}</option>
                 {departments.map(dept => (
                   <option key={dept.dept_id} value={dept.dept_id}>
-                    {translateDepartmentName(dept.department)}
+                    {dept.department}
                   </option>
                 ))}
               </select>
@@ -636,8 +665,11 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                 className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="">{t('erms.allClerks')}</option>
+                <option value="unassigned">अनियुक्त (Unassigned)</option>
                 {clerks.map(clerk => (
-                  <option key={clerk.user_id} value={clerk.user_id}>{clerk.name}</option>
+                  <option key={clerk.user_id} value={clerk.user_id}>
+                    {clerk.name} ({clerk.role_name})
+                  </option>
                 ))}
               </select>
 
@@ -697,13 +729,16 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                         {employee.employee_name}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {translateDepartmentName(departments.find(d => d.dept_id === employee.dept_id)?.department || '')}
+                        {departments.find(d => d.dept_id === employee.dept_id)?.department || ''}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {employee.retirement_date ? new Date(employee.retirement_date).toLocaleDateString() : '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {clerks.find(c => c.user_id === employee.assigned_clerk)?.name || t('erms.unassigned')}
+                        {employee.assigned_clerk ? 
+                          clerks.find(c => c.user_id === employee.assigned_clerk)?.name || t('erms.unassigned') 
+                          : t('erms.unassigned')
+                        }
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex items-center space-x-2">
@@ -796,7 +831,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     <option value="">{t('erms.selectDepartment')}</option>
                     {departments.map(dept => (
                       <option key={dept.dept_id} value={dept.dept_id}>
-                        {translateDepartmentName(dept.department)}
+                        {dept.department}
                       </option>
                     ))}
                   </select>
@@ -842,8 +877,11 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="">{t('erms.selectClerk')}</option>
+                    <option value="">अनियुक्त (Unassigned)</option>
                     {clerks.map(clerk => (
-                      <option key={clerk.user_id} value={clerk.user_id}>{clerk.name}</option>
+                      <option key={clerk.user_id} value={clerk.user_id}>
+                        {clerk.name} ({clerk.role_name})
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -962,7 +1000,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     <option value="">{t('erms.selectDepartment')}</option>
                     {departments.map(dept => (
                       <option key={dept.dept_id} value={dept.dept_id}>
-                        {translateDepartmentName(dept.department)}
+                        {dept.department}
                       </option>
                     ))}
                   </select>
@@ -1008,8 +1046,11 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="">{t('erms.selectClerk')}</option>
+                    <option value="">अनियुक्त (Unassigned)</option>
                     {clerks.map(clerk => (
-                      <option key={clerk.user_id} value={clerk.user_id}>{clerk.name}</option>
+                      <option key={clerk.user_id} value={clerk.user_id}>
+                        {clerk.name} ({clerk.role_name})
+                      </option>
                     ))}
                   </select>
                 </div>
