@@ -902,18 +902,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     <option value="स्वेच्छा सेवा निवृत्ती">स्वेच्छा सेवा निवृत्ती</option>
                   </select>
                 </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Date of Assignment
-                  </label>
-                  <input
-                    type="date"
-                    value={newEmployee.date_of_assignment}
-                    onChange={(e) => setNewEmployee({ ...newEmployee, date_of_assignment: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
               </div>
             </div>
             
@@ -1070,18 +1058,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     <option value="मृत्यू झाल्याने">मृत्यू झाल्याने</option>
                     <option value="स्वेच्छा सेवा निवृत्ती">स्वेच्छा सेवा निवृत्ती</option>
                   </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Date of Assignment
-                  </label>
-                  <input
-                    type="date"
-                    value={newEmployee.date_of_assignment}
-                    onChange={(e) => setNewEmployee({ ...newEmployee, date_of_assignment: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
                 </div>
               </div>
             </div>
