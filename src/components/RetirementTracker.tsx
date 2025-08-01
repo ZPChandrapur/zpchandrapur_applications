@@ -127,7 +127,6 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
   const [editingEmployee, setEditingEmployee] = useState<RetirementProgress | null>(null);
   const [showEditPayCommissionModal, setShowEditPayCommissionModal] = useState(false);
   const [editingPayCommission, setEditingPayCommission] = useState<EditingPayCommission | null>(null);
-  const [showEditPayCommissionModal, setShowEditPayCommissionModal] = useState(false);
   const [activeTab, setActiveTab] = useState<'retirementProgress' | 'payCommission' | 'groupInsurance'>('retirementProgress');
   const [progressTab, setProgressTab] = useState<'inProgress' | 'pending' | 'completed'>('inProgress');
   const [payCommissionStatusTab, setPayCommissionStatusTab] = useState<'inProgress' | 'pending' | 'completed'>('inProgress');
