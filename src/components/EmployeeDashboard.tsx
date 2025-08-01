@@ -30,13 +30,13 @@ interface EmployeeDashboardProps {
 interface Employee {
   emp_id: string;
   employee_name: string;
-  date_of_birth: string;
+  date_of_birth: string | null;
   dept_id: string;
   office_id: string;
-  retirement_date: string;
+  retirement_date: string | null;
   reason: string;
   assigned_clerk: string;
-  date_of_assignment: string;
+  date_of_assignment: string | null;
   created_at?: string;
   updated_at?: string;
 }
@@ -229,9 +229,17 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
 
     setIsLoading(true);
     try {
+      // Transform empty strings to null for date fields
+      const employeeData = {
+        ...newEmployee,
+        date_of_birth: newEmployee.date_of_birth === '' ? null : newEmployee.date_of_birth,
+        retirement_date: newEmployee.retirement_date === '' ? null : newEmployee.retirement_date,
+        date_of_assignment: newEmployee.date_of_assignment === '' ? null : newEmployee.date_of_assignment
+      };
+
       const { error } = await ermsClient
         .from('employee')
-        .insert([newEmployee]);
+        .insert([employeeData]);
 
       if (error) throw error;
       
@@ -269,9 +277,17 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
 
     setIsLoading(true);
     try {
+      // Transform empty strings to null for date fields
+      const employeeData = {
+        ...newEmployee,
+        date_of_birth: newEmployee.date_of_birth === '' ? null : newEmployee.date_of_birth,
+        retirement_date: newEmployee.retirement_date === '' ? null : newEmployee.retirement_date,
+        date_of_assignment: newEmployee.date_of_assignment === '' ? null : newEmployee.date_of_assignment
+      };
+
       const { error } = await ermsClient
         .from('employee')
-        .update(newEmployee)
+        .update(employeeData)
         .eq('emp_id', newEmployee.emp_id);
 
       if (error) throw error;
