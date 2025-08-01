@@ -322,6 +322,7 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
   const getProgressStatus = (employee: RetirementProgress) => {
     const progressFields = [
       employee.date_of_birth_verification,
+      employee.birth_certificate_doc_submitted,
       employee.medical_certificate,
       employee.nomination,
       employee.permanent_registration,
@@ -331,11 +332,12 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
       employee.verification_completed,
       employee.has_undertaking_been_taken_on_21_12_2021,
       employee.no_objection_no_inquiry_certificate,
-      employee.retirement_order,
-      employee.birth_certificate_doc_submitted
+      employee.retirement_order
     ];
 
-    const filledFields = progressFields.filter(field => field && field.trim() !== '').length;
+    const filledFields = progressFields.filter(field => 
+      field && field.trim() !== '' && field !== 'नाही (Not Available)'
+    ).length;
     const totalFields = progressFields.length;
 
     if (filledFields === 0) return 'pending';
@@ -423,9 +425,31 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
   };
 
   const getStatusIcon = (status: string | null) => {
-    if (!status || status === 'pending') return <AlertCircle className="h-4 w-4 text-red-500" />;
-    if (status === 'completed') return <CheckCircle className="h-4 w-4 text-green-500" />;
-    return <Clock className="h-4 w-4 text-orange-500" />;
+    if (!status || status.trim() === '') {
+      return <span className="text-gray-400 text-lg">○</span>;
+    }
+    
+    if (status === 'आहे (Available)' || status === 'होय (Yes)' || status === 'पूर्ण (Complete)') {
+      return <span className="text-green-600 text-lg">✓</span>;
+    }
+    
+    if (status === 'नाही (Not Available)') {
+      return <span className="text-red-600 text-lg">✗</span>;
+    }
+    
+    if (status === 'लागू नाही (Not Applicable)') {
+      return <span className="text-blue-600 text-lg">△</span>;
+    }
+    
+    if (status === 'सुट आहे (Exempted)') {
+      return <span className="text-purple-600 text-lg">◊</span>;
+    }
+    
+    if (status === 'इतर (Other)') {
+      return <span className="text-orange-600 text-lg">◈</span>;
+    }
+    
+    return <span className="text-orange-500 text-lg">◐</span>;
   };
 
   const getFieldIcon = (field: string | null) => {
@@ -727,6 +751,7 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.employee')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.status')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.dateOfBirthVerification')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.birthDocumentSubmitted')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.medicalCertificate')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.nomination')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.permanentRegistration')}</th>
@@ -737,7 +762,6 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.undertakingTaken')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.noObjectionCertificate')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.retirementOrder')}</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.birthCertificateSubmitted')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.actions')}</th>
                 </tr>
               </thead>
@@ -771,40 +795,40 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-center">
-                          {getFieldIcon(employee.date_of_birth_verification)}
+                          {getStatusIcon(employee.date_of_birth_verification)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-center">
-                          {getFieldIcon(employee.medical_certificate)}
+                          {getStatusIcon(employee.birth_certificate_doc_submitted)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-center">
-                          {getFieldIcon(employee.nomination)}
+                          {getStatusIcon(employee.medical_certificate)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-center">
-                          {getFieldIcon(employee.permanent_registration)}
+                          {getStatusIcon(employee.nomination)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-center">
-                          {getFieldIcon(employee.computer_exam_passed)}
+                          {getStatusIcon(employee.permanent_registration)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-center">
-                          {getFieldIcon(employee.marathi_hindi_exam_exemption)}
+                          {getStatusIcon(employee.computer_exam_passed)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-center">
-                          {getFieldIcon(employee.post_service_exam)}
+                          {getStatusIcon(employee.marathi_hindi_exam_exemption)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-center">
-                          {getFieldIcon(employee.verification_completed)}
+                          {getStatusIcon(employee.post_service_exam)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-center">
-                          {getFieldIcon(employee.has_undertaking_been_taken_on_21_12_2021)}
+                          {getStatusIcon(employee.verification_completed)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-center">
-                          {getFieldIcon(employee.no_objection_no_inquiry_certificate)}
+                          {getStatusIcon(employee.has_undertaking_been_taken_on_21_12_2021)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-center">
-                          {getFieldIcon(employee.retirement_order)}
+                          {getStatusIcon(employee.no_objection_no_inquiry_certificate)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-center">
-                          {getFieldIcon(employee.birth_certificate_doc_submitted)}
+                          {getStatusIcon(employee.retirement_order)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           <div className="flex items-center space-x-2">
@@ -929,327 +953,351 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
                 <h4 className="text-md font-semibold text-gray-800">{t('retirementTracker.progressFields')}</h4>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Date of Birth Verification */}
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">{t('retirementTracker.dateOfBirthVerification')}</label>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('retirementTracker.dateOfBirthVerification')}</label>
                     <select
                       value={editingEmployee.date_of_birth_verification || ''}
                       onChange={(e) => setEditingEmployee({ ...editingEmployee, date_of_birth_verification: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
                     >
                       <option value="">{t('retirementTracker.selectStatus')}</option>
-                      {getVerificationOptions().map(option => (
-                        <option key={option.value} value={option.value}>{option.label}</option>
-                      ))}
+                      <option value="आहे (Available)">आहे (Available)</option>
+                      <option value="नाही (Not Available)">नाही (Not Available)</option>
+                      <option value="लागू नाही (Not Applicable)">लागू नाही (Not Applicable)</option>
+                      <option value="सुट आहे (Exempted)">सुट आहे (Exempted)</option>
+                      <option value="इतर (Other)">इतर (Other)</option>
                     </select>
                     <input
                       type="date"
                       value={editingEmployee.date_of_birth_verification_date || ''}
                       onChange={(e) => setEditingEmployee({ ...editingEmployee, date_of_birth_verification_date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
                     />
                     <textarea
                       value={editingEmployee.date_of_birth_verification_comment || ''}
                       onChange={(e) => setEditingEmployee({ ...editingEmployee, date_of_birth_verification_comment: e.target.value })}
-                      placeholder="Comment"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       rows={2}
+                      placeholder={t('common.comment')}
                     />
                   </div>
-
-                  {/* Medical Certificate */}
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">{t('retirementTracker.medicalCertificate')}</label>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('retirementTracker.birthDocumentSubmitted')}</label>
+                    <select
+                      value={editingEmployee.birth_certificate_doc_submitted || ''}
+                      onChange={(e) => setEditingEmployee({ ...editingEmployee, birth_certificate_doc_submitted: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
+                    >
+                      <option value="">{t('retirementTracker.selectStatus')}</option>
+                      <option value="होय (Yes)">होय (Yes)</option>
+                      <option value="नाही (No)">नाही (No)</option>
+                      <option value="प्रलंबित (Pending)">प्रलंबित (Pending)</option>
+                      <option value="इतर (Other)">इतर (Other)</option>
+                    </select>
+                    <input
+                      type="date"
+                      value={editingEmployee.birth_certificate_doc_submitted_date || ''}
+                      onChange={(e) => setEditingEmployee({ ...editingEmployee, birth_certificate_doc_submitted_date: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
+                    />
+                    <textarea
+                      value={editingEmployee.birth_certificate_doc_submitted_comment || ''}
+                      onChange={(e) => setEditingEmployee({ ...editingEmployee, birth_certificate_doc_submitted_comment: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      rows={2}
+                      placeholder={t('common.comment')}
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('retirementTracker.medicalCertificate')}</label>
                     <select
                       value={editingEmployee.medical_certificate || ''}
                       onChange={(e) => setEditingEmployee({ ...editingEmployee, medical_certificate: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
                     >
                       <option value="">{t('retirementTracker.selectStatus')}</option>
-                      {getVerificationOptions().map(option => (
-                        <option key={option.value} value={option.value}>{option.label}</option>
-                      ))}
+                      <option value="आहे (Available)">आहे (Available)</option>
+                      <option value="नाही (Not Available)">नाही (Not Available)</option>
+                      <option value="लागू नाही (Not Applicable)">लागू नाही (Not Applicable)</option>
+                      <option value="सुट आहे (Exempted)">सुट आहे (Exempted)</option>
+                      <option value="इतर (Other)">इतर (Other)</option>
                     </select>
                     <input
                       type="date"
                       value={editingEmployee.medical_certificate_date || ''}
                       onChange={(e) => setEditingEmployee({ ...editingEmployee, medical_certificate_date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
                     />
                     <textarea
                       value={editingEmployee.medical_certificate_comment || ''}
                       onChange={(e) => setEditingEmployee({ ...editingEmployee, medical_certificate_comment: e.target.value })}
-                      placeholder="Comment"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       rows={2}
+                      placeholder={t('common.comment')}
                     />
                   </div>
-
-                  {/* Nomination */}
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">{t('retirementTracker.nomination')}</label>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('retirementTracker.nomination')}</label>
                     <select
                       value={editingEmployee.nomination || ''}
                       onChange={(e) => setEditingEmployee({ ...editingEmployee, nomination: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
                     >
                       <option value="">{t('retirementTracker.selectStatus')}</option>
-                      {getVerificationOptions().map(option => (
-                        <option key={option.value} value={option.value}>{option.label}</option>
-                      ))}
+                      <option value="आहे (Available)">आहे (Available)</option>
+                      <option value="नाही (Not Available)">नाही (Not Available)</option>
+                      <option value="लागू नाही (Not Applicable)">लागू नाही (Not Applicable)</option>
+                      <option value="सुट आहे (Exempted)">सुट आहे (Exempted)</option>
+                      <option value="इतर (Other)">इतर (Other)</option>
                     </select>
                     <input
                       type="date"
                       value={editingEmployee.nomination_date || ''}
                       onChange={(e) => setEditingEmployee({ ...editingEmployee, nomination_date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
                     />
                     <textarea
                       value={editingEmployee.nomination_comment || ''}
                       onChange={(e) => setEditingEmployee({ ...editingEmployee, nomination_comment: e.target.value })}
-                      placeholder="Comment"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       rows={2}
+                      placeholder={t('common.comment')}
                     />
                   </div>
-
-                  {/* Permanent Registration */}
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">{t('retirementTracker.permanentRegistration')}</label>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('retirementTracker.permanentRegistration')}</label>
                     <select
                       value={editingEmployee.permanent_registration || ''}
                       onChange={(e) => setEditingEmployee({ ...editingEmployee, permanent_registration: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
                     >
                       <option value="">{t('retirementTracker.selectStatus')}</option>
-                      {getVerificationOptions().map(option => (
-                        <option key={option.value} value={option.value}>{option.label}</option>
-                      ))}
+                      <option value="आहे (Available)">आहे (Available)</option>
+                      <option value="नाही (Not Available)">नाही (Not Available)</option>
+                      <option value="लागू नाही (Not Applicable)">लागू नाही (Not Applicable)</option>
+                      <option value="सुट आहे (Exempted)">सुट आहे (Exempted)</option>
+                      <option value="इतर (Other)">इतर (Other)</option>
                     </select>
                     <input
                       type="date"
                       value={editingEmployee.permanent_registration_date || ''}
                       onChange={(e) => setEditingEmployee({ ...editingEmployee, permanent_registration_date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
                     />
                     <textarea
                       value={editingEmployee.permanent_registration_comment || ''}
                       onChange={(e) => setEditingEmployee({ ...editingEmployee, permanent_registration_comment: e.target.value })}
-                      placeholder="Comment"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       rows={2}
+                      placeholder={t('common.comment')}
                     />
                   </div>
-
-                  {/* Computer Exam Passed */}
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">{t('retirementTracker.computerExamPassed')}</label>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('retirementTracker.computerExamPassed')}</label>
                     <select
                       value={editingEmployee.computer_exam_passed || ''}
                       onChange={(e) => setEditingEmployee({ ...editingEmployee, computer_exam_passed: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
                     >
                       <option value="">{t('retirementTracker.selectStatus')}</option>
-                      {getVerificationOptions().map(option => (
-                        <option key={option.value} value={option.value}>{option.label}</option>
-                      ))}
+                      <option value="आहे (Available)">आहे (Available)</option>
+                      <option value="नाही (Not Available)">नाही (Not Available)</option>
+                      <option value="लागू नाही (Not Applicable)">लागू नाही (Not Applicable)</option>
+                      <option value="सुट आहे (Exempted)">सुट आहे (Exempted)</option>
+                      <option value="इतर (Other)">इतर (Other)</option>
                     </select>
                     <input
                       type="date"
                       value={editingEmployee.computer_exam_passed_date || ''}
                       onChange={(e) => setEditingEmployee({ ...editingEmployee, computer_exam_passed_date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
                     />
                     <textarea
                       value={editingEmployee.computer_exam_passed_comment || ''}
                       onChange={(e) => setEditingEmployee({ ...editingEmployee, computer_exam_passed_comment: e.target.value })}
-                      placeholder="Comment"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       rows={2}
+                      placeholder={t('common.comment')}
                     />
                   </div>
-
-                  {/* Marathi Hindi Exam Exemption */}
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">{t('retirementTracker.marathiHindiExamExemption')}</label>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('retirementTracker.marathiHindiExamExemption')}</label>
                     <select
                       value={editingEmployee.marathi_hindi_exam_exemption || ''}
                       onChange={(e) => setEditingEmployee({ ...editingEmployee, marathi_hindi_exam_exemption: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
                     >
                       <option value="">{t('retirementTracker.selectStatus')}</option>
-                      {getVerificationOptions().map(option => (
-                        <option key={option.value} value={option.value}>{option.label}</option>
-                      ))}
+                      <option value="आहे (Available)">आहे (Available)</option>
+                      <option value="नाही (Not Available)">नाही (Not Available)</option>
+                      <option value="लागू नाही (Not Applicable)">लागू नाही (Not Applicable)</option>
+                      <option value="सुट आहे (Exempted)">सुट आहे (Exempted)</option>
+                      <option value="इतर (Other)">इतर (Other)</option>
                     </select>
                     <input
                       type="date"
                       value={editingEmployee.marathi_hindi_exam_exemption_date || ''}
                       onChange={(e) => setEditingEmployee({ ...editingEmployee, marathi_hindi_exam_exemption_date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
                     />
                     <textarea
                       value={editingEmployee.marathi_hindi_exam_exemption_comment || ''}
                       onChange={(e) => setEditingEmployee({ ...editingEmployee, marathi_hindi_exam_exemption_comment: e.target.value })}
-                      placeholder="Comment"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       rows={2}
+                      placeholder={t('common.comment')}
                     />
                   </div>
-
-                  {/* Post Service Exam */}
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">{t('retirementTracker.postServiceExam')}</label>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('retirementTracker.postServiceExam')}</label>
                     <select
                       value={editingEmployee.post_service_exam || ''}
                       onChange={(e) => setEditingEmployee({ ...editingEmployee, post_service_exam: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
                     >
                       <option value="">{t('retirementTracker.selectStatus')}</option>
-                      {getVerificationOptions().map(option => (
-                        <option key={option.value} value={option.value}>{option.label}</option>
-                      ))}
+                      <option value="आहे (Available)">आहे (Available)</option>
+                      <option value="नाही (Not Available)">नाही (Not Available)</option>
+                      <option value="लागू नाही (Not Applicable)">लागू नाही (Not Applicable)</option>
+                      <option value="सुट आहे (Exempted)">सुट आहे (Exempted)</option>
+                      <option value="इतर (Other)">इतर (Other)</option>
                     </select>
                     <input
                       type="date"
                       value={editingEmployee.post_service_exam_date || ''}
                       onChange={(e) => setEditingEmployee({ ...editingEmployee, post_service_exam_date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
                     />
                     <textarea
                       value={editingEmployee.post_service_exam_comment || ''}
                       onChange={(e) => setEditingEmployee({ ...editingEmployee, post_service_exam_comment: e.target.value })}
-                      placeholder="Comment"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       rows={2}
+                      placeholder={t('common.comment')}
                     />
                   </div>
-
-                  {/* Verification Completed */}
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">{t('retirementTracker.verificationCompleted')}</label>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('retirementTracker.verificationCompleted')}</label>
                     <select
                       value={editingEmployee.verification_completed || ''}
                       onChange={(e) => setEditingEmployee({ ...editingEmployee, verification_completed: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
                     >
                       <option value="">{t('retirementTracker.selectStatus')}</option>
-                      {getVerificationOptions().map(option => (
-                        <option key={option.value} value={option.value}>{option.label}</option>
-                      ))}
+                      <option value="आहे (Available)">आहे (Available)</option>
+                      <option value="नाही (Not Available)">नाही (Not Available)</option>
+                      <option value="लागू नाही (Not Applicable)">लागू नाही (Not Applicable)</option>
+                      <option value="सुट आहे (Exempted)">सुट आहे (Exempted)</option>
+                      <option value="इतर (Other)">इतर (Other)</option>
                     </select>
                     <input
                       type="date"
                       value={editingEmployee.verification_completed_date || ''}
                       onChange={(e) => setEditingEmployee({ ...editingEmployee, verification_completed_date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
                     />
                     <textarea
                       value={editingEmployee.verification_completed_comment || ''}
                       onChange={(e) => setEditingEmployee({ ...editingEmployee, verification_completed_comment: e.target.value })}
-                      placeholder="Comment"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       rows={2}
+                      placeholder={t('common.comment')}
                     />
                   </div>
-
-                  {/* Undertaking Taken */}
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">{t('retirementTracker.undertakingTaken')}</label>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('retirementTracker.undertakingTaken')}</label>
                     <select
                       value={editingEmployee.has_undertaking_been_taken_on_21_12_2021 || ''}
                       onChange={(e) => setEditingEmployee({ ...editingEmployee, has_undertaking_been_taken_on_21_12_2021: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
                     >
                       <option value="">{t('retirementTracker.selectStatus')}</option>
-                      {getVerificationOptions().map(option => (
-                        <option key={option.value} value={option.value}>{option.label}</option>
-                      ))}
+                      <option value="आहे (Available)">आहे (Available)</option>
+                      <option value="नाही (Not Available)">नाही (Not Available)</option>
+                      <option value="लागू नाही (Not Applicable)">लागू नाही (Not Applicable)</option>
+                      <option value="सुट आहे (Exempted)">सुट आहे (Exempted)</option>
+                      <option value="इतर (Other)">इतर (Other)</option>
                     </select>
                     <input
                       type="date"
                       value={editingEmployee.has_undertaking_been_taken_on_21_12_2021_date || ''}
                       onChange={(e) => setEditingEmployee({ ...editingEmployee, has_undertaking_been_taken_on_21_12_2021_date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
                     />
                     <textarea
                       value={editingEmployee.has_undertaking_been_taken_on_21_12_2021_comment || ''}
                       onChange={(e) => setEditingEmployee({ ...editingEmployee, has_undertaking_been_taken_on_21_12_2021_comment: e.target.value })}
-                      placeholder="Comment"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       rows={2}
+                      placeholder={t('common.comment')}
                     />
                   </div>
-
-                  {/* No Objection Certificate */}
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">{t('retirementTracker.noObjectionCertificate')}</label>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('retirementTracker.noObjectionCertificate')}</label>
                     <select
                       value={editingEmployee.no_objection_no_inquiry_certificate || ''}
                       onChange={(e) => setEditingEmployee({ ...editingEmployee, no_objection_no_inquiry_certificate: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
                     >
                       <option value="">{t('retirementTracker.selectStatus')}</option>
-                      {getVerificationOptions().map(option => (
-                        <option key={option.value} value={option.value}>{option.label}</option>
-                      ))}
+                      <option value="आहे (Available)">आहे (Available)</option>
+                      <option value="नाही (Not Available)">नाही (Not Available)</option>
+                      <option value="लागू नाही (Not Applicable)">लागू नाही (Not Applicable)</option>
+                      <option value="सुट आहे (Exempted)">सुट आहे (Exempted)</option>
+                      <option value="इतर (Other)">इतर (Other)</option>
                     </select>
                     <input
                       type="date"
                       value={editingEmployee.no_objection_no_inquiry_certificate_date || ''}
                       onChange={(e) => setEditingEmployee({ ...editingEmployee, no_objection_no_inquiry_certificate_date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
                     />
                     <textarea
                       value={editingEmployee.no_objection_no_inquiry_certificate_comment || ''}
                       onChange={(e) => setEditingEmployee({ ...editingEmployee, no_objection_no_inquiry_certificate_comment: e.target.value })}
-                      placeholder="Comment"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       rows={2}
+                      placeholder={t('common.comment')}
                     />
                   </div>
-
-                  {/* Retirement Order */}
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">{t('retirementTracker.retirementOrder')}</label>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('retirementTracker.retirementOrder')}</label>
                     <select
                       value={editingEmployee.retirement_order || ''}
                       onChange={(e) => setEditingEmployee({ ...editingEmployee, retirement_order: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
                     >
                       <option value="">{t('retirementTracker.selectStatus')}</option>
-                      {getVerificationOptions().map(option => (
-                        <option key={option.value} value={option.value}>{option.label}</option>
-                      ))}
+                      <option value="आहे (Available)">आहे (Available)</option>
+                      <option value="नाही (Not Available)">नाही (Not Available)</option>
+                      <option value="लागू नाही (Not Applicable)">लागू नाही (Not Applicable)</option>
+                      <option value="सुट आहे (Exempted)">सुट आहे (Exempted)</option>
+                      <option value="इतर (Other)">इतर (Other)</option>
                     </select>
                     <input
                       type="date"
                       value={editingEmployee.retirement_order_date || ''}
                       onChange={(e) => setEditingEmployee({ ...editingEmployee, retirement_order_date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
                     />
                     <textarea
                       value={editingEmployee.retirement_order_comment || ''}
                       onChange={(e) => setEditingEmployee({ ...editingEmployee, retirement_order_comment: e.target.value })}
-                      placeholder="Comment"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       rows={2}
+                      placeholder={t('common.comment')}
                     />
-                  </div>
-
-                  {/* Birth Certificate Submitted */}
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">{t('retirementTracker.birthCertificateSubmitted')}</label>
-                    <select
-                      value={editingEmployee.birth_certificate_doc_submitted || ''}
-                      onChange={(e) => setEditingEmployee({ ...editingEmployee, birth_certificate_doc_submitted: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                      <option value="">{t('retirementTracker.selectStatus')}</option>
-                      {getVerificationOptions().map(option => (
-                        <option key={option.value} value={option.value}>{option.label}</option>
-                      ))}
-                    </select>
                   </div>
                 </div>
                 
@@ -1259,9 +1307,9 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
                   <textarea
                     value={editingEmployee.overall_comment || ''}
                     onChange={(e) => setEditingEmployee({ ...editingEmployee, overall_comment: e.target.value })}
-                    placeholder={t('retirementTracker.enterOverallComment')}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     rows={4}
+                    placeholder={t('retirementTracker.enterOverallComment')}
                   />
                 </div>
               </div>
