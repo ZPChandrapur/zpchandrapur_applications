@@ -631,12 +631,6 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
           sixth_pay_commission_date: editingPayCommission.sixth_pay_commission_date,
           seventh_pay_commission_date: editingPayCommission.seventh_pay_commission_date,
   // Pay Commission Pagination logic
-  const payCommissionTotalPages = Math.ceil(tabFilteredPayCommission.length / recordsPerPage);
-  const payCommissionStartIndex = (payCommissionCurrentPage - 1) * recordsPerPage;
-  const payCommissionEndIndex = payCommissionStartIndex + recordsPerPage;
-  const payCommissionCurrentRecords = tabFilteredPayCommission.slice(payCommissionStartIndex, payCommissionEndIndex);
-
-          overall_comment: editingPayCommission.overall_comment,
           status: newStatus
         })
         .eq('id', editingPayCommission.id);
@@ -662,6 +656,13 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
       setIsLoading(false);
     }
   };
+
+  // Pay Commission Pagination logic
+  const tabFilteredPayCommission = getTabFilteredPayCommission();
+  const payCommissionTotalPages = Math.ceil(tabFilteredPayCommission.length / recordsPerPage);
+  const payCommissionStartIndex = (payCommissionCurrentPage - 1) * recordsPerPage;
+  const payCommissionEndIndex = payCommissionStartIndex + recordsPerPage;
+  const payCommissionCurrentRecords = tabFilteredPayCommission.slice(payCommissionStartIndex, payCommissionEndIndex);
 
   const getStatusIcon = (status: string | null) => {
     if (!status || status.trim() === '') {
