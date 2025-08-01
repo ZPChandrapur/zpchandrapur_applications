@@ -14,7 +14,8 @@ import {
   Eye,
   Edit,
   BarChart3,
-  User
+  User,
+  X
 } from 'lucide-react';
 import { ermsClient, supabase } from '../lib/supabase';
 import { usePermissions } from '../hooks/usePermissions';
@@ -32,8 +33,10 @@ interface RetirementEmployee {
   date_of_birth: string | null;
   retirement_date: string | null;
   reason: string;
-  desination_time_of_retirement: string;
-  assigned_clerk_name: string;
+  desination_time_of_retirement: string | null;
+  assigned_clerk_name: string | null;
+  department: string | null;
+  designation: string | null;
   date_of_submission: string | null;
   department_submitted: string | null;
   type_of_pension: string | null;
@@ -55,6 +58,10 @@ interface ClerkData {
   role_name: string;
 }
 
+interface EditingEmployee extends RetirementEmployee {
+  // All fields are already included in RetirementEmployee
+}
+
 export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, onBack }) => {
   const { t } = useTranslation();
   const { userRole, userProfile } = usePermissions(user);
@@ -62,6 +69,8 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
   const [selectedClerk, setSelectedClerk] = useState('');
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingEmployee, setEditingEmployee] = useState<EditingEmployee | null>(null);
   
   // Data states
   const [retirementEmployees, setRetirementEmployees] = useState<RetirementEmployee[]>([]);
@@ -94,7 +103,31 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
     try {
       const { data, error } = await ermsClient
         .from('employee_retirement')
-        .select('*')
+        .select(`
+          id,
+          emp_id,
+          employee_name,
+          date_of_birth,
+          retirement_date,
+          reason,
+          desination_time_of_retirement,
+          assigned_clerk_name,
+          department,
+          designation,
+          date_of_submission,
+          department_submitted,
+          type_of_pension,
+          date_of_pension_case_approval,
+          date_of_actual_benefit_provided_for_group_insurance,
+          date_of_benefit_provided_for_gratuity,
+          date_of_actual_benefit_provided_for_leave_encashment,
+          date_of_actual_benefit_provided_for_medical_allowance_if_applic,
+          date_of_benefit_provided_for_hometown_travel_allowance_if_appli,
+          date_of_actual_benefit_provided_for_pending_travel_allowance_if,
+          government_decision_march_31_2023,
+          created_at,
+          updated_at
+        `)
         .order('retirement_date', { ascending: true });
       
       if (error) throw error;
@@ -217,7 +250,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
     const deptCounts: { [key: string]: number } = {};
     
     filteredEmployees.forEach(emp => {
-      const dept = emp.department_submitted || 'Not Assigned';
+      const dept = emp.department || 'Not Assigned';
       deptCounts[dept] = (deptCounts[dept] || 0) + 1;
     });
 
@@ -241,10 +274,67 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
       .slice(0, 10);
   };
 
+  const getDesignationWiseData = () => {
+    const designationCounts: { [key: string]: number } = {};
+    
+    filteredEmployees.forEach(emp => {
+      const designation = emp.designation || 'Not Assigned';
+      designationCounts[designation] = (designationCounts[designation] || 0) + 1;
+    });
+
+    return Object.entries(designationCounts)
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10);
+  };
+
+  const handleEditEmployee = (employee: RetirementEmployee) => {
+    setEditingEmployee(employee);
+    setShowEditModal(true);
+  };
+
+  const handleUpdateEmployee = async () => {
+    if (!editingEmployee) return;
+
+    setIsLoading(true);
+    try {
+      const { error } = await ermsClient
+        .from('employee_retirement')
+        .update({
+          desination_time_of_retirement: editingEmployee.desination_time_of_retirement,
+          assigned_clerk_name: editingEmployee.assigned_clerk_name,
+          date_of_submission: editingEmployee.date_of_submission,
+          department_submitted: editingEmployee.department_submitted,
+          type_of_pension: editingEmployee.type_of_pension,
+          date_of_pension_case_approval: editingEmployee.date_of_pension_case_approval,
+          date_of_actual_benefit_provided_for_group_insurance: editingEmployee.date_of_actual_benefit_provided_for_group_insurance,
+          date_of_benefit_provided_for_gratuity: editingEmployee.date_of_benefit_provided_for_gratuity,
+          date_of_actual_benefit_provided_for_leave_encashment: editingEmployee.date_of_actual_benefit_provided_for_leave_encashment,
+          date_of_actual_benefit_provided_for_medical_allowance_if_applic: editingEmployee.date_of_actual_benefit_provided_for_medical_allowance_if_applic,
+          date_of_benefit_provided_for_hometown_travel_allowance_if_appli: editingEmployee.date_of_benefit_provided_for_hometown_travel_allowance_if_appli,
+          date_of_actual_benefit_provided_for_pending_travel_allowance_if: editingEmployee.date_of_actual_benefit_provided_for_pending_travel_allowance_if,
+          government_decision_march_31_2023: editingEmployee.government_decision_march_31_2023
+        })
+        .eq('id', editingEmployee.id);
+
+      if (error) throw error;
+      
+      await fetchRetirementEmployees();
+      setShowEditModal(false);
+      setEditingEmployee(null);
+    } catch (error) {
+      console.error('Error updating employee:', error);
+      alert(t('common.error') + ': ' + error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const statusCounts = getStatusCounts();
   const monthWiseData = getMonthWiseData();
   const departmentWiseData = getDepartmentWiseData();
   const clerkWiseData = getClerkWiseData();
+  const designationWiseData = getDesignationWiseData();
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -382,14 +472,26 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
           
           <div className="space-y-3">
             {monthWiseData.map((item, index) => (
-              <div key={index} className="flex items-center justify-between">
+              <div key={index} className={`flex items-center justify-between ${
+                item.fullDate.getMonth() === selectedMonth && item.fullDate.getFullYear() === selectedYear 
+                  ? 'bg-blue-50 border border-blue-200 rounded-lg p-2' 
+                  : ''
+              }`}>
                 <div className="flex items-center space-x-3 w-20">
-                  <span className="text-sm font-medium text-gray-700">{item.month}</span>
+                  <span className={`text-sm font-medium ${
+                    item.fullDate.getMonth() === selectedMonth && item.fullDate.getFullYear() === selectedYear 
+                      ? 'text-blue-700 font-bold' 
+                      : 'text-gray-700'
+                  }`}>{item.month}</span>
                 </div>
                 <div className="flex-1 mx-4">
                   <div className="w-full bg-gray-200 rounded-full h-6 relative">
                     <div
-                      className="h-6 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-medium"
+                      className={`h-6 rounded-full flex items-center justify-center text-white text-xs font-medium ${
+                        item.fullDate.getMonth() === selectedMonth && item.fullDate.getFullYear() === selectedYear 
+                          ? 'bg-blue-600' 
+                          : 'bg-blue-500'
+                      }`}
                       style={{
                         width: statusCounts.total > 0 ? `${Math.max((item.count / Math.max(...monthWiseData.map(d => d.count))) * 100, 5)}%` : '0%'
                       }}
@@ -450,17 +552,24 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('erms.designationVsEmployeeCount')}</h3>
             <div className="space-y-3">
-              {filteredEmployees.slice(0, 10).map((emp, index) => (
+              {designationWiseData.map((item, index) => (
                 <div key={index} className="flex items-center justify-between">
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-medium text-gray-700 truncate">{emp.desination_time_of_retirement}</span>
-                      <span className="text-sm text-gray-500">1</span>
+                      <span className="text-sm font-medium text-gray-700 truncate">{item.name}</span>
+                      <span className="text-sm text-gray-500">{item.count}</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className="h-2 rounded-full bg-green-500" style={{ width: '100%' }} />
+                      <div
+                        className="h-2 rounded-full bg-green-500"
+                        style={{
+                          width: statusCounts.total > 0 ? `${(item.count / statusCounts.total) * 100}%` : '0%'
+                        }}
+                      />
                     </div>
-                    <div className="text-xs text-gray-500 mt-1">100%</div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      {statusCounts.total > 0 ? Math.round((item.count / statusCounts.total) * 100) : 0}%
+                    </div>
                   </div>
                 </div>
               ))}
@@ -515,6 +624,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.employee')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.department')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.designation')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.retirementDate')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.assignedClerk')}</th>
@@ -526,7 +636,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredEmployees.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
+                    <td colSpan={8} className="px-6 py-8 text-center text-gray-500">
                       {isLoading ? t('erms.loadingRetirementData') : t('erms.noRetirementRecordsFound')}
                     </td>
                   </tr>
@@ -558,7 +668,10 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {employee.desination_time_of_retirement}
+                          {employee.department || '-'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {employee.designation || employee.desination_time_of_retirement || '-'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           {employee.retirement_date ? new Date(employee.retirement_date).toLocaleDateString() : '-'}
@@ -598,7 +711,10 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
                             <button className="text-blue-600 hover:text-blue-900 p-1 rounded">
                               <Eye className="h-4 w-4" />
                             </button>
-                            <button className="text-green-600 hover:text-green-900 p-1 rounded">
+                            <button 
+                              onClick={() => handleEditEmployee(employee)}
+                              className="text-green-600 hover:text-green-900 p-1 rounded"
+                            >
                               <Edit className="h-4 w-4" />
                             </button>
                           </div>
@@ -612,6 +728,210 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
           </div>
         </div>
       </div>
+
+      {/* Edit Employee Modal */}
+      {showEditModal && editingEmployee && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">{t('erms.editRetirementDetails')}</h3>
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            
+            <div className="p-6">
+              {/* Basic Employee Info (Read-only) */}
+              <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                <h4 className="text-md font-semibold text-gray-800 mb-3">{t('erms.basicEmployeeInfo')}</h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('erms.employeeId')}</label>
+                    <input
+                      type="text"
+                      value={editingEmployee.emp_id}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('erms.employeeName')}</label>
+                    <input
+                      type="text"
+                      value={editingEmployee.employee_name}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('erms.retirementDate')}</label>
+                    <input
+                      type="text"
+                      value={editingEmployee.retirement_date ? new Date(editingEmployee.retirement_date).toLocaleDateString() : '-'}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Editable Fields */}
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.designationAtRetirement')}</label>
+                    <input
+                      type="text"
+                      value={editingEmployee.desination_time_of_retirement || ''}
+                      onChange={(e) => setEditingEmployee({ ...editingEmployee, desination_time_of_retirement: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.assignedClerk')}</label>
+                    <input
+                      type="text"
+                      value={editingEmployee.assigned_clerk_name || ''}
+                      onChange={(e) => setEditingEmployee({ ...editingEmployee, assigned_clerk_name: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.dateOfSubmission')}</label>
+                    <input
+                      type="date"
+                      value={editingEmployee.date_of_submission || ''}
+                      onChange={(e) => setEditingEmployee({ ...editingEmployee, date_of_submission: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.departmentSubmitted')}</label>
+                    <input
+                      type="text"
+                      value={editingEmployee.department_submitted || ''}
+                      onChange={(e) => setEditingEmployee({ ...editingEmployee, department_submitted: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.typeOfPension')}</label>
+                    <input
+                      type="text"
+                      value={editingEmployee.type_of_pension || ''}
+                      onChange={(e) => setEditingEmployee({ ...editingEmployee, type_of_pension: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.dateOfPensionCaseApproval')}</label>
+                    <input
+                      type="date"
+                      value={editingEmployee.date_of_pension_case_approval || ''}
+                      onChange={(e) => setEditingEmployee({ ...editingEmployee, date_of_pension_case_approval: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.groupInsuranceBenefit')}</label>
+                    <input
+                      type="date"
+                      value={editingEmployee.date_of_actual_benefit_provided_for_group_insurance || ''}
+                      onChange={(e) => setEditingEmployee({ ...editingEmployee, date_of_actual_benefit_provided_for_group_insurance: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.gratuityBenefit')}</label>
+                    <input
+                      type="date"
+                      value={editingEmployee.date_of_benefit_provided_for_gratuity || ''}
+                      onChange={(e) => setEditingEmployee({ ...editingEmployee, date_of_benefit_provided_for_gratuity: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.leaveEncashmentBenefit')}</label>
+                    <input
+                      type="date"
+                      value={editingEmployee.date_of_actual_benefit_provided_for_leave_encashment || ''}
+                      onChange={(e) => setEditingEmployee({ ...editingEmployee, date_of_actual_benefit_provided_for_leave_encashment: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.medicalAllowanceBenefit')}</label>
+                    <input
+                      type="date"
+                      value={editingEmployee.date_of_actual_benefit_provided_for_medical_allowance_if_applic || ''}
+                      onChange={(e) => setEditingEmployee({ ...editingEmployee, date_of_actual_benefit_provided_for_medical_allowance_if_applic: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.hometownTravelAllowance')}</label>
+                    <input
+                      type="date"
+                      value={editingEmployee.date_of_benefit_provided_for_hometown_travel_allowance_if_appli || ''}
+                      onChange={(e) => setEditingEmployee({ ...editingEmployee, date_of_benefit_provided_for_hometown_travel_allowance_if_appli: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.pendingTravelAllowance')}</label>
+                    <input
+                      type="date"
+                      value={editingEmployee.date_of_actual_benefit_provided_for_pending_travel_allowance_if || ''}
+                      onChange={(e) => setEditingEmployee({ ...editingEmployee, date_of_actual_benefit_provided_for_pending_travel_allowance_if: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.governmentDecisionMarch2023')}</label>
+                    <input
+                      type="text"
+                      value={editingEmployee.government_decision_march_31_2023 || ''}
+                      onChange={(e) => setEditingEmployee({ ...editingEmployee, government_decision_march_31_2023: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200">
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200"
+              >
+                {t('common.cancel')}
+              </button>
+              <button
+                onClick={handleUpdateEmployee}
+                disabled={isLoading}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 disabled:opacity-50"
+              >
+                {isLoading ? t('common.saving') : t('common.update')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
