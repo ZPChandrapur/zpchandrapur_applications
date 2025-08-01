@@ -1152,7 +1152,6 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
   const getProgressStatus = (employee: RetirementProgress) => {
     const progressFields = [
       employee.date_of_birth_verification,
-        {activeMainTab === 'groupInsurance' && (
       employee.medical_certificate,
       employee.nomination,
       employee.permanent_registration,
