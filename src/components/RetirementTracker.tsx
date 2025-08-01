@@ -35,7 +35,6 @@ interface RetirementProgress {
   age: number | null;
   assigned_clerk: string | null;
   department: string | null;
-  designation: string | null;
   status: string | null;
   birth_certificate: string | null;
   birth_doc_submitted: string | null;
@@ -113,7 +112,6 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
           age,
           assigned_clerk,
           department,
-          designation,
           status,
           birth_certificate,
           birth_doc_submitted,
@@ -288,7 +286,6 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
         .update({
           assigned_clerk: editingEmployee.assigned_clerk,
           department: editingEmployee.department,
-          designation: editingEmployee.designation,
           status: newStatus,
           birth_certificate: editingEmployee.birth_certificate,
           birth_doc_submitted: editingEmployee.birth_doc_submitted,
@@ -537,7 +534,7 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredEmployees.length === 0 ? (
                   <tr>
-                    <td colSpan={12} className="px-6 py-8 text-center text-gray-500">
+                    <td colSpan={11} className="px-6 py-8 text-center text-gray-500">
                       {isLoading ? t('retirementTracker.loadingData') : t('retirementTracker.noRecordsFound')}
                     </td>
                   </tr>
@@ -681,16 +678,6 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
                       type="text"
                       value={editingEmployee.department || ''}
                       onChange={(e) => setEditingEmployee({ ...editingEmployee, department: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('retirementTracker.designation')}</label>
-                    <input
-                      type="text"
-                      value={editingEmployee.designation || ''}
-                      onChange={(e) => setEditingEmployee({ ...editingEmployee, designation: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
