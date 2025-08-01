@@ -33,7 +33,7 @@ interface RetirementEmployee {
   date_of_birth: string | null;
   retirement_date: string | null;
   reason: string;
-  desination_time_of_retirement: string | null;
+  designation_time_of_retirement: string | null;
   assigned_clerk_name: string | null;
   department: string | null;
   designation: string | null;
@@ -110,7 +110,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
           date_of_birth,
           retirement_date,
           reason,
-          desination_time_of_retirement,
+          designation_time_of_retirement,
           assigned_clerk_name,
           department,
           designation,
@@ -301,7 +301,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
       const { error } = await ermsClient
         .from('employee_retirement')
         .update({
-          desination_time_of_retirement: editingEmployee.desination_time_of_retirement,
+          designation_time_of_retirement: editingEmployee.designation_time_of_retirement,
           assigned_clerk_name: editingEmployee.assigned_clerk_name,
           date_of_submission: editingEmployee.date_of_submission,
           department_submitted: editingEmployee.department_submitted,
@@ -671,7 +671,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
                           {employee.department || '-'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {employee.designation || employee.desination_time_of_retirement || '-'}
+                          {employee.designation || employee.designation_time_of_retirement || '-'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           {employee.retirement_date ? new Date(employee.retirement_date).toLocaleDateString() : '-'}
@@ -785,8 +785,8 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
                     <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.designationAtRetirement')}</label>
                     <input
                       type="text"
-                      value={editingEmployee.desination_time_of_retirement || ''}
-                      onChange={(e) => setEditingEmployee({ ...editingEmployee, desination_time_of_retirement: e.target.value })}
+                      value={editingEmployee.designation_time_of_retirement || ''}
+                      onChange={(e) => setEditingEmployee({ ...editingEmployee, designation_time_of_retirement: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
