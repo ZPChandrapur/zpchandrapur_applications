@@ -120,7 +120,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
   const fetchEmployees = async () => {
     try {
       const { data, error } = await ermsClient
-        .from('employees')
+        .from('employee')
         .select('*')
         .order('emp_name');
       
@@ -214,7 +214,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     setIsLoading(true);
     try {
       const { error } = await ermsClient
-        .from('employees')
+        .from('employee')
         .insert([newEmployee]);
 
       if (error) throw error;
@@ -256,7 +256,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     setIsLoading(true);
     try {
       const { error } = await ermsClient
-        .from('employees')
+        .from('employee')
         .update(newEmployee)
         .eq('emp_id', newEmployee.emp_id);
 
@@ -278,7 +278,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     setIsLoading(true);
     try {
       const { error } = await ermsClient
-        .from('employees')
+        .from('employee')
         .delete()
         .eq('emp_id', empId);
 
