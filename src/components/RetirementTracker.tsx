@@ -1153,11 +1153,6 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
     const progressFields = [
       employee.date_of_birth_verification,
         {activeMainTab === 'groupInsurance' && (
-          <div className="space-y-6">
-            <GroupInsurance user={user} />
-          </div>
-        )}
-      employee.birth_certificate_doc_submitted,
       employee.medical_certificate,
       employee.nomination,
       employee.permanent_registration,
