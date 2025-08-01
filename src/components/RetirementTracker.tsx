@@ -623,7 +623,6 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
           sixth_pay_commission: editingPayCommission.sixth_pay_commission,
           seventh_pay_commission: editingPayCommission.seventh_pay_commission,
           fourth_pay_commission_comment: editingPayCommission.fourth_pay_commission_comment,
-  const tabFilteredPayCommission = getTabFilteredPayCommission();
           fifth_pay_commission_comment: editingPayCommission.fifth_pay_commission_comment,
           sixth_pay_commission_comment: editingPayCommission.sixth_pay_commission_comment,
           seventh_pay_commission_comment: editingPayCommission.seventh_pay_commission_comment,
