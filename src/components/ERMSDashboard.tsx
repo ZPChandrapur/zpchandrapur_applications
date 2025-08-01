@@ -19,6 +19,7 @@ import { OrganizationSetup } from './OrganizationSetup';
 import { EmployeeDashboard } from './EmployeeDashboard';
 import { RetirementDashboard } from './RetirementDashboard';
 import { RetirementTracker } from './RetirementTracker';
+import { PayCommissionTracker } from './PayCommissionTracker';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 interface ERMSDashboardProps {
@@ -107,6 +108,8 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, onBack }) =>
         return <RetirementDashboard user={user} onBack={handleBackToMain} />;
       case 'retirement-tracker':
         return <RetirementTracker user={user} onBack={handleBackToMain} />;
+      case 'pay-commission-tracker':
+        return <PayCommissionTracker user={user} onBack={handleBackToMain} />;
       case 'retirement-file-tracker':
         return (
           <div className="p-8 text-center">

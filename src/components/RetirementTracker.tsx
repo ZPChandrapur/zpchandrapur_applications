@@ -16,8 +16,8 @@ import {
   BarChart3,
   User,
   X,
-  Search,
-  ChevronDown
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { ermsClient, supabase } from '../lib/supabase';
 import { usePermissions } from '../hooks/usePermissions';
@@ -35,66 +35,41 @@ interface RetirementProgress {
   age: number | null;
   assigned_clerk: string | null;
   department: string | null;
+  designation: string | null;
   status: string | null;
   date_of_birth_verification: string | null;
-  medical_certificate: string | null;
-  nomination: string | null;
-  permanent_registration: string | null;
-  computer_exam_passed: string | null;
-  marathi_hindi_exam_exemption: string | null;
-  post_service_exam: string | null;
-  verification_completed: string | null;
-  has_undertaking_been_taken_on_21_12_2021: string | null;
-  no_objection_no_inquiry_certificate: string | null;
-  retirement_order: string | null;
-  birth_certificate_doc_submitted: string | null;
-  date_of_birth_verification_comment: string | null;
-  medical_certificate_comment: string | null;
-  nomination_comment: string | null;
-  permanent_registration_comment: string | null;
-  computer_exam_passed_comment: string | null;
-  marathi_hindi_exam_exemption_comment: string | null;
-  post_service_exam_comment: string | null;
-  verification_completed_comment: string | null;
-  has_undertaking_been_taken_on_21_12_2021_comment: string | null;
-  no_objection_no_inquiry_certificate_comment: string | null;
-  retirement_order_comment: string | null;
   date_of_birth_verification_date: string | null;
+  date_of_birth_verification_comment: string | null;
+  birth_document_submitted: string | null;
+  birth_document_submitted_date: string | null;
+  birth_document_submitted_comment: string | null;
+  medical_certificate: string | null;
   medical_certificate_date: string | null;
+  medical_certificate_comment: string | null;
+  nomination: string | null;
   nomination_date: string | null;
+  nomination_comment: string | null;
+  permanent_registration: string | null;
   permanent_registration_date: string | null;
-  computer_exam_passed_date: string | null;
+  permanent_registration_comment: string | null;
+  computer_exam: string | null;
+  computer_exam_date: string | null;
+  computer_exam_comment: string | null;
+  marathi_hindi_exam_exemption: string | null;
   marathi_hindi_exam_exemption_date: string | null;
-  post_service_exam_date: string | null;
+  marathi_hindi_exam_exemption_comment: string | null;
+  verification_completed: string | null;
   verification_completed_date: string | null;
-  has_undertaking_been_taken_on_21_12_2021_date: string | null;
+  verification_completed_comment: string | null;
+  undertaking_taken_21_12_2021: string | null;
+  undertaking_taken_21_12_2021_date: string | null;
+  undertaking_taken_21_12_2021_comment: string | null;
+  no_objection_no_inquiry_certificate: string | null;
   no_objection_no_inquiry_certificate_date: string | null;
+  no_objection_no_inquiry_certificate_comment: string | null;
+  retirement_order: string | null;
   retirement_order_date: string | null;
-  overall_comment: string | null;
-  created_at?: string;
-  updated_at?: string;
-}
-
-interface PayCommission {
-  id: string;
-  emp_id: string;
-  employee_name: string;
-  age: number | null;
-  assigned_clerk: string | null;
-  department: string | null;
-  status: string | null;
-  fourth_pay_commission: string | null;
-  fifth_pay_commission: string | null;
-  sixth_pay_commission: string | null;
-  seventh_pay_commission: string | null;
-  fourth_pay_commission_comment: string | null;
-  fifth_pay_commission_comment: string | null;
-  sixth_pay_commission_comment: string | null;
-  seventh_pay_commission_comment: string | null;
-  fourth_pay_commission_date: string | null;
-  fifth_pay_commission_date: string | null;
-  sixth_pay_commission_date: string | null;
-  seventh_pay_commission_date: string | null;
+  retirement_order_comment: string | null;
   overall_comment: string | null;
   created_at?: string;
   updated_at?: string;
@@ -106,14 +81,9 @@ interface ClerkData {
   role_name: string;
 }
 
-interface Department {
-  dept_id: string;
-  department: string;
+interface EditingProgress extends RetirementProgress {
+  // All fields are already included in RetirementProgress
 }
-interface EditingPayCommission extends PayCommission {
-  // All fields are already included in PayCommission
-}
-
 
 export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBack }) => {
   const { t } = useTranslation();
@@ -124,46 +94,34 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
   const [selectedStatus, setSelectedStatus] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [showEditModal, setShowEditModal] = useState(false);
-  const [editingEmployee, setEditingEmployee] = useState<RetirementProgress | null>(null);
-  const [showEditPayCommissionModal, setShowEditPayCommissionModal] = useState(false);
-  const [editingPayCommission, setEditingPayCommission] = useState<EditingPayCommission | null>(null);
-  const [showEditPayCommissionModal, setShowEditPayCommissionModal] = useState(false);
-  const [activeTab, setActiveTab] = useState<'retirementProgress' | 'payCommission' | 'groupInsurance'>('retirementProgress');
-  const [progressTab, setProgressTab] = useState<'inProgress' | 'pending' | 'completed'>('inProgress');
-  const [payCommissionStatusTab, setPayCommissionStatusTab] = useState<'inProgress' | 'pending' | 'completed'>('inProgress');
+  const [editingProgress, setEditingProgress] = useState<EditingProgress | null>(null);
+  const [activeTab, setActiveTab] = useState<'inProgress' | 'pending' | 'completed'>('inProgress');
   const [currentPage, setCurrentPage] = useState(1);
-  const [payCommissionCurrentPage, setPayCommissionCurrentPage] = useState(1);
   const recordsPerPage = 20;
   
   // Data states
   const [retirementProgress, setRetirementProgress] = useState<RetirementProgress[]>([]);
-  const [payCommissionData, setPayCommissionData] = useState<PayCommission[]>([]);
   const [clerks, setClerks] = useState<ClerkData[]>([]);
-  const [departments, setDepartments] = useState<Department[]>([]);
-  const [filteredPayCommission, setFilteredPayCommission] = useState<PayCommission[]>([]);
-  const [filteredEmployees, setFilteredEmployees] = useState<RetirementProgress[]>([]);
+  const [filteredProgress, setFilteredProgress] = useState<RetirementProgress[]>([]);
 
   useEffect(() => {
     fetchAllData();
   }, []);
 
   useEffect(() => {
-    filterEmployees();
-    filterPayCommission();
+    filterProgress();
   }, [retirementProgress, selectedClerk, selectedDepartment, selectedStatus, searchTerm, userRole, userProfile]);
 
   useEffect(() => {
-    filterPayCommission();
-  }, [payCommissionData, selectedClerk, selectedDepartment, selectedStatus, searchTerm, userRole, userProfile]);
+    setCurrentPage(1); // Reset to first page when tab changes
+  }, [activeTab]);
 
   const fetchAllData = async () => {
     setIsLoading(true);
     try {
       await Promise.all([
         fetchRetirementProgress(),
-        fetchPayCommissionData(),
-        fetchClerks(),
-        fetchDepartments()
+        fetchClerks()
       ]);
     } catch (error) {
       console.error('Error fetching retirement tracker data:', error);
@@ -183,104 +141,41 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
           age,
           assigned_clerk,
           department,
+          designation,
           status,
           date_of_birth_verification,
-          medical_certificate,
-          nomination,
-          permanent_registration,
-          computer_exam_passed,
-          marathi_hindi_exam_exemption,
-          post_service_exam,
-          verification_completed,
-          has_undertaking_been_taken_on_21_12_2021,
-          no_objection_no_inquiry_certificate,
-          retirement_order,
-          birth_certificate_doc_submitted,
-          date_of_birth_verification_comment,
-          medical_certificate_comment,
-          nomination_comment,
-          permanent_registration_comment,
-          computer_exam_passed_comment,
-          marathi_hindi_exam_exemption_comment,
-          post_service_exam_comment,
-          verification_completed_comment,
-          has_undertaking_been_taken_on_21_12_2021_comment,
-          no_objection_no_inquiry_certificate_comment,
-          retirement_order_comment,
           date_of_birth_verification_date,
+          date_of_birth_verification_comment,
+          birth_document_submitted,
+          birth_document_submitted_date,
+          birth_document_submitted_comment,
+          medical_certificate,
           medical_certificate_date,
+          medical_certificate_comment,
+          nomination,
           nomination_date,
+          nomination_comment,
+          permanent_registration,
           permanent_registration_date,
-          computer_exam_passed_date,
+          permanent_registration_comment,
+          computer_exam,
+          computer_exam_date,
+          computer_exam_comment,
+          marathi_hindi_exam_exemption,
           marathi_hindi_exam_exemption_date,
-          post_service_exam_date,
+          marathi_hindi_exam_exemption_comment,
+          verification_completed,
           verification_completed_date,
-          has_undertaking_been_taken_on_21_12_2021_date,
+          verification_completed_comment,
+          undertaking_taken_21_12_2021,
+          undertaking_taken_21_12_2021_date,
+          undertaking_taken_21_12_2021_comment,
+          no_objection_no_inquiry_certificate,
           no_objection_no_inquiry_certificate_date,
+          no_objection_no_inquiry_certificate_comment,
+          retirement_order,
           retirement_order_date,
-          overall_comment,
-          created_at,
-          updated_at
-        `)
-        .order('age', { ascending: false });
-      
-      if (error) throw error;
-      
-      // Update status for each employee based on progress and save to database
-      const employeesWithUpdatedStatus = await Promise.all((data || []).map(async (employee) => {
-        const calculatedStatus = getProgressStatus(employee);
-        
-        // Only update if status has changed
-        if (employee.status !== calculatedStatus) {
-          try {
-            const { error: updateError } = await ermsClient
-              .from('retirement_progress')
-              .update({ status: calculatedStatus })
-              .eq('id', employee.id);
-            
-            if (updateError) {
-              console.error('Error updating status for employee:', employee.emp_id, updateError);
-            } else {
-              console.log(`Updated status for ${employee.emp_id}: ${calculatedStatus}`);
-            }
-          } catch (updateError) {
-            console.error('Error updating employee status:', updateError);
-          }
-        }
-        
-        return { ...employee, status: calculatedStatus };
-      }));
-      
-      setRetirementProgress(employeesWithUpdatedStatus);
-    } catch (error) {
-      console.error('Error fetching retirement progress:', error);
-    }
-  };
-
-  const fetchPayCommissionData = async () => {
-    try {
-      const { data, error } = await ermsClient
-        .from('pay_commission')
-        .select(`
-          id,
-          emp_id,
-          employee_name,
-          age,
-          assigned_clerk,
-          department,
-          status,
-          fourth_pay_commission,
-          fifth_pay_commission,
-          sixth_pay_commission,
-          seventh_pay_commission,
-          fourth_pay_commission_comment,
-          fifth_pay_commission_comment,
-          sixth_pay_commission_comment,
-          seventh_pay_commission_comment,
-          fourth_pay_commission_date,
-          fifth_pay_commission_date,
-          sixth_pay_commission_date,
-          seventh_pay_commission_date,
+          retirement_order_comment,
           overall_comment,
           created_at,
           updated_at
@@ -290,31 +185,33 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
       if (error) throw error;
       
       // Update status for each record based on progress and save to database
-      const payCommissionWithUpdatedStatus = await Promise.all((data || []).map(async (record) => {
-        const calculatedStatus = getPayCommissionStatus(record);
+      const progressWithUpdatedStatus = await Promise.all((data || []).map(async (progress) => {
+        const calculatedStatus = getProgressStatus(progress);
         
         // Only update if status has changed
-        if (record.status !== calculatedStatus) {
+        if (progress.status !== calculatedStatus) {
           try {
             const { error: updateError } = await ermsClient
-              .from('pay_commission')
+              .from('retirement_progress')
               .update({ status: calculatedStatus })
-              .eq('id', record.id);
+              .eq('id', progress.id);
             
             if (updateError) {
-              console.error('Error updating status for pay commission record:', record.emp_id, updateError);
+              console.error('Error updating status for progress:', progress.emp_id, updateError);
+            } else {
+              console.log(`Updated status for ${progress.emp_id}: ${calculatedStatus}`);
             }
           } catch (updateError) {
-            console.error('Error updating pay commission record status:', updateError);
+            console.error('Error updating progress status:', updateError);
           }
         }
         
-        return { ...record, status: calculatedStatus };
+        return { ...progress, status: calculatedStatus };
       }));
       
-      setPayCommissionData(payCommissionWithUpdatedStatus);
+      setRetirementProgress(progressWithUpdatedStatus);
     } catch (error) {
-      console.error('Error fetching pay commission data:', error);
+      console.error('Error fetching retirement progress:', error);
     }
   };
 
@@ -344,436 +241,216 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
     }
   };
 
-  const fetchDepartments = async () => {
-    try {
-      const { data, error } = await ermsClient
-        .from('department')
-        .select('dept_id, department')
-        .order('department');
-      
-      if (error) throw error;
-      setDepartments(data || []);
-    } catch (error) {
-      console.error('Error fetching departments:', error);
-    }
-  };
-
-  const filterEmployees = () => {
+  const filterProgress = () => {
     let filtered = retirementProgress;
 
     // Role-based filtering
     if (userRole === 'clerk' && userProfile?.name) {
-      // Clerk can only see their assigned employees
-      filtered = filtered.filter(emp => emp.assigned_clerk === userProfile.name);
-    }
-
-    // Search filter
-    if (searchTerm) {
-      filtered = filtered.filter(emp => 
-        emp.employee_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        emp.emp_id?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+      // Clerk can only see their assigned records
+      filtered = filtered.filter(progress => progress.assigned_clerk === userProfile.name);
     }
 
     // Clerk filter (for non-clerk users)
     if (selectedClerk && userRole !== 'clerk') {
       const selectedClerkName = clerks.find(c => c.user_id === selectedClerk)?.name;
       if (selectedClerkName) {
-        filtered = filtered.filter(emp => emp.assigned_clerk === selectedClerkName);
+        filtered = filtered.filter(progress => progress.assigned_clerk === selectedClerkName);
       }
     }
 
     // Department filter
     if (selectedDepartment) {
-  const filterPayCommission = () => {
-    let filtered = payCommissionData;
-
-    // Role-based filtering
-    if (userRole === 'clerk' && userProfile?.name) {
-      filtered = filtered.filter(record => record.assigned_clerk === userProfile.name);
+      filtered = filtered.filter(progress => progress.department === selectedDepartment);
     }
 
-    // Other filters
-    if (selectedClerk && userRole !== 'clerk') {
-      const selectedClerkName = clerks.find(c => c.user_id === selectedClerk)?.name;
-      if (selectedClerkName) {
-        filtered = filtered.filter(record => record.assigned_clerk === selectedClerkName);
-      }
-    }
-
-    if (selectedDepartment) {
-      filtered = filtered.filter(record => record.department === selectedDepartment);
-    }
-
+    // Status filter
     if (selectedStatus) {
-      filtered = filtered.filter(record => record.status === selectedStatus);
+      filtered = filtered.filter(progress => getProgressStatus(progress) === selectedStatus);
     }
 
+    // Search filter
     if (searchTerm) {
-      filtered = filtered.filter(record => {
+      filtered = filtered.filter(progress => {
         const searchFields = [
-          record.emp_id,
-          record.employee_name,
-          record.department,
-          record.assigned_clerk
+          progress.emp_id,
+          progress.employee_name,
+          progress.department,
+          progress.designation,
+          progress.assigned_clerk
         ];
+        
         return searchFields.some(field => 
           String(field || '').toLowerCase().includes(searchTerm.toLowerCase())
         );
       });
     }
 
-    setFilteredPayCommission(filtered);
+    setFilteredProgress(filtered);
   };
 
-      filtered = filtered.filter(emp => emp.department === selectedDepartment);
-    }
-
-    // Status filter
-    if (selectedStatus) {
-      filtered = filtered.filter(emp => getProgressStatus(emp) === selectedStatus);
-    }
-
-    setFilteredEmployees(filtered);
-  };
-
-  const getTabFilteredEmployees = () => {
-    let filtered = filteredEmployees;
-    
-    if (progressTab === 'completed') {
-      filtered = filtered.filter(emp => getProgressStatus(emp) === 'completed');
-    } else if (progressTab === 'pending') {
-      filtered = filtered.filter(emp => getProgressStatus(emp) === 'pending');
-    } else if (progressTab === 'inProgress') {
-      filtered = filtered.filter(emp => getProgressStatus(emp) === 'processing');
-    }
-    
-    return filtered;
-  };
-
-  const getPaginatedEmployees = () => {
-    const tabFiltered = getTabFilteredEmployees();
-    const startIndex = (currentPage - 1) * recordsPerPage;
-    const endIndex = startIndex + recordsPerPage;
-    return tabFiltered.slice(startIndex, endIndex);
-  };
-
-  const getTotalPages = () => {
-    const tabFiltered = getTabFilteredEmployees();
-    return Math.ceil(tabFiltered.length / recordsPerPage);
-  };
-
-  const getProgressStatus = (employee: RetirementProgress) => {
+  const getProgressStatus = (progress: RetirementProgress) => {
     const progressFields = [
-      employee.date_of_birth_verification,
-      employee.birth_certificate_doc_submitted,
-      employee.medical_certificate,
-      employee.nomination,
-      employee.permanent_registration,
-      employee.computer_exam_passed,
-      employee.marathi_hindi_exam_exemption,
-      employee.post_service_exam,
-      employee.verification_completed,
-      employee.has_undertaking_been_taken_on_21_12_2021,
-      employee.no_objection_no_inquiry_certificate,
-      employee.retirement_order
-    ];
-
-    const filledFields = progressFields.filter(field => 
-      field && field.trim() !== '' && field !== 'नाही (Not Available)'
-    ).length;
-    const totalFields = progressFields.length;
-
-    if (filledFields === 0) return 'pending';
-    if (filledFields === totalFields) return 'completed';
-    return 'processing';
-  };
-
-  const getPayCommissionStatus = (record: PayCommission) => {
-    const progressFields = [
-      record.fourth_pay_commission,
-      record.fifth_pay_commission,
-      record.sixth_pay_commission,
-      record.seventh_pay_commission
+      progress.date_of_birth_verification,
+      progress.birth_document_submitted,
+      progress.medical_certificate,
+      progress.nomination,
+      progress.permanent_registration,
+      progress.computer_exam,
+      progress.marathi_hindi_exam_exemption,
+      progress.verification_completed,
+      progress.undertaking_taken_21_12_2021,
+      progress.no_objection_no_inquiry_certificate,
+      progress.retirement_order
     ];
 
     const filledFields = progressFields.filter(field => field && field.trim() !== '').length;
-    const hasNotAvailable = progressFields.some(field => field === 'नाही (Not Available)');
+    const totalFields = progressFields.length;
 
+    // Check if any field is "नाही (Not Available)" - if so, keep as processing
+    const hasNotAvailable = progressFields.some(field => field === 'नाही');
+    
     if (filledFields === 0) return 'pending';
-    if (filledFields === progressFields.length && !hasNotAvailable) return 'completed';
+    if (filledFields === totalFields && !hasNotAvailable) return 'completed';
     return 'processing';
   };
 
   const getStatusCounts = () => {
-    const total = filteredEmployees.length;
-    const processing = filteredEmployees.filter(emp => getProgressStatus(emp) === 'processing').length;
-    const completed = filteredEmployees.filter(emp => getProgressStatus(emp) === 'completed').length;
-    const pending = filteredEmployees.filter(emp => getProgressStatus(emp) === 'pending').length;
+    const total = filteredProgress.length;
+    const processing = filteredProgress.filter(progress => getProgressStatus(progress) === 'processing').length;
+    const completed = filteredProgress.filter(progress => getProgressStatus(progress) === 'completed').length;
+    const pending = filteredProgress.filter(progress => getProgressStatus(progress) === 'pending').length;
 
     return { total, processing, completed, pending };
   };
 
-  const getPayCommissionStatusCounts = () => {
-    const total = filteredPayCommission.length;
-    const processing = filteredPayCommission.filter(record => getPayCommissionStatus(record) === 'processing').length;
-    const completed = filteredPayCommission.filter(record => getPayCommissionStatus(record) === 'completed').length;
-    const pending = filteredPayCommission.filter(record => getPayCommissionStatus(record) === 'pending').length;
-
-    return { total, processing, completed, pending };
-  };
-
-  const getTabFilteredPayCommission = () => {
-    if (payCommissionStatusTab === 'completed') {
-      return filteredPayCommission.filter(record => getPayCommissionStatus(record) === 'completed');
-    } else if (payCommissionStatusTab === 'pending') {
-      return filteredPayCommission.filter(record => getPayCommissionStatus(record) === 'pending');
-    } else if (payCommissionStatusTab === 'inProgress') {
-      return filteredPayCommission.filter(record => getPayCommissionStatus(record) === 'processing');
+  const getTabFilteredProgress = () => {
+    if (activeTab === 'completed') {
+      return filteredProgress.filter(progress => getProgressStatus(progress) === 'completed');
+    } else if (activeTab === 'pending') {
+      return filteredProgress.filter(progress => getProgressStatus(progress) === 'pending');
+    } else if (activeTab === 'inProgress') {
+      return filteredProgress.filter(progress => {
+        const status = getProgressStatus(progress);
+        return status === 'processing';
+      });
     }
-    return filteredPayCommission;
+    return filteredProgress;
   };
 
-  const handleEditEmployee = (employee: RetirementProgress) => {
-    setEditingEmployee(employee);
+  const handleEditProgress = (progress: RetirementProgress) => {
+    setEditingProgress(progress);
     setShowEditModal(true);
   };
 
-  const handleEditPayCommission = (record: PayCommission) => {
-    setEditingPayCommission(record);
-    setShowEditPayCommissionModal(true);
-  };
-
-  const handleUpdateEmployee = async () => {
-    if (!editingEmployee) return;
+  const handleUpdateProgress = async () => {
+    if (!editingProgress) return;
 
     setIsLoading(true);
     try {
       // Calculate the new status based on the updated data
-      const newStatus = getProgressStatus(editingEmployee);
+      const newStatus = getProgressStatus(editingProgress);
       
       const { error } = await ermsClient
         .from('retirement_progress')
         .update({
-          assigned_clerk: editingEmployee.assigned_clerk,
-          department: editingEmployee.department,
-          status: newStatus,
-          date_of_birth_verification: editingEmployee.date_of_birth_verification,
-          medical_certificate: editingEmployee.medical_certificate,
-          nomination: editingEmployee.nomination,
-          permanent_registration: editingEmployee.permanent_registration,
-          computer_exam_passed: editingEmployee.computer_exam_passed,
-          marathi_hindi_exam_exemption: editingEmployee.marathi_hindi_exam_exemption,
-          post_service_exam: editingEmployee.post_service_exam,
-          verification_completed: editingEmployee.verification_completed,
-          has_undertaking_been_taken_on_21_12_2021: editingEmployee.has_undertaking_been_taken_on_21_12_2021,
-          no_objection_no_inquiry_certificate: editingEmployee.no_objection_no_inquiry_certificate,
-          retirement_order: editingEmployee.retirement_order,
-          birth_certificate_doc_submitted: editingEmployee.birth_certificate_doc_submitted,
-          date_of_birth_verification_comment: editingEmployee.date_of_birth_verification_comment,
-          medical_certificate_comment: editingEmployee.medical_certificate_comment,
-          nomination_comment: editingEmployee.nomination_comment,
-          permanent_registration_comment: editingEmployee.permanent_registration_comment,
-          computer_exam_passed_comment: editingEmployee.computer_exam_passed_comment,
-          marathi_hindi_exam_exemption_comment: editingEmployee.marathi_hindi_exam_exemption_comment,
-          post_service_exam_comment: editingEmployee.post_service_exam_comment,
-          verification_completed_comment: editingEmployee.verification_completed_comment,
-          has_undertaking_been_taken_on_21_12_2021_comment: editingEmployee.has_undertaking_been_taken_on_21_12_2021_comment,
-          no_objection_no_inquiry_certificate_comment: editingEmployee.no_objection_no_inquiry_certificate_comment,
-          retirement_order_comment: editingEmployee.retirement_order_comment,
-          date_of_birth_verification_date: editingEmployee.date_of_birth_verification_date,
-          medical_certificate_date: editingEmployee.medical_certificate_date,
-          nomination_date: editingEmployee.nomination_date,
-          permanent_registration_date: editingEmployee.permanent_registration_date,
-          computer_exam_passed_date: editingEmployee.computer_exam_passed_date,
-          marathi_hindi_exam_exemption_date: editingEmployee.marathi_hindi_exam_exemption_date,
-          post_service_exam_date: editingEmployee.post_service_exam_date,
-          verification_completed_date: editingEmployee.verification_completed_date,
-          has_undertaking_been_taken_on_21_12_2021_date: editingEmployee.has_undertaking_been_taken_on_21_12_2021_date,
-          no_objection_no_inquiry_certificate_date: editingEmployee.no_objection_no_inquiry_certificate_date,
-          retirement_order_date: editingEmployee.retirement_order_date,
-          overall_comment: editingEmployee.overall_comment
+          date_of_birth_verification: editingProgress.date_of_birth_verification,
+          date_of_birth_verification_date: editingProgress.date_of_birth_verification_date,
+          date_of_birth_verification_comment: editingProgress.date_of_birth_verification_comment,
+          birth_document_submitted: editingProgress.birth_document_submitted,
+          birth_document_submitted_date: editingProgress.birth_document_submitted_date,
+          birth_document_submitted_comment: editingProgress.birth_document_submitted_comment,
+          medical_certificate: editingProgress.medical_certificate,
+          medical_certificate_date: editingProgress.medical_certificate_date,
+          medical_certificate_comment: editingProgress.medical_certificate_comment,
+          nomination: editingProgress.nomination,
+          nomination_date: editingProgress.nomination_date,
+          nomination_comment: editingProgress.nomination_comment,
+          permanent_registration: editingProgress.permanent_registration,
+          permanent_registration_date: editingProgress.permanent_registration_date,
+          permanent_registration_comment: editingProgress.permanent_registration_comment,
+          computer_exam: editingProgress.computer_exam,
+          computer_exam_date: editingProgress.computer_exam_date,
+          computer_exam_comment: editingProgress.computer_exam_comment,
+          marathi_hindi_exam_exemption: editingProgress.marathi_hindi_exam_exemption,
+          marathi_hindi_exam_exemption_date: editingProgress.marathi_hindi_exam_exemption_date,
+          marathi_hindi_exam_exemption_comment: editingProgress.marathi_hindi_exam_exemption_comment,
+          verification_completed: editingProgress.verification_completed,
+          verification_completed_date: editingProgress.verification_completed_date,
+          verification_completed_comment: editingProgress.verification_completed_comment,
+          undertaking_taken_21_12_2021: editingProgress.undertaking_taken_21_12_2021,
+          undertaking_taken_21_12_2021_date: editingProgress.undertaking_taken_21_12_2021_date,
+          undertaking_taken_21_12_2021_comment: editingProgress.undertaking_taken_21_12_2021_comment,
+          no_objection_no_inquiry_certificate: editingProgress.no_objection_no_inquiry_certificate,
+          no_objection_no_inquiry_certificate_date: editingProgress.no_objection_no_inquiry_certificate_date,
+          no_objection_no_inquiry_certificate_comment: editingProgress.no_objection_no_inquiry_certificate_comment,
+          retirement_order: editingProgress.retirement_order,
+          retirement_order_date: editingProgress.retirement_order_date,
+          retirement_order_comment: editingProgress.retirement_order_comment,
+          overall_comment: editingProgress.overall_comment,
+          status: newStatus
         })
-        .eq('id', editingEmployee.id);
+        .eq('id', editingProgress.id);
 
       if (error) throw error;
       
       await fetchRetirementProgress();
       setShowEditModal(false);
-      setEditingEmployee(null);
+      setEditingProgress(null);
     } catch (error) {
-      console.error('Error updating employee:', error);
+      console.error('Error updating progress:', error);
       alert(t('common.error') + ': ' + error.message);
     } finally {
       setIsLoading(false);
     }
   };
-
-  const handleUpdatePayCommission = async () => {
-    if (!editingPayCommission) return;
-
-    setIsLoading(true);
-    try {
-      const newStatus = getPayCommissionStatus(editingPayCommission);
-      
-      const { error } = await ermsClient
-        .from('pay_commission')
-        .update({
-          fourth_pay_commission: editingPayCommission.fourth_pay_commission,
-          fifth_pay_commission: editingPayCommission.fifth_pay_commission,
-          sixth_pay_commission: editingPayCommission.sixth_pay_commission,
-          seventh_pay_commission: editingPayCommission.seventh_pay_commission,
-          fourth_pay_commission_comment: editingPayCommission.fourth_pay_commission_comment,
-          fifth_pay_commission_comment: editingPayCommission.fifth_pay_commission_comment,
-          sixth_pay_commission_comment: editingPayCommission.sixth_pay_commission_comment,
-          seventh_pay_commission_comment: editingPayCommission.seventh_pay_commission_comment,
-          fourth_pay_commission_date: editingPayCommission.fourth_pay_commission_date,
-          fifth_pay_commission_date: editingPayCommission.fifth_pay_commission_date,
-          sixth_pay_commission_date: editingPayCommission.sixth_pay_commission_date,
-          seventh_pay_commission_date: editingPayCommission.seventh_pay_commission_date,
-  // Pay Commission Pagination logic
-          status: newStatus
-        })
-        .eq('id', editingPayCommission.id);
-  const handlePayCommissionPageChange = (page: number) => {
-    setPayCommissionCurrentPage(page);
-  };
-
-
-      if (error) throw error;
-      
-      await fetchPayCommissionData();
-      setShowEditPayCommissionModal(false);
-  const handlePayCommissionTabChange = (tab: 'inProgress' | 'pending' | 'completed') => {
-    setPayCommissionStatusTab(tab);
-    setPayCommissionCurrentPage(1); // Reset to first page when changing tabs
-  };
-
-      setEditingPayCommission(null);
-    } catch (error) {
-      console.error('Error updating pay commission:', error);
-      alert(t('common.error') + ': ' + error.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Pay Commission Pagination logic
-  const tabFilteredPayCommission = getTabFilteredPayCommission();
-  const payCommissionTotalPages = Math.ceil(tabFilteredPayCommission.length / recordsPerPage);
-  const payCommissionStartIndex = (payCommissionCurrentPage - 1) * recordsPerPage;
-  const payCommissionEndIndex = payCommissionStartIndex + recordsPerPage;
-  const payCommissionCurrentRecords = tabFilteredPayCommission.slice(payCommissionStartIndex, payCommissionEndIndex);
-
-  const getStatusIcon = (status: string | null) => {
-    if (!status || status.trim() === '') {
-      return <span className="text-gray-400 text-lg">○</span>;
-    }
-    
-    if (status === 'आहे (Available)' || status === 'होय (Yes)' || status === 'पूर्ण (Complete)') {
-      return <span className="text-green-600 text-lg">✓</span>;
-    }
-    
-    if (status === 'नाही (Not Available)') {
-      return <span className="text-red-600 text-lg">✗</span>;
-    }
-    
-    if (status === 'लागू नाही (Not Applicable)') {
-      return <span className="text-blue-600 text-lg">△</span>;
-    }
-    
-    if (status === 'सुट आहे (Exempted)') {
-      return <span className="text-purple-600 text-lg">◊</span>;
-    }
-    
-    if (status === 'इतर (Other)') {
-      return <span className="text-orange-600 text-lg">◈</span>;
-    }
-    
-    return <span className="text-orange-500 text-lg">◐</span>;
-  };
-
-  const getFieldIcon = (field: string | null) => {
-    if (!field || field.trim() === '') return <AlertCircle className="h-4 w-4 text-red-500" />;
-    return <CheckCircle className="h-4 w-4 text-green-500" />;
-  };
-
-  const getVerificationOptions = () => [
-    { value: 'आहे (Available)', label: 'आहे (Available)' },
-    { value: 'नाही (Not Available)', label: 'नाही (Not Available)' },
-    { value: 'लागू नाही (Not Applicable)', label: 'लागू नाही (Not Applicable)' },
-    { value: 'सुट आहे (Exempted)', label: 'सुट आहे (Exempted)' }
-  ];
 
   const clearFilters = () => {
     setSearchTerm('');
     setSelectedClerk('');
     setSelectedDepartment('');
     setSelectedStatus('');
-    setCurrentPage(1);
+  };
+
+  const getStatusSymbol = (status: string | null) => {
+    if (!status || status.trim() === '') return <span className="text-gray-400">○</span>;
+    
+    switch (status) {
+      case 'होय':
+      case 'उपलब्ध':
+      case 'जन्म प्रमाणपत्र':
+      case 'पासपोर्ट':
+      case 'स्थानांतर प्रमाणपत्र':
+      case 'सोडणूक प्रमाणपत्र':
+        return <span className="text-green-600 font-bold">✓</span>;
+      case 'नाही':
+        return <span className="text-red-600 font-bold">✗</span>;
+      case 'लागू नाही':
+        return <span className="text-blue-600 font-bold">△</span>;
+      case 'सूट':
+        return <span className="text-purple-600 font-bold">◊</span>;
+      case 'इतर':
+        return <span className="text-orange-600 font-bold">◈</span>;
+      default:
+        return <span className="text-orange-500 font-bold">◐</span>;
+    }
   };
 
   const statusCounts = getStatusCounts();
-  const payCommissionStatusCounts = getPayCommissionStatusCounts();
+  const tabFilteredProgress = getTabFilteredProgress();
+  
+  // Pagination logic
+  const totalPages = Math.ceil(tabFilteredProgress.length / recordsPerPage);
+  const startIndex = (currentPage - 1) * recordsPerPage;
+  const endIndex = startIndex + recordsPerPage;
+  const currentRecords = tabFilteredProgress.slice(startIndex, endIndex);
 
-  const renderPayCommissionPagination = () => {
-    if (payCommissionTotalPages <= 1) return null;
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
 
-    const pageNumbers = [];
-    const maxVisiblePages = 5;
-    let startPage = Math.max(1, payCommissionCurrentPage - Math.floor(maxVisiblePages / 2));
-    let endPage = Math.min(payCommissionTotalPages, startPage + maxVisiblePages - 1);
-
-    if (endPage - startPage + 1 < maxVisiblePages) {
-      startPage = Math.max(1, endPage - maxVisiblePages + 1);
-    }
-
-    for (let i = startPage; i <= endPage; i++) {
-      pageNumbers.push(i);
-    }
-
-    return (
-      <div className="flex items-center justify-between px-6 py-3 border-t border-gray-200">
-        <div className="flex items-center text-sm text-gray-500">
-          {t('retirementTracker.showingPage', { 
-            start: payCommissionStartIndex + 1, 
-            end: Math.min(payCommissionEndIndex, tabFilteredPayCommission.length), 
-            total: tabFilteredPayCommission.length 
-          })}
-        </div>
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={() => handlePayCommissionPageChange(payCommissionCurrentPage - 1)}
-            disabled={payCommissionCurrentPage === 1}
-            className="px-3 py-1 text-sm border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-          >
-            {t('common.previous')}
-          </button>
-          
-          {pageNumbers.map(number => (
-            <button
-              key={number}
-              onClick={() => handlePayCommissionPageChange(number)}
-              className={`px-3 py-1 text-sm border rounded-md ${
-                payCommissionCurrentPage === number
-                  ? 'bg-blue-600 text-white border-blue-600'
-                  : 'border-gray-300 hover:bg-gray-50'
-              }`}
-            >
-              {number}
-            </button>
-          ))}
-          
-          <button
-            onClick={() => handlePayCommissionPageChange(payCommissionCurrentPage + 1)}
-            disabled={payCommissionCurrentPage === payCommissionTotalPages}
-            className="px-3 py-1 text-sm border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-          >
-            {t('common.next')}
-          </button>
-        </div>
-      </div>
-    );
+  const getDepartments = () => {
+    const departments = [...new Set(retirementProgress.map(p => p.department).filter(Boolean))];
+    return departments.sort();
   };
 
   return (
@@ -784,9 +461,28 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">{t('retirementTracker.title')}</h1>
-              <p className="text-sm text-gray-500 mt-1">{t('retirementTracker.subtitle')}</p>
+              <p className="text-sm text-gray-500 mt-1">
+                {userRole === 'clerk' 
+                  ? `${t('erms.interactiveClerkView')} - ${userProfile?.name || t('erms.unknownClerk')}`
+                  : t('erms.globalAdministrativeView')
+                }
+              </p>
             </div>
             <div className="flex items-center space-x-3">
+              {userRole !== 'clerk' && (
+                <select
+                  value={selectedClerk}
+                  onChange={(e) => setSelectedClerk(e.target.value)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">{t('retirementTracker.allClerks')}</option>
+                  {clerks.map(clerk => (
+                    <option key={clerk.user_id} value={clerk.user_id}>
+                      {clerk.name}
+                    </option>
+                  ))}
+                </select>
+              )}
               <button 
                 onClick={fetchAllData}
                 className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
@@ -800,113 +496,82 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
       </div>
 
       <div className="p-6">
-        {/* Tabs */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
-          <div className="border-b border-gray-200">
-            <nav className="flex space-x-8 px-6">
-              <button
-                onClick={() => setActiveTab('progress')}
-                className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
-                  activeTab === 'progress'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                <FileText className="h-4 w-4" />
-                <span>{t('retirementTracker.retirementProgress')}</span>
-              </button>
-              <button
-                onClick={() => setActiveTab('payCommission')}
-                className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
-                  activeTab === 'payCommission'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                <TrendingUp className="h-4 w-4" />
-                <span>{t('retirementTracker.payCommission')}</span>
-              </button>
-              <button
-                onClick={() => setActiveTab('groupInsurance')}
-                className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
-                  activeTab === 'groupInsurance'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                <Users className="h-4 w-4" />
-                <span>{t('retirementTracker.groupInsurance')}</span>
-              </button>
-            </nav>
-          </div>
-        </div>
-
-        {/* Progress Overview */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">{t('retirementTracker.processOverview')}</h3>
-            <span className="text-sm text-gray-500">{statusCounts.completed > 0 ? Math.round((statusCounts.completed / statusCounts.total) * 100) : 0}% {t('retirementTracker.complete')}</span>
-          </div>
-          
-          {/* Progress Bar */}
-          <div className="w-full bg-gray-200 rounded-full h-3 mb-6">
-            <div
-              className="bg-gradient-to-r from-orange-500 to-red-500 h-3 rounded-full transition-all duration-300"
-              style={{ width: statusCounts.total > 0 ? `${(statusCounts.completed / statusCounts.total) * 100}%` : '0%' }}
-            />
+        {/* KPI Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">{t('retirementTracker.totalCases')}</p>
+                <p className="text-3xl font-bold text-gray-900">{statusCounts.total}</p>
+              </div>
+              <div className="bg-blue-100 p-3 rounded-lg">
+                <Users className="h-8 w-8 text-blue-600" />
+              </div>
+            </div>
           </div>
 
-          {/* Status Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="text-center p-4 bg-gray-50 rounded-lg">
-              <div className="text-2xl font-bold text-gray-900">{statusCounts.total}</div>
-              <div className="text-sm text-gray-600">{t('retirementTracker.totalCases')}</div>
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">{t('retirementTracker.processing')}</p>
+                <p className="text-3xl font-bold text-orange-600">{statusCounts.processing}</p>
+                <p className="text-xs text-gray-500">{t('retirementTracker.inProgress')}</p>
+              </div>
+              <div className="bg-orange-100 p-3 rounded-lg">
+                <Clock className="h-8 w-8 text-orange-600" />
+              </div>
             </div>
-            <div className="text-center p-4 bg-green-50 rounded-lg">
-              <div className="text-2xl font-bold text-green-600">{statusCounts.completed}</div>
-              <div className="text-sm text-gray-600">{t('retirementTracker.completed')}</div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">{t('retirementTracker.completed')}</p>
+                <p className="text-3xl font-bold text-green-600">{statusCounts.completed}</p>
+                <p className="text-xs text-gray-500">{t('retirementTracker.complete')}</p>
+              </div>
+              <div className="bg-green-100 p-3 rounded-lg">
+                <CheckCircle className="h-8 w-8 text-green-600" />
+              </div>
             </div>
-            <div className="text-center p-4 bg-orange-50 rounded-lg">
-              <div className="text-2xl font-bold text-orange-600">{statusCounts.processing}</div>
-              <div className="text-sm text-gray-600">{t('retirementTracker.inProgress')}</div>
-            </div>
-            <div className="text-center p-4 bg-red-50 rounded-lg">
-              <div className="text-2xl font-bold text-red-600">{statusCounts.pending}</div>
-              <div className="text-sm text-gray-600">{t('retirementTracker.pending')}</div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">{t('retirementTracker.pending')}</p>
+                <p className="text-3xl font-bold text-purple-600">{statusCounts.pending}</p>
+                <p className="text-xs text-gray-500">{t('erms.awaitingApproval')}</p>
+              </div>
+              <div className="bg-purple-100 p-3 rounded-lg">
+                <FileText className="h-8 w-8 text-purple-600" />
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Filters and Records */}
+        {/* Progress Records Table */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
           <div className="px-6 py-4 border-b border-gray-200">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold text-gray-900">{t('retirementTracker.progressRecords')}</h3>
               <div className="flex items-center space-x-3">
-                <button
-                  onClick={clearFilters}
-                  className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
-                >
-                  <X className="h-4 w-4" />
-                  <span className="text-sm">{t('retirementTracker.clearFilters')}</span>
-                </button>
                 <button className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200">
                   <Download className="h-4 w-4" />
                   <span className="text-sm">{t('common.export')}</span>
                 </button>
               </div>
             </div>
-
+            
             {/* Filters */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mt-4">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <input
                   type="text"
                   placeholder={t('retirementTracker.searchEmployees')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
 
@@ -916,9 +581,9 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
                 className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="">{t('retirementTracker.allDepartments')}</option>
-                {departments.map(dept => (
-                  <option key={dept.dept_id} value={dept.department}>
-                    {dept.department}
+                {getDepartments().map(dept => (
+                  <option key={dept} value={dept}>
+                    {dept}
                   </option>
                 ))}
               </select>
@@ -930,7 +595,7 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
               >
                 <option value="">{t('retirementTracker.allStatus')}</option>
                 <option value="pending">{t('retirementTracker.pending')}</option>
-                <option value="processing">{t('retirementTracker.inProgress')}</option>
+                <option value="processing">{t('retirementTracker.processing')}</option>
                 <option value="completed">{t('retirementTracker.completed')}</option>
               </select>
 
@@ -948,100 +613,55 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
                   ))}
                 </select>
               )}
+
+              <button
+                onClick={clearFilters}
+                className="flex items-center justify-center space-x-2 px-3 py-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
+              >
+                <X className="h-4 w-4" />
+                <span className="text-sm">{t('retirementTracker.clearFilters')}</span>
+              </button>
             </div>
 
             {/* Tabs */}
-            <div className="mt-4 border-b border-gray-200">
+            <div className="mt-4">
               <nav className="flex space-x-8">
                 <button
-                  onClick={() => setActiveTab('progress')}
-                  className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
-                    activeTab === 'progress'
+                  onClick={() => setActiveTab('inProgress')}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
+                    activeTab === 'inProgress'
                       ? 'border-blue-500 text-blue-600'
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
                 >
-                  <FileText className="h-4 w-4" />
-                  <span>{t('retirementTracker.retirementProgress')}</span>
+                  {t('retirementTracker.inProgress')} ({statusCounts.processing})
                 </button>
                 <button
-                  onClick={() => setActiveTab('payCommission')}
-                  className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
-                    activeTab === 'payCommission'
+                  onClick={() => setActiveTab('pending')}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
+                    activeTab === 'pending'
                       ? 'border-blue-500 text-blue-600'
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
                 >
-                  <TrendingUp className="h-4 w-4" />
-                  <span>{t('retirementTracker.payCommission')}</span>
+                  {t('retirementTracker.pending')} ({statusCounts.pending})
                 </button>
                 <button
-                  onClick={() => setActiveTab('groupInsurance')}
-                  className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
-                    activeTab === 'groupInsurance'
+                  onClick={() => setActiveTab('completed')}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
+                    activeTab === 'completed'
                       ? 'border-blue-500 text-blue-600'
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
                 >
-                  <Users className="h-4 w-4" />
-                  <span>{t('retirementTracker.groupInsurance')}</span>
+                  {t('retirementTracker.completed')} ({statusCounts.completed})
                 </button>
               </nav>
             </div>
-            
-            {/* Progress Sub-tabs */}
-            {activeTab === 'progress' && (
-              <div className="mt-4">
-                <nav className="flex space-x-8">
-                  <button
-                    onClick={() => {
-                      setProgressTab('inProgress');
-                      setCurrentPage(1);
-                    }}
-                    className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
-                      progressTab === 'inProgress'
-                        ? 'border-blue-500 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    }`}
-                  >
-                    {t('retirementTracker.inProgress')} ({statusCounts.processing})
-                  </button>
-                  <button
-                    onClick={() => {
-                      setProgressTab('pending');
-                      setCurrentPage(1);
-                    }}
-                    className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
-                      progressTab === 'pending'
-                        ? 'border-blue-500 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    }`}
-                  >
-                    {t('retirementTracker.pending')} ({statusCounts.pending})
-                  </button>
-                  <button
-                    onClick={() => {
-                      setProgressTab('completed');
-                      setCurrentPage(1);
-                    }}
-                    className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
-                      progressTab === 'completed'
-                        ? 'border-blue-500 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    }`}
-                  >
-                    {t('retirementTracker.completed')} ({statusCounts.completed})
-                  </button>
-                </nav>
-              </div>
-            )}
 
             <div className="mt-4">
               <p className="text-sm text-gray-500">
-                {t('retirementTracker.showingRecords', { 
-                  filtered: getTabFilteredEmployees().length, 
-                  total: retirementProgress.length 
-                })}
+                {t('retirementTracker.showingRecords', { filtered: tabFilteredProgress.length, total: filteredProgress.length })}
               </p>
             </div>
           </div>
@@ -1051,86 +671,115 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.employee')}</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.status')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.age')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.assignedClerk')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.department')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.designation')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.dateOfBirthVerification')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.birthDocumentSubmitted')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.medicalCertificate')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.nomination')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.permanentRegistration')}</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.computerExamPassed')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.computerExam')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.marathiHindiExamExemption')}</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.postServiceExam')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.verificationCompleted')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.undertakingTaken')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.noObjectionCertificate')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.retirementOrder')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.status')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.actions')}</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {getPaginatedEmployees().length === 0 ? (
+                {currentRecords.length === 0 ? (
                   <tr>
-                    <td colSpan={15} className="px-6 py-8 text-center text-gray-500">
+                    <td colSpan={18} className="px-6 py-8 text-center text-gray-500">
                       {isLoading ? t('retirementTracker.loadingData') : t('retirementTracker.noRecordsFound')}
                     </td>
                   </tr>
                 ) : (
-                  getPaginatedEmployees().map((employee) => {
-                    const status = getProgressStatus(employee);
+                  currentRecords.map((progress) => {
+                    const status = getProgressStatus(progress);
+                    const progressFields = [
+                      progress.date_of_birth_verification,
+                      progress.birth_document_submitted,
+                      progress.medical_certificate,
+                      progress.nomination,
+                      progress.permanent_registration,
+                      progress.computer_exam,
+                      progress.marathi_hindi_exam_exemption,
+                      progress.verification_completed,
+                      progress.undertaking_taken_21_12_2021,
+                      progress.no_objection_no_inquiry_certificate,
+                      progress.retirement_order
+                    ];
+                    const filledFields = progressFields.filter(field => field && field.trim() !== '').length;
+                    const progressPercentage = Math.round((filledFields / progressFields.length) * 100);
+
                     return (
-                      <tr key={employee.id} className="hover:bg-gray-50">
+                      <tr key={progress.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div>
-                            <div className="text-sm font-medium text-gray-900">{employee.employee_name}</div>
-                            <div className="text-sm text-gray-500">{employee.emp_id}</div>
-                            <div className="text-xs text-gray-400">{t('retirementTracker.age')}: {employee.age || '-'}</div>
+                            <div className="text-sm font-medium text-gray-900">{progress.employee_name}</div>
+                            <div className="text-sm text-gray-500">{progress.emp_id}</div>
                           </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {progress.age || '-'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {progress.assigned_clerk || t('erms.unassigned')}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {progress.department || '-'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {progress.designation || '-'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                          {getStatusSymbol(progress.date_of_birth_verification)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                          {getStatusSymbol(progress.birth_document_submitted)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                          {getStatusSymbol(progress.medical_certificate)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                          {getStatusSymbol(progress.nomination)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                          {getStatusSymbol(progress.permanent_registration)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                          {getStatusSymbol(progress.computer_exam)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                          {getStatusSymbol(progress.marathi_hindi_exam_exemption)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                          {getStatusSymbol(progress.verification_completed)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                          {getStatusSymbol(progress.undertaking_taken_21_12_2021)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                          {getStatusSymbol(progress.no_objection_no_inquiry_certificate)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                          {getStatusSymbol(progress.retirement_order)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                             status === 'completed' ? 'bg-green-100 text-green-800' :
                             status === 'processing' ? 'bg-orange-100 text-orange-800' :
-                            'bg-red-100 text-red-800'
+                            'bg-purple-100 text-purple-800'
                           }`}>
-                            {getStatusIcon(status)}
-                            <span className="ml-1">{t(`retirementTracker.${status}`)}</span>
+                            {status === 'completed' && <CheckCircle className="h-3 w-3 mr-1" />}
+                            {status === 'processing' && <Clock className="h-3 w-3 mr-1" />}
+                            {status === 'pending' && <AlertCircle className="h-3 w-3 mr-1" />}
+                            {t(`retirementTracker.${status}`)}
                           </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-center">
-                          {getStatusIcon(employee.date_of_birth_verification)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-center">
-                          {getStatusIcon(employee.birth_certificate_doc_submitted)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-center">
-                          {getStatusIcon(employee.medical_certificate)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-center">
-                          {getStatusIcon(employee.nomination)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-center">
-                          {getStatusIcon(employee.permanent_registration)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-center">
-                          {getStatusIcon(employee.computer_exam_passed)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-center">
-                          {getStatusIcon(employee.marathi_hindi_exam_exemption)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-center">
-                          {getStatusIcon(employee.post_service_exam)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-center">
-                          {getStatusIcon(employee.verification_completed)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-center">
-                          {getStatusIcon(employee.has_undertaking_been_taken_on_21_12_2021)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-center">
-                          {getStatusIcon(employee.no_objection_no_inquiry_certificate)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-center">
-                          {getStatusIcon(employee.retirement_order)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           <div className="flex items-center space-x-2">
@@ -1138,197 +787,11 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
                               <Eye className="h-4 w-4" />
                             </button>
                             <button 
-                              onClick={() => handleEditEmployee(employee)}
+                              onClick={() => handleEditProgress(progress)}
                               className="text-green-600 hover:text-green-900 p-1 rounded"
                             >
                               <Edit className="h-4 w-4" />
                             </button>
-        {/* Pay Commission Tab */}
-        {activeTab === 'payCommission' && (
-          <>
-            {/* KPI Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600 mb-1">{t('retirementTracker.totalCases')}</p>
-                    <p className="text-3xl font-bold text-gray-900">{payCommissionStatusCounts.total}</p>
-                  </div>
-                  <div className="bg-blue-100 p-3 rounded-lg">
-                    <DollarSign className="h-8 w-8 text-blue-600" />
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600 mb-1">{t('retirementTracker.inProgress')}</p>
-                    <p className="text-3xl font-bold text-orange-600">{payCommissionStatusCounts.processing}</p>
-                  </div>
-                  <div className="bg-orange-100 p-3 rounded-lg">
-                    <Clock className="h-8 w-8 text-orange-600" />
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600 mb-1">{t('retirementTracker.completed')}</p>
-                    <p className="text-3xl font-bold text-green-600">{payCommissionStatusCounts.completed}</p>
-                  </div>
-                  <div className="bg-green-100 p-3 rounded-lg">
-                    <CheckCircle className="h-8 w-8 text-green-600" />
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600 mb-1">{t('retirementTracker.pending')}</p>
-                    <p className="text-3xl font-bold text-purple-600">{payCommissionStatusCounts.pending}</p>
-                  </div>
-                  <div className="bg-purple-100 p-3 rounded-lg">
-                    <AlertCircle className="h-8 w-8 text-purple-600" />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Pay Commission Records Table */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-              <div className="px-6 py-4 border-b border-gray-200">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900">{t('retirementTracker.payCommission')}</h3>
-                  <div className="flex items-center space-x-3">
-                    <button className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200">
-                      <Download className="h-4 w-4" />
-                      <span className="text-sm">{t('common.export')}</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Status Tabs */}
-                <div className="mt-4">
-                  <nav className="flex space-x-8">
-                    <button
-                      onClick={() => handlePayCommissionTabChange('inProgress')}
-                      className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
-                        payCommissionStatusTab === 'inProgress'
-                          ? 'border-blue-500 text-blue-600'
-                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                      }`}
-                    >
-                      {t('retirementTracker.inProgress')} ({payCommissionStatusCounts.processing})
-                    </button>
-                    <button
-                      onClick={() => handlePayCommissionTabChange('pending')}
-                      className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
-                        payCommissionStatusTab === 'pending'
-                          ? 'border-blue-500 text-blue-600'
-                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                      }`}
-                    >
-                      {t('retirementTracker.pending')} ({payCommissionStatusCounts.pending})
-                    </button>
-                    <button
-                      onClick={() => handlePayCommissionTabChange('completed')}
-                      className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
-                        payCommissionStatusTab === 'completed'
-                          ? 'border-blue-500 text-blue-600'
-                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                      }`}
-                    >
-                      {t('retirementTracker.completed')} ({payCommissionStatusCounts.completed})
-                    </button>
-                  </nav>
-                </div>
-
-                <div className="mt-4">
-                  <p className="text-sm text-gray-500">
-                    {t('retirementTracker.showingRecords', { filtered: payCommissionCurrentRecords.length, total: tabFilteredPayCommission.length })}
-                  </p>
-                </div>
-              </div>
-
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.employee')}</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.status')}</th>
-                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.fourthPayCommission')}</th>
-                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.fifthPayCommission')}</th>
-                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.sixthPayCommission')}</th>
-                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.seventhPayCommission')}</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.actions')}</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {payCommissionCurrentRecords.length === 0 ? (
-                      <tr>
-                        <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
-                          {isLoading ? t('retirementTracker.loadingData') : t('retirementTracker.noRecordsFound')}
-                        </td>
-                      </tr>
-                    ) : (
-                      payCommissionCurrentRecords.map((record) => (
-                        <tr key={record.id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div>
-                              <div className="text-sm font-medium text-gray-900">{record.employee_name}</div>
-                              <div className="text-sm text-gray-500">{record.emp_id}</div>
-                              <div className="text-sm text-gray-500">{t('retirementTracker.age')}: {record.age}</div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                              record.status === 'completed' ? 'bg-green-100 text-green-800' :
-                              record.status === 'processing' ? 'bg-orange-100 text-orange-800' :
-                              'bg-purple-100 text-purple-800'
-                            }`}>
-                              {record.status === 'completed' && <CheckCircle className="h-3 w-3 mr-1" />}
-                              {record.status === 'processing' && <Clock className="h-3 w-3 mr-1" />}
-                              {record.status === 'pending' && <AlertCircle className="h-3 w-3 mr-1" />}
-                              {t(`retirementTracker.${record.status}`)}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-center">{getStatusSymbol(record.fourth_pay_commission)}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-center">{getStatusSymbol(record.fifth_pay_commission)}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-center">{getStatusSymbol(record.sixth_pay_commission)}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-center">{getStatusSymbol(record.seventh_pay_commission)}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <div className="flex items-center space-x-2">
-                              <button
-                                onClick={() => handleEditPayCommission(record)}
-                                className="text-blue-600 hover:text-blue-900 p-1 rounded"
-                              >
-                                <Edit className="h-4 w-4" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-
-              {renderPayCommissionPagination()}
-            </div>
-          </>
-        )}
-
-        {/* Group Insurance Tab */}
-        {activeTab === 'groupInsurance' && (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
-            <Shield className="h-16 w-16 text-blue-500 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('retirementTracker.groupInsurance')}</h3>
-            <p className="text-gray-600">Group insurance tracking features coming soon...</p>
-          </div>
-        )}
                           </div>
                         </td>
                       </tr>
@@ -1338,35 +801,35 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
               </tbody>
             </table>
           </div>
-          
+
           {/* Pagination */}
-          {activeTab === 'progress' && getTotalPages() > 1 && (
+          {totalPages > 1 && (
             <div className="px-6 py-4 border-t border-gray-200">
               <div className="flex items-center justify-between">
-                <div className="text-sm text-gray-700">
-                  {t('retirementTracker.showingPage', {
-                    start: (currentPage - 1) * recordsPerPage + 1,
-                    end: Math.min(currentPage * recordsPerPage, getTabFilteredEmployees().length),
-                    total: getTabFilteredEmployees().length
+                <div className="text-sm text-gray-500">
+                  {t('retirementTracker.showingPage', { 
+                    start: startIndex + 1, 
+                    end: Math.min(endIndex, tabFilteredProgress.length), 
+                    total: tabFilteredProgress.length 
                   })}
                 </div>
                 <div className="flex items-center space-x-2">
                   <button
-                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                    onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
-                    className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="p-2 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {t('common.previous')}
+                    <ChevronLeft className="h-4 w-4" />
                   </button>
                   
-                  {Array.from({ length: getTotalPages() }, (_, i) => i + 1).map((page) => (
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                     <button
                       key={page}
-                      onClick={() => setCurrentPage(page)}
-                      className={`px-3 py-1 text-sm border rounded-md ${
+                      onClick={() => handlePageChange(page)}
+                      className={`px-3 py-1 text-sm rounded ${
                         currentPage === page
-                          ? 'bg-blue-600 text-white border-blue-600'
-                          : 'border-gray-300 hover:bg-gray-50'
+                          ? 'bg-blue-600 text-white'
+                          : 'text-gray-600 hover:bg-gray-100'
                       }`}
                     >
                       {page}
@@ -1374,11 +837,11 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
                   ))}
                   
                   <button
-                    onClick={() => setCurrentPage(Math.min(getTotalPages(), currentPage + 1))}
-                    disabled={currentPage === getTotalPages()}
-                    className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="p-2 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {t('common.next')}
+                    <ChevronRight className="h-4 w-4" />
                   </button>
                 </div>
               </div>
@@ -1387,8 +850,8 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
         </div>
       </div>
 
-      {/* Edit Employee Modal */}
-      {showEditModal && editingEmployee && (
+      {/* Edit Progress Modal */}
+      {showEditModal && editingProgress && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
@@ -1405,12 +868,12 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
               {/* Basic Employee Info (Read-only) */}
               <div className="mb-6 p-4 bg-gray-50 rounded-lg">
                 <h4 className="text-md font-semibold text-gray-800 mb-3">{t('retirementTracker.basicEmployeeInfo')}</h4>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">{t('retirementTracker.employeeId')}</label>
                     <input
                       type="text"
-                      value={editingEmployee.emp_id}
+                      value={editingProgress.emp_id}
                       disabled
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500"
                     />
@@ -1419,16 +882,25 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
                     <label className="block text-sm font-medium text-gray-700 mb-1">{t('retirementTracker.employeeName')}</label>
                     <input
                       type="text"
-                      value={editingEmployee.employee_name}
+                      value={editingProgress.employee_name}
                       disabled
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('retirementTracker.age')}</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('retirementTracker.assignedClerk')}</label>
                     <input
                       type="text"
-                      value={editingEmployee.age || '-'}
+                      value={editingProgress.assigned_clerk || ''}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('retirementTracker.department')}</label>
+                    <input
+                      type="text"
+                      value={editingProgress.department || ''}
                       disabled
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500"
                     />
@@ -1438,365 +910,402 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
 
               {/* Progress Fields */}
               <div className="space-y-6">
-                <h4 className="text-md font-semibold text-gray-800">{t('retirementTracker.progressFields')}</h4>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Date of Birth Verification */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 border border-gray-200 rounded-lg">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">{t('retirementTracker.dateOfBirthVerification')}</label>
                     <select
-                      value={editingEmployee.date_of_birth_verification || ''}
-                      onChange={(e) => setEditingEmployee({ ...editingEmployee, date_of_birth_verification: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
+                      value={editingProgress.date_of_birth_verification || ''}
+                      onChange={(e) => setEditingProgress({ ...editingProgress, date_of_birth_verification: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
                       <option value="">{t('retirementTracker.selectStatus')}</option>
-                      <option value="आहे (Available)">आहे (Available)</option>
-                      <option value="नाही (Not Available)">नाही (Not Available)</option>
-                      <option value="लागू नाही (Not Applicable)">लागू नाही (Not Applicable)</option>
-                      <option value="सुट आहे (Exempted)">सुट आहे (Exempted)</option>
-                      <option value="इतर (Other)">इतर (Other)</option>
+                      <option value="होय">होय</option>
+                      <option value="नाही">नाही</option>
+                      <option value="लागू नाही">लागू नाही</option>
                     </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
                     <input
                       type="date"
-                      value={editingEmployee.date_of_birth_verification_date || ''}
-                      onChange={(e) => setEditingEmployee({ ...editingEmployee, date_of_birth_verification_date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
-                    />
-                    <textarea
-                      value={editingEmployee.date_of_birth_verification_comment || ''}
-                      onChange={(e) => setEditingEmployee({ ...editingEmployee, date_of_birth_verification_comment: e.target.value })}
+                      value={editingProgress.date_of_birth_verification_date || ''}
+                      onChange={(e) => setEditingProgress({ ...editingProgress, date_of_birth_verification_date: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      rows={2}
-                      placeholder={t('common.comment')}
                     />
                   </div>
-                  
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('retirementTracker.birthDocumentSubmitted')}</label>
-                    <select
-                      value={editingEmployee.birth_certificate_doc_submitted || ''}
-                      onChange={(e) => setEditingEmployee({ ...editingEmployee, birth_certificate_doc_submitted: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
-                    >
-                      <option value="">{t('retirementTracker.selectStatus')}</option>
-                      <option value="Birth Certificate">Birth Certificate</option>
-                      <option value="Passport">Passport</option>
-                      <option value="Transfer Certificate">Transfer Certificate</option>
-                      <option value="Leaving Certificate">Leaving Certificate</option>
-                    </select>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Comment</label>
                     <input
-                      type="date"
-                      value={editingEmployee.birth_certificate_doc_submitted_date || ''}
-                      onChange={(e) => setEditingEmployee({ ...editingEmployee, birth_certificate_doc_submitted_date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
-                    />
-                    <textarea
-                      value={editingEmployee.birth_certificate_doc_submitted_comment || ''}
-                      onChange={(e) => setEditingEmployee({ ...editingEmployee, birth_certificate_doc_submitted_comment: e.target.value })}
+                      type="text"
+                      value={editingProgress.date_of_birth_verification_comment || ''}
+                      onChange={(e) => setEditingProgress({ ...editingProgress, date_of_birth_verification_comment: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      rows={2}
-                      placeholder={t('common.comment')}
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('retirementTracker.medicalCertificate')}</label>
-                    <select
-                      value={editingEmployee.medical_certificate || ''}
-                      onChange={(e) => setEditingEmployee({ ...editingEmployee, medical_certificate: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
-                    >
-                      <option value="">{t('retirementTracker.selectStatus')}</option>
-                      <option value="आहे (Available)">आहे (Available)</option>
-                      <option value="नाही (Not Available)">नाही (Not Available)</option>
-                      <option value="लागू नाही (Not Applicable)">लागू नाही (Not Applicable)</option>
-                      <option value="सुट आहे (Exempted)">सुट आहे (Exempted)</option>
-                      <option value="इतर (Other)">इतर (Other)</option>
-                    </select>
-                    <input
-                      type="date"
-                      value={editingEmployee.medical_certificate_date || ''}
-                      onChange={(e) => setEditingEmployee({ ...editingEmployee, medical_certificate_date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
-                    />
-                    <textarea
-                      value={editingEmployee.medical_certificate_comment || ''}
-                      onChange={(e) => setEditingEmployee({ ...editingEmployee, medical_certificate_comment: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      rows={2}
-                      placeholder={t('common.comment')}
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('retirementTracker.nomination')}</label>
-                    <select
-                      value={editingEmployee.nomination || ''}
-                      onChange={(e) => setEditingEmployee({ ...editingEmployee, nomination: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
-                    >
-                      <option value="">{t('retirementTracker.selectStatus')}</option>
-                      <option value="आहे (Available)">आहे (Available)</option>
-                      <option value="नाही (Not Available)">नाही (Not Available)</option>
-                      <option value="लागू नाही (Not Applicable)">लागू नाही (Not Applicable)</option>
-                      <option value="सुट आहे (Exempted)">सुट आहे (Exempted)</option>
-                      <option value="इतर (Other)">इतर (Other)</option>
-                    </select>
-                    <input
-                      type="date"
-                      value={editingEmployee.nomination_date || ''}
-                      onChange={(e) => setEditingEmployee({ ...editingEmployee, nomination_date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
-                    />
-                    <textarea
-                      value={editingEmployee.nomination_comment || ''}
-                      onChange={(e) => setEditingEmployee({ ...editingEmployee, nomination_comment: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      rows={2}
-                      placeholder={t('common.comment')}
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('retirementTracker.permanentRegistration')}</label>
-                    <select
-                      value={editingEmployee.permanent_registration || ''}
-                      onChange={(e) => setEditingEmployee({ ...editingEmployee, permanent_registration: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
-                    >
-                      <option value="">{t('retirementTracker.selectStatus')}</option>
-                      <option value="आहे (Available)">आहे (Available)</option>
-                      <option value="नाही (Not Available)">नाही (Not Available)</option>
-                      <option value="लागू नाही (Not Applicable)">लागू नाही (Not Applicable)</option>
-                      <option value="सुट आहे (Exempted)">सुट आहे (Exempted)</option>
-                      <option value="इतर (Other)">इतर (Other)</option>
-                    </select>
-                    <input
-                      type="date"
-                      value={editingEmployee.permanent_registration_date || ''}
-                      onChange={(e) => setEditingEmployee({ ...editingEmployee, permanent_registration_date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
-                    />
-                    <textarea
-                      value={editingEmployee.permanent_registration_comment || ''}
-                      onChange={(e) => setEditingEmployee({ ...editingEmployee, permanent_registration_comment: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      rows={2}
-                      placeholder={t('common.comment')}
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('retirementTracker.computerExamPassed')}</label>
-                    <select
-                      value={editingEmployee.computer_exam_passed || ''}
-                      onChange={(e) => setEditingEmployee({ ...editingEmployee, computer_exam_passed: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
-                    >
-                      <option value="">{t('retirementTracker.selectStatus')}</option>
-                      <option value="आहे (Available)">आहे (Available)</option>
-                      <option value="नाही (Not Available)">नाही (Not Available)</option>
-                      <option value="लागू नाही (Not Applicable)">लागू नाही (Not Applicable)</option>
-                      <option value="सुट आहे (Exempted)">सुट आहे (Exempted)</option>
-                      <option value="इतर (Other)">इतर (Other)</option>
-                    </select>
-                    <input
-                      type="date"
-                      value={editingEmployee.computer_exam_passed_date || ''}
-                      onChange={(e) => setEditingEmployee({ ...editingEmployee, computer_exam_passed_date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
-                    />
-                    <textarea
-                      value={editingEmployee.computer_exam_passed_comment || ''}
-                      onChange={(e) => setEditingEmployee({ ...editingEmployee, computer_exam_passed_comment: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      rows={2}
-                      placeholder={t('common.comment')}
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('retirementTracker.marathiHindiExamExemption')}</label>
-                    <select
-                      value={editingEmployee.marathi_hindi_exam_exemption || ''}
-                      onChange={(e) => setEditingEmployee({ ...editingEmployee, marathi_hindi_exam_exemption: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
-                    >
-                      <option value="">{t('retirementTracker.selectStatus')}</option>
-                      <option value="आहे (Available)">आहे (Available)</option>
-                      <option value="नाही (Not Available)">नाही (Not Available)</option>
-                      <option value="लागू नाही (Not Applicable)">लागू नाही (Not Applicable)</option>
-                      <option value="सुट आहे (Exempted)">सुट आहे (Exempted)</option>
-                      <option value="इतर (Other)">इतर (Other)</option>
-                    </select>
-                    <input
-                      type="date"
-                      value={editingEmployee.marathi_hindi_exam_exemption_date || ''}
-                      onChange={(e) => setEditingEmployee({ ...editingEmployee, marathi_hindi_exam_exemption_date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
-                    />
-                    <textarea
-                      value={editingEmployee.marathi_hindi_exam_exemption_comment || ''}
-                      onChange={(e) => setEditingEmployee({ ...editingEmployee, marathi_hindi_exam_exemption_comment: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      rows={2}
-                      placeholder={t('common.comment')}
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('retirementTracker.postServiceExam')}</label>
-                    <select
-                      value={editingEmployee.post_service_exam || ''}
-                      onChange={(e) => setEditingEmployee({ ...editingEmployee, post_service_exam: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
-                    >
-                      <option value="">{t('retirementTracker.selectStatus')}</option>
-                      <option value="आहे (Available)">आहे (Available)</option>
-                      <option value="नाही (Not Available)">नाही (Not Available)</option>
-                      <option value="लागू नाही (Not Applicable)">लागू नाही (Not Applicable)</option>
-                      <option value="सुट आहे (Exempted)">सुट आहे (Exempted)</option>
-                      <option value="इतर (Other)">इतर (Other)</option>
-                    </select>
-                    <input
-                      type="date"
-                      value={editingEmployee.post_service_exam_date || ''}
-                      onChange={(e) => setEditingEmployee({ ...editingEmployee, post_service_exam_date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
-                    />
-                    <textarea
-                      value={editingEmployee.post_service_exam_comment || ''}
-                      onChange={(e) => setEditingEmployee({ ...editingEmployee, post_service_exam_comment: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      rows={2}
-                      placeholder={t('common.comment')}
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('retirementTracker.verificationCompleted')}</label>
-                    <select
-                      value={editingEmployee.verification_completed || ''}
-                      onChange={(e) => setEditingEmployee({ ...editingEmployee, verification_completed: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
-                    >
-                      <option value="">{t('retirementTracker.selectStatus')}</option>
-                      <option value="आहे (Available)">आहे (Available)</option>
-                      <option value="नाही (Not Available)">नाही (Not Available)</option>
-                      <option value="लागू नाही (Not Applicable)">लागू नाही (Not Applicable)</option>
-                      <option value="सुट आहे (Exempted)">सुट आहे (Exempted)</option>
-                      <option value="इतर (Other)">इतर (Other)</option>
-                    </select>
-                    <input
-                      type="date"
-                      value={editingEmployee.verification_completed_date || ''}
-                      onChange={(e) => setEditingEmployee({ ...editingEmployee, verification_completed_date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
-                    />
-                    <textarea
-                      value={editingEmployee.verification_completed_comment || ''}
-                      onChange={(e) => setEditingEmployee({ ...editingEmployee, verification_completed_comment: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      rows={2}
-                      placeholder={t('common.comment')}
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('retirementTracker.undertakingTaken')}</label>
-                    <select
-                      value={editingEmployee.has_undertaking_been_taken_on_21_12_2021 || ''}
-                      onChange={(e) => setEditingEmployee({ ...editingEmployee, has_undertaking_been_taken_on_21_12_2021: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
-                    >
-                      <option value="">{t('retirementTracker.selectStatus')}</option>
-                      <option value="आहे (Available)">आहे (Available)</option>
-                      <option value="नाही (Not Available)">नाही (Not Available)</option>
-                      <option value="लागू नाही (Not Applicable)">लागू नाही (Not Applicable)</option>
-                      <option value="सुट आहे (Exempted)">सुट आहे (Exempted)</option>
-                      <option value="इतर (Other)">इतर (Other)</option>
-                    </select>
-                    <input
-                      type="date"
-                      value={editingEmployee.has_undertaking_been_taken_on_21_12_2021_date || ''}
-                      onChange={(e) => setEditingEmployee({ ...editingEmployee, has_undertaking_been_taken_on_21_12_2021_date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
-                    />
-                    <textarea
-                      value={editingEmployee.has_undertaking_been_taken_on_21_12_2021_comment || ''}
-                      onChange={(e) => setEditingEmployee({ ...editingEmployee, has_undertaking_been_taken_on_21_12_2021_comment: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      rows={2}
-                      placeholder={t('common.comment')}
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('retirementTracker.noObjectionCertificate')}</label>
-                    <select
-                      value={editingEmployee.no_objection_no_inquiry_certificate || ''}
-                      onChange={(e) => setEditingEmployee({ ...editingEmployee, no_objection_no_inquiry_certificate: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
-                    >
-                      <option value="">{t('retirementTracker.selectStatus')}</option>
-                      <option value="आहे (Available)">आहे (Available)</option>
-                      <option value="नाही (Not Available)">नाही (Not Available)</option>
-                      <option value="लागू नाही (Not Applicable)">लागू नाही (Not Applicable)</option>
-                      <option value="सुट आहे (Exempted)">सुट आहे (Exempted)</option>
-                      <option value="इतर (Other)">इतर (Other)</option>
-                    </select>
-                    <input
-                      type="date"
-                      value={editingEmployee.no_objection_no_inquiry_certificate_date || ''}
-                      onChange={(e) => setEditingEmployee({ ...editingEmployee, no_objection_no_inquiry_certificate_date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
-                    />
-                    <textarea
-                      value={editingEmployee.no_objection_no_inquiry_certificate_comment || ''}
-                      onChange={(e) => setEditingEmployee({ ...editingEmployee, no_objection_no_inquiry_certificate_comment: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      rows={2}
-                      placeholder={t('common.comment')}
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('retirementTracker.retirementOrder')}</label>
-                    <select
-                      value={editingEmployee.retirement_order || ''}
-                      onChange={(e) => setEditingEmployee({ ...editingEmployee, retirement_order: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
-                    >
-                      <option value="">{t('retirementTracker.selectStatus')}</option>
-                      <option value="आहे (Available)">आहे (Available)</option>
-                      <option value="नाही (Not Available)">नाही (Not Available)</option>
-                      <option value="लागू नाही (Not Applicable)">लागू नाही (Not Applicable)</option>
-                      <option value="सुट आहे (Exempted)">सुट आहे (Exempted)</option>
-                      <option value="इतर (Other)">इतर (Other)</option>
-                    </select>
-                    <input
-                      type="date"
-                      value={editingEmployee.retirement_order_date || ''}
-                      onChange={(e) => setEditingEmployee({ ...editingEmployee, retirement_order_date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
-                    />
-                    <textarea
-                      value={editingEmployee.retirement_order_comment || ''}
-                      onChange={(e) => setEditingEmployee({ ...editingEmployee, retirement_order_comment: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      rows={2}
-                      placeholder={t('common.comment')}
                     />
                   </div>
                 </div>
-                
+
+                {/* Birth Document Submitted */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 border border-gray-200 rounded-lg">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('retirementTracker.birthDocumentSubmitted')}</label>
+                    <select
+                      value={editingProgress.birth_document_submitted || ''}
+                      onChange={(e) => setEditingProgress({ ...editingProgress, birth_document_submitted: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="">{t('retirementTracker.selectStatus')}</option>
+                      <option value="जन्म प्रमाणपत्र">{t('retirementTracker.birthCertificate')}</option>
+                      <option value="पासपोर्ट">{t('retirementTracker.passport')}</option>
+                      <option value="स्थानांतर प्रमाणपत्र">{t('retirementTracker.transferCertificate')}</option>
+                      <option value="सोडणूक प्रमाणपत्र">{t('retirementTracker.leavingCertificate')}</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
+                    <input
+                      type="date"
+                      value={editingProgress.birth_document_submitted_date || ''}
+                      onChange={(e) => setEditingProgress({ ...editingProgress, birth_document_submitted_date: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Comment</label>
+                    <input
+                      type="text"
+                      value={editingProgress.birth_document_submitted_comment || ''}
+                      onChange={(e) => setEditingProgress({ ...editingProgress, birth_document_submitted_comment: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
+                {/* Medical Certificate */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 border border-gray-200 rounded-lg">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('retirementTracker.medicalCertificate')}</label>
+                    <select
+                      value={editingProgress.medical_certificate || ''}
+                      onChange={(e) => setEditingProgress({ ...editingProgress, medical_certificate: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="">{t('retirementTracker.selectStatus')}</option>
+                      <option value="होय">होय</option>
+                      <option value="नाही">नाही</option>
+                      <option value="लागू नाही">लागू नाही</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
+                    <input
+                      type="date"
+                      value={editingProgress.medical_certificate_date || ''}
+                      onChange={(e) => setEditingProgress({ ...editingProgress, medical_certificate_date: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Comment</label>
+                    <input
+                      type="text"
+                      value={editingProgress.medical_certificate_comment || ''}
+                      onChange={(e) => setEditingProgress({ ...editingProgress, medical_certificate_comment: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
+                {/* Nomination */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 border border-gray-200 rounded-lg">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('retirementTracker.nomination')}</label>
+                    <select
+                      value={editingProgress.nomination || ''}
+                      onChange={(e) => setEditingProgress({ ...editingProgress, nomination: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="">{t('retirementTracker.selectStatus')}</option>
+                      <option value="होय">होय</option>
+                      <option value="नाही">नाही</option>
+                      <option value="लागू नाही">लागू नाही</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
+                    <input
+                      type="date"
+                      value={editingProgress.nomination_date || ''}
+                      onChange={(e) => setEditingProgress({ ...editingProgress, nomination_date: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Comment</label>
+                    <input
+                      type="text"
+                      value={editingProgress.nomination_comment || ''}
+                      onChange={(e) => setEditingProgress({ ...editingProgress, nomination_comment: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
+                {/* Permanent Registration */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 border border-gray-200 rounded-lg">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('retirementTracker.permanentRegistration')}</label>
+                    <select
+                      value={editingProgress.permanent_registration || ''}
+                      onChange={(e) => setEditingProgress({ ...editingProgress, permanent_registration: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="">{t('retirementTracker.selectStatus')}</option>
+                      <option value="होय">होय</option>
+                      <option value="नाही">नाही</option>
+                      <option value="लागू नाही">लागू नाही</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
+                    <input
+                      type="date"
+                      value={editingProgress.permanent_registration_date || ''}
+                      onChange={(e) => setEditingProgress({ ...editingProgress, permanent_registration_date: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Comment</label>
+                    <input
+                      type="text"
+                      value={editingProgress.permanent_registration_comment || ''}
+                      onChange={(e) => setEditingProgress({ ...editingProgress, permanent_registration_comment: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
+                {/* Computer Exam */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 border border-gray-200 rounded-lg">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('retirementTracker.computerExam')}</label>
+                    <select
+                      value={editingProgress.computer_exam || ''}
+                      onChange={(e) => setEditingProgress({ ...editingProgress, computer_exam: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="">{t('retirementTracker.selectStatus')}</option>
+                      <option value="होय">होय</option>
+                      <option value="नाही">नाही</option>
+                      <option value="लागू नाही">लागू नाही</option>
+                      <option value="सूट">सूट</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
+                    <input
+                      type="date"
+                      value={editingProgress.computer_exam_date || ''}
+                      onChange={(e) => setEditingProgress({ ...editingProgress, computer_exam_date: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Comment</label>
+                    <input
+                      type="text"
+                      value={editingProgress.computer_exam_comment || ''}
+                      onChange={(e) => setEditingProgress({ ...editingProgress, computer_exam_comment: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
+                {/* Marathi Hindi Exam Exemption */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 border border-gray-200 rounded-lg">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('retirementTracker.marathiHindiExamExemption')}</label>
+                    <select
+                      value={editingProgress.marathi_hindi_exam_exemption || ''}
+                      onChange={(e) => setEditingProgress({ ...editingProgress, marathi_hindi_exam_exemption: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="">{t('retirementTracker.selectStatus')}</option>
+                      <option value="होय">होय</option>
+                      <option value="नाही">नाही</option>
+                      <option value="लागू नाही">लागू नाही</option>
+                      <option value="सूट">सूट</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
+                    <input
+                      type="date"
+                      value={editingProgress.marathi_hindi_exam_exemption_date || ''}
+                      onChange={(e) => setEditingProgress({ ...editingProgress, marathi_hindi_exam_exemption_date: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Comment</label>
+                    <input
+                      type="text"
+                      value={editingProgress.marathi_hindi_exam_exemption_comment || ''}
+                      onChange={(e) => setEditingProgress({ ...editingProgress, marathi_hindi_exam_exemption_comment: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
+                {/* Verification Completed */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 border border-gray-200 rounded-lg">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('retirementTracker.verificationCompleted')}</label>
+                    <select
+                      value={editingProgress.verification_completed || ''}
+                      onChange={(e) => setEditingProgress({ ...editingProgress, verification_completed: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="">{t('retirementTracker.selectStatus')}</option>
+                      <option value="होय">होय</option>
+                      <option value="नाही">नाही</option>
+                      <option value="लागू नाही">लागू नाही</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
+                    <input
+                      type="date"
+                      value={editingProgress.verification_completed_date || ''}
+                      onChange={(e) => setEditingProgress({ ...editingProgress, verification_completed_date: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Comment</label>
+                    <input
+                      type="text"
+                      value={editingProgress.verification_completed_comment || ''}
+                      onChange={(e) => setEditingProgress({ ...editingProgress, verification_completed_comment: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
+                {/* Undertaking Taken */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 border border-gray-200 rounded-lg">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('retirementTracker.undertakingTaken')}</label>
+                    <select
+                      value={editingProgress.undertaking_taken_21_12_2021 || ''}
+                      onChange={(e) => setEditingProgress({ ...editingProgress, undertaking_taken_21_12_2021: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="">{t('retirementTracker.selectStatus')}</option>
+                      <option value="होय">होय</option>
+                      <option value="नाही">नाही</option>
+                      <option value="लागू नाही">लागू नाही</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
+                    <input
+                      type="date"
+                      value={editingProgress.undertaking_taken_21_12_2021_date || ''}
+                      onChange={(e) => setEditingProgress({ ...editingProgress, undertaking_taken_21_12_2021_date: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Comment</label>
+                    <input
+                      type="text"
+                      value={editingProgress.undertaking_taken_21_12_2021_comment || ''}
+                      onChange={(e) => setEditingProgress({ ...editingProgress, undertaking_taken_21_12_2021_comment: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
+                {/* No Objection Certificate */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 border border-gray-200 rounded-lg">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('retirementTracker.noObjectionCertificate')}</label>
+                    <select
+                      value={editingProgress.no_objection_no_inquiry_certificate || ''}
+                      onChange={(e) => setEditingProgress({ ...editingProgress, no_objection_no_inquiry_certificate: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="">{t('retirementTracker.selectStatus')}</option>
+                      <option value="होय">होय</option>
+                      <option value="नाही">नाही</option>
+                      <option value="लागू नाही">लागू नाही</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
+                    <input
+                      type="date"
+                      value={editingProgress.no_objection_no_inquiry_certificate_date || ''}
+                      onChange={(e) => setEditingProgress({ ...editingProgress, no_objection_no_inquiry_certificate_date: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Comment</label>
+                    <input
+                      type="text"
+                      value={editingProgress.no_objection_no_inquiry_certificate_comment || ''}
+                      onChange={(e) => setEditingProgress({ ...editingProgress, no_objection_no_inquiry_certificate_comment: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
+                {/* Retirement Order */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 border border-gray-200 rounded-lg">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('retirementTracker.retirementOrder')}</label>
+                    <select
+                      value={editingProgress.retirement_order || ''}
+                      onChange={(e) => setEditingProgress({ ...editingProgress, retirement_order: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="">{t('retirementTracker.selectStatus')}</option>
+                      <option value="होय">होय</option>
+                      <option value="नाही">नाही</option>
+                      <option value="लागू नाही">लागू नाही</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
+                    <input
+                      type="date"
+                      value={editingProgress.retirement_order_date || ''}
+                      onChange={(e) => setEditingProgress({ ...editingProgress, retirement_order_date: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Comment</label>
+                    <input
+                      type="text"
+                      value={editingProgress.retirement_order_comment || ''}
+                      onChange={(e) => setEditingProgress({ ...editingProgress, retirement_order_comment: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
                 {/* Overall Comment */}
-                <div className="mt-6">
+                <div className="p-4 border border-gray-200 rounded-lg">
                   <label className="block text-sm font-medium text-gray-700 mb-2">{t('retirementTracker.overallComment')}</label>
                   <textarea
-                    value={editingEmployee.overall_comment || ''}
-                    onChange={(e) => setEditingEmployee({ ...editingEmployee, overall_comment: e.target.value })}
+                    value={editingProgress.overall_comment || ''}
+                    onChange={(e) => setEditingProgress({ ...editingProgress, overall_comment: e.target.value })}
+                    rows={3}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    rows={4}
                     placeholder={t('retirementTracker.enterOverallComment')}
                   />
                 </div>
@@ -1811,7 +1320,7 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
                 {t('common.cancel')}
               </button>
               <button
-                onClick={handleUpdateEmployee}
+                onClick={handleUpdateProgress}
                 disabled={isLoading}
                 className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 disabled:opacity-50"
               >
@@ -1824,241 +1333,3 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
     </div>
   );
 };
-      {/* Edit Pay Commission Modal */}
-      {showEditPayCommissionModal && editingPayCommission && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">{t('retirementTracker.editPayCommissionDetails')}</h3>
-              <button
-                onClick={() => setShowEditPayCommissionModal(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            
-            <div className="p-6">
-              {/* Basic Employee Info (Read-only) */}
-              <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-                <h4 className="text-md font-semibold text-gray-800 mb-3">{t('retirementTracker.basicEmployeeInfo')}</h4>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('retirementTracker.employeeId')}</label>
-                    <input
-                      type="text"
-                      value={editingPayCommission.emp_id}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('retirementTracker.employeeName')}</label>
-                    <input
-                      type="text"
-                      value={editingPayCommission.employee_name}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('retirementTracker.assignedClerk')}</label>
-                    <input
-                      type="text"
-                      value={editingPayCommission.assigned_clerk || ''}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('retirementTracker.department')}</label>
-                    <input
-                      type="text"
-                      value={editingPayCommission.department || ''}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Pay Commission Fields */}
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Fourth Pay Commission */}
-                  <div className="space-y-3">
-                    <h5 className="font-medium text-gray-900">{t('retirementTracker.fourthPayCommission')}</h5>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('retirementTracker.status')}</label>
-                      <select
-                        value={editingPayCommission.fourth_pay_commission || ''}
-                        onChange={(e) => setEditingPayCommission({ ...editingPayCommission, fourth_pay_commission: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      >
-                        <option value="">{t('retirementTracker.selectStatus')}</option>
-                        <option value="आहे (Available)">आहे (Available)</option>
-                        <option value="नाही (Not Available)">नाही (Not Available)</option>
-                        <option value="लागू नाही (Not Applicable)">लागू नाही (Not Applicable)</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
-                      <input
-                        type="date"
-                        value={editingPayCommission.fourth_pay_commission_date || ''}
-                        onChange={(e) => setEditingPayCommission({ ...editingPayCommission, fourth_pay_commission_date: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Comment</label>
-                      <textarea
-                        value={editingPayCommission.fourth_pay_commission_comment || ''}
-                        onChange={(e) => setEditingPayCommission({ ...editingPayCommission, fourth_pay_commission_comment: e.target.value })}
-                        rows={2}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Fifth Pay Commission */}
-                  <div className="space-y-3">
-                    <h5 className="font-medium text-gray-900">{t('retirementTracker.fifthPayCommission')}</h5>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('retirementTracker.status')}</label>
-                      <select
-                        value={editingPayCommission.fifth_pay_commission || ''}
-                        onChange={(e) => setEditingPayCommission({ ...editingPayCommission, fifth_pay_commission: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      >
-                        <option value="">{t('retirementTracker.selectStatus')}</option>
-                        <option value="आहे (Available)">आहे (Available)</option>
-                        <option value="नाही (Not Available)">नाही (Not Available)</option>
-                        <option value="लागू नाही (Not Applicable)">लागू नाही (Not Applicable)</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
-                      <input
-                        type="date"
-                        value={editingPayCommission.fifth_pay_commission_date || ''}
-                        onChange={(e) => setEditingPayCommission({ ...editingPayCommission, fifth_pay_commission_date: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Comment</label>
-                      <textarea
-                        value={editingPayCommission.fifth_pay_commission_comment || ''}
-                        onChange={(e) => setEditingPayCommission({ ...editingPayCommission, fifth_pay_commission_comment: e.target.value })}
-                        rows={2}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Sixth Pay Commission */}
-                  <div className="space-y-3">
-                    <h5 className="font-medium text-gray-900">{t('retirementTracker.sixthPayCommission')}</h5>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('retirementTracker.status')}</label>
-                      <select
-                        value={editingPayCommission.sixth_pay_commission || ''}
-                        onChange={(e) => setEditingPayCommission({ ...editingPayCommission, sixth_pay_commission: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      >
-                        <option value="">{t('retirementTracker.selectStatus')}</option>
-                        <option value="आहे (Available)">आहे (Available)</option>
-                        <option value="नाही (Not Available)">नाही (Not Available)</option>
-                        <option value="लागू नाही (Not Applicable)">लागू नाही (Not Applicable)</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
-                      <input
-                        type="date"
-                        value={editingPayCommission.sixth_pay_commission_date || ''}
-                        onChange={(e) => setEditingPayCommission({ ...editingPayCommission, sixth_pay_commission_date: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Comment</label>
-                      <textarea
-                        value={editingPayCommission.sixth_pay_commission_comment || ''}
-                        onChange={(e) => setEditingPayCommission({ ...editingPayCommission, sixth_pay_commission_comment: e.target.value })}
-                        rows={2}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Seventh Pay Commission */}
-                  <div className="space-y-3">
-                    <h5 className="font-medium text-gray-900">{t('retirementTracker.seventhPayCommission')}</h5>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('retirementTracker.status')}</label>
-                      <select
-                        value={editingPayCommission.seventh_pay_commission || ''}
-                        onChange={(e) => setEditingPayCommission({ ...editingPayCommission, seventh_pay_commission: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      >
-                        <option value="">{t('retirementTracker.selectStatus')}</option>
-                        <option value="आहे (Available)">आहे (Available)</option>
-                        <option value="नाही (Not Available)">नाही (Not Available)</option>
-                        <option value="लागू नाही (Not Applicable)">लागू नाही (Not Applicable)</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
-                      <input
-                        type="date"
-                        value={editingPayCommission.seventh_pay_commission_date || ''}
-                        onChange={(e) => setEditingPayCommission({ ...editingPayCommission, seventh_pay_commission_date: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Comment</label>
-                      <textarea
-                        value={editingPayCommission.seventh_pay_commission_comment || ''}
-                        onChange={(e) => setEditingPayCommission({ ...editingPayCommission, seventh_pay_commission_comment: e.target.value })}
-                        rows={2}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Overall Comment */}
-                <div className="mt-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('retirementTracker.overallComment')}</label>
-                  <textarea
-                    value={editingPayCommission.overall_comment || ''}
-                    onChange={(e) => setEditingPayCommission({ ...editingPayCommission, overall_comment: e.target.value })}
-                    rows={4}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder={t('retirementTracker.enterOverallComment')}
-                  />
-                </div>
-              </div>
-            </div>
-            
-            <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200">
-              <button
-                onClick={() => setShowEditPayCommissionModal(false)}
-                className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200"
-              >
-                {t('common.cancel')}
-              </button>
-              <button
-                onClick={handleUpdatePayCommission}
-                disabled={isLoading}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 disabled:opacity-50"
-              >
-                {isLoading ? t('common.saving') : t('common.update')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
