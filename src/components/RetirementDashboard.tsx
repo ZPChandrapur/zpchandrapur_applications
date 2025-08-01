@@ -38,6 +38,7 @@ interface RetirementEmployee {
   assigned_clerk: string | null;
   department: string | null;
   designation: string | null;
+  status: string | null;
   date_of_submission: string | null;
   department_submitted: string | null;
   type_of_pension: string | null;
@@ -117,6 +118,8 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
           assigned_clerk,
           department,
           designation,
+          status,
+          status,
           date_of_submission,
           department_submitted,
           type_of_pension,
@@ -134,7 +137,33 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
         .order('age', { ascending: false });
       
       if (error) throw error;
-      setRetirementEmployees(data || []);
+      
+      // Update status for each employee based on progress and save to database
+      const employeesWithUpdatedStatus = await Promise.all((data || []).map(async (employee) => {
+        const calculatedStatus = getProgressStatus(employee);
+        
+        // Only update if status has changed
+        if (employee.status !== calculatedStatus) {
+          try {
+            const { error: updateError } = await ermsClient
+              .from('employee_retirement')
+              .update({ status: calculatedStatus })
+              .eq('id', employee.id);
+            
+            if (updateError) {
+              console.error('Error updating status for employee:', employee.emp_id, updateError);
+            } else {
+              console.log(`Updated status for ${employee.emp_id}: ${calculatedStatus}`);
+            }
+          } catch (updateError) {
+            console.error('Error updating employee status:', updateError);
+          }
+        }
+        
+        return { ...employee, status: calculatedStatus };
+      }));
+      
+      setRetirementEmployees(employeesWithUpdatedStatus);
     } catch (error) {
       console.error('Error fetching retirement employees:', error);
     }
@@ -315,11 +344,15 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
 
     setIsLoading(true);
     try {
+      // Calculate the new status based on the updated data
+      const newStatus = getProgressStatus(editingEmployee);
+      
       const { error } = await ermsClient
         .from('employee_retirement')
         .update({
           designation_time_of_retirement: editingEmployee.designation_time_of_retirement,
           assigned_clerk: editingEmployee.assigned_clerk,
+          status: newStatus,
           date_of_submission: editingEmployee.date_of_submission,
           department_submitted: editingEmployee.department_submitted,
           type_of_pension: editingEmployee.type_of_pension,
