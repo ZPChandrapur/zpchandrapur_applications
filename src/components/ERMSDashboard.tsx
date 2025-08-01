@@ -19,6 +19,7 @@ import { OrganizationSetup } from './OrganizationSetup';
 import { EmployeeDashboard } from './EmployeeDashboard';
 import { RetirementDashboard } from './RetirementDashboard';
 import { RetirementTracker } from './RetirementTracker';
+import { InstructionsDashboard } from './InstructionsDashboard';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 interface ERMSDashboardProps {
@@ -124,13 +125,7 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, onBack }) =>
           </div>
         );
       case 'instructions':
-        return (
-          <div className="p-8 text-center">
-            <BookOpen className="h-16 w-16 text-gray-500 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Instructions</h3>
-            <p className="text-gray-600">System instructions coming soon...</p>
-          </div>
-        );
+        return <InstructionsDashboard user={user} onBack={handleBackToMain} />;
       default:
         return <EmployeeDashboard onBack={handleBackToMain} />;
     }
