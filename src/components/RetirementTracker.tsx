@@ -990,10 +990,10 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
                     >
                       <option value="">{t('retirementTracker.selectStatus')}</option>
-                      <option value="होय (Yes)">होय (Yes)</option>
-                      <option value="नाही (No)">नाही (No)</option>
-                      <option value="प्रलंबित (Pending)">प्रलंबित (Pending)</option>
-                      <option value="इतर (Other)">इतर (Other)</option>
+                      <option value="Birth Certificate">Birth Certificate</option>
+                      <option value="Passport">Passport</option>
+                      <option value="Transfer Certificate">Transfer Certificate</option>
+                      <option value="Leaving Certificate">Leaving Certificate</option>
                     </select>
                     <input
                       type="date"
