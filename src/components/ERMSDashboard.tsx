@@ -20,6 +20,7 @@ import { EmployeeDashboard } from './EmployeeDashboard';
 import { RetirementDashboard } from './RetirementDashboard';
 import { RetirementTracker } from './RetirementTracker';
 import { InstructionsDashboard } from './InstructionsDashboard';
+import { CustomReports } from './CustomReports';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 interface ERMSDashboardProps {
@@ -117,15 +118,11 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, onBack }) =>
           </div>
         );
       case 'custom-reports':
-        return (
-          <div className="p-8 text-center">
-            <BarChart3 className="h-16 w-16 text-teal-500 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Custom Reports</h3>
-            <p className="text-gray-600">Custom reporting features coming soon...</p>
-          </div>
-        );
+        return <CustomReports user={user} onBack={handleBackToMain} />;
       case 'instructions':
         return <InstructionsDashboard user={user} onBack={handleBackToMain} />;
+      case 'custom-reports':
+        return <CustomReports user={user} onBack={handleBackToMain} />;
       default:
         return <EmployeeDashboard onBack={handleBackToMain} />;
     }
