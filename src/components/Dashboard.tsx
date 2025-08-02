@@ -43,6 +43,20 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
   const { permissions, userRole, userProfile, isLoading: permissionsLoading } = usePermissions(user);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [selectedApp, setSelectedApp] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect if running on mobile device
+  useEffect(() => {
+    const checkMobile = () => {
+      const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
+      const mobileRegex = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i;
+      setIsMobile(mobileRegex.test(userAgent.toLowerCase()) || window.innerWidth <= 768);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Close profile dropdown when clicking outside
   useEffect(() => {
@@ -97,7 +111,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
         { label: t('systems.erms.addEmployee'), icon: UserCheck, color: 'bg-green-100 text-green-700 hover:bg-green-200' },
         { label: t('systems.erms.generateReport'), icon: FileText, color: 'bg-purple-100 text-purple-700 hover:bg-purple-200' }
       ],
-      type: t('systems.erms.webApplication')
+      type: t('systems.erms.webApplication'),
+      mobileOnly: false
     },
     {
       id: 'estimate',
@@ -119,7 +134,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
         { label: t('systems.estimate.viewEstimates'), icon: Eye, color: 'bg-blue-100 text-blue-700 hover:bg-blue-200' },
         { label: t('systems.estimate.templates'), icon: FileText, color: 'bg-purple-100 text-purple-700 hover:bg-purple-200' }
       ],
-      type: t('systems.estimate.mobileApplication')
+      type: t('systems.estimate.mobileApplication'),
+      mobileOnly: true
     },
     {
       id: 'fims',
@@ -141,7 +157,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
         { label: t('systems.fims.viewInspections'), icon: Eye, color: 'bg-blue-100 text-blue-700 hover:bg-blue-200' },
         { label: t('systems.fims.reports'), icon: FileText, color: 'bg-green-100 text-green-700 hover:bg-green-200' }
       ],
-      type: t('systems.fims.mobileApplication')
+      type: t('systems.fims.mobileApplication'),
+      mobileOnly: true
     },
     {
       id: 'pesa',
@@ -163,10 +180,23 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
         { label: t('systems.pesa.viewFunds'), icon: Eye, color: 'bg-blue-100 text-blue-700 hover:bg-blue-200' },
         { label: t('systems.pesa.compliance'), icon: Shield, color: 'bg-green-100 text-green-700 hover:bg-green-200' }
       ],
-      type: t('systems.pesa.webApplication')
+      type: t('systems.pesa.webApplication'),
+      mobileOnly: false
     }
   ];
 
+  // Filter systems based on device type
+  const getVisibleSystems = () => {
+    if (isMobile) {
+      // Mobile: Show only FIMS and E-estimate
+      return systems.filter(system => system.id === 'fims' || system.id === 'estimate');
+    } else {
+      // Web: Show all systems
+      return systems;
+    }
+  };
+
+  const visibleSystems = getVisibleSystems();
   if (permissionsLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -431,71 +461,77 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Section */}
         <div className="mb-8">
-          <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+          <h2 className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2`}>
             {t('dashboard.welcome')}, {userProfile?.name || user.email?.split('@')[0]}
           </h2>
-          <p className="text-gray-600 text-lg">
-            {t('dashboard.overview')}
+          <p className={`text-gray-600 ${isMobile ? 'text-base' : 'text-lg'}`}>
+            {isMobile ? 'मोबाइल अनुप्रयोग प्रणाली' : t('dashboard.overview')}
           </p>
+          {isMobile && (
+            <div className="mt-2 flex items-center space-x-2">
+              <Smartphone className="h-4 w-4 text-blue-600" />
+              <span className="text-sm text-blue-600 font-medium">Mobile Application</span>
+            </div>
+          )}
         </div>
 
         {/* Systems Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {systems.map((system) => (
+        <div className={`grid grid-cols-1 ${isMobile ? 'gap-4' : 'lg:grid-cols-2 gap-8'}`}>
+          {visibleSystems.map((system) => (
               <div 
                 key={system.id}
-                className={`bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer transform hover:-translate-y-1 ${system.hoverColor}`}
+                className={`bg-white ${isMobile ? 'rounded-lg' : 'rounded-xl'} shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer ${isMobile ? '' : 'transform hover:-translate-y-1'} ${system.hoverColor}`}
                 onClick={() => handleAppClick(system.id)}
               >
                 {/* System Header */}
-                <div className="p-6 border-b border-gray-100">
+                <div className={`${isMobile ? 'p-4' : 'p-6'} border-b border-gray-100`}>
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center space-x-4">
-                      <div className={`${system.color} p-4 rounded-xl shadow-lg`}>
-                        <system.icon className="h-8 w-8 text-white" />
+                      <div className={`${system.color} ${isMobile ? 'p-3' : 'p-4'} rounded-xl shadow-lg`}>
+                        <system.icon className={`${isMobile ? 'h-6 w-6' : 'h-8 w-8'} text-white`} />
                       </div>
                       <div>
-                        <h3 className="text-xl font-bold text-gray-900 mb-1">
+                        <h3 className={`${isMobile ? 'text-lg' : 'text-xl'} font-bold text-gray-900 mb-1`}>
                           {system.name}
                         </h3>
-                        <p className="text-sm text-gray-600 font-medium">{system.fullName}</p>
-                        <p className="text-sm text-gray-500 mt-1">{system.description}</p>
+                        <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-600 font-medium`}>{system.fullName}</p>
+                        <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-500 mt-1`}>{system.description}</p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      <span className={`inline-flex items-center ${isMobile ? 'px-2 py-1' : 'px-3 py-1'} rounded-full text-xs font-medium bg-blue-100 text-blue-800`}>
                         {system.type}
                       </span>
-                      <ArrowRight className="h-5 w-5 text-gray-400" />
+                      <ArrowRight className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-gray-400`} />
                     </div>
                   </div>
                 </div>
 
                 {/* System Stats */}
-                <div className="p-6 bg-gradient-to-r from-gray-50 to-gray-100">
-                  <div className="grid grid-cols-2 gap-4">
+                <div className={`${isMobile ? 'p-4' : 'p-6'} bg-gradient-to-r from-gray-50 to-gray-100`}>
+                  <div className={`grid grid-cols-2 ${isMobile ? 'gap-2' : 'gap-4'}`}>
                     {system.stats.map((stat, index) => (
-                      <div key={index} className="text-center bg-white rounded-lg p-3 shadow-sm">
+                      <div key={index} className={`text-center bg-white rounded-lg ${isMobile ? 'p-2' : 'p-3'} shadow-sm`}>
                         <div className="flex items-center justify-center mb-2">
-                          <stat.icon className={`h-5 w-5 ${stat.color}`} />
+                          <stat.icon className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} ${stat.color}`} />
                         </div>
-                        <div className="text-lg font-bold text-gray-900 mb-1">{stat.value}</div>
-                        <div className="text-xs text-gray-600 font-medium">{stat.label}</div>
+                        <div className={`${isMobile ? 'text-base' : 'text-lg'} font-bold text-gray-900 mb-1`}>{stat.value}</div>
+                        <div className={`${isMobile ? 'text-xs' : 'text-xs'} text-gray-600 font-medium line-clamp-2`}>{stat.label}</div>
                       </div>
                     ))}
                   </div>
                 </div>
 
                 {/* System Actions */}
-                <div className="p-6">
-                  <div className="flex flex-wrap gap-3">
+                <div className={`${isMobile ? 'p-4' : 'p-6'}`}>
+                  <div className={`flex flex-wrap ${isMobile ? 'gap-2' : 'gap-3'}`}>
                     {system.actions.map((action, index) => (
                       <button
                         key={index}
-                        className={`inline-flex items-center space-x-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${action.color}`}
+                        className={`inline-flex items-center space-x-2 ${isMobile ? 'px-3 py-2 text-xs' : 'px-4 py-2 text-sm'} font-medium rounded-lg transition-all duration-200 ${action.color}`}
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <action.icon className="h-4 w-4" />
+                        <action.icon className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
                         <span>{action.label}</span>
                       </button>
                     ))}

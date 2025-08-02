@@ -83,4 +83,56 @@
     -moz-user-select: none;
     -ms-user-select: none;
   }
+  
+  /* Mobile-specific optimizations */
+  @media (max-width: 768px) {
+    .mobile-card {
+      border-radius: 0.5rem;
+      padding: 1rem;
+    }
+    
+    .mobile-text {
+      font-size: 0.875rem;
+      line-height: 1.25rem;
+    }
+    
+    .mobile-button {
+      padding: 0.75rem 1rem;
+      font-size: 0.875rem;
+      min-height: 44px;
+    }
+    
+    .mobile-grid {
+      gap: 1rem;
+    }
+    
+    .mobile-header {
+      padding: 1rem;
+    }
+    
+    .mobile-stats {
+      padding: 0.5rem;
+      font-size: 0.75rem;
+    }
+  }
+  
+  /* Touch-friendly interactions */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Mobile navigation improvements */
+  @media (max-width: 768px) {
+    .mobile-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      border-top: 1px solid #e5e7eb;
+      padding: 0.5rem;
+      z-index: 50;
+    }
+  }
 }

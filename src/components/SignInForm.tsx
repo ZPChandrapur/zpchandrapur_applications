@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Mail, Lock, Eye, EyeOff, LogIn } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, LogIn, Smartphone, Globe } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 interface SignInFormProps {
@@ -15,6 +15,19 @@ export const SignInForm: React.FC<SignInFormProps> = ({ onSignInSuccess }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [resetEmailSent, setResetEmailSent] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  React.useEffect(() => {
+    const checkMobile = () => {
+      const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
+      const mobileRegex = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i;
+      setIsMobile(mobileRegex.test(userAgent.toLowerCase()) || window.innerWidth <= 768);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -116,6 +129,30 @@ export const SignInForm: React.FC<SignInFormProps> = ({ onSignInSuccess }) => {
   }
 
   return (
+    <div>
+      {/* Platform Indicator */}
+      <div className="mb-6 text-center">
+        <div className="flex items-center justify-center space-x-2 mb-2">
+          {isMobile ? (
+            <>
+              <Smartphone className="h-5 w-5 text-blue-600" />
+              <span className="text-sm font-medium text-blue-600">Mobile Application</span>
+            </>
+          ) : (
+            <>
+              <Globe className="h-5 w-5 text-green-600" />
+              <span className="text-sm font-medium text-green-600">Web Application</span>
+            </>
+          )}
+        </div>
+        <p className="text-xs text-gray-500">
+          {isMobile 
+            ? 'Access FIMS and E-estimate on mobile' 
+            : 'Full system access on web'
+          }
+        </p>
+      </div>
+
     <form onSubmit={handleSignIn} className="space-y-6">
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
@@ -193,5 +230,6 @@ export const SignInForm: React.FC<SignInFormProps> = ({ onSignInSuccess }) => {
         )}
       </button>
     </form>
+    </div>
   );
 };
