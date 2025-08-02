@@ -31,7 +31,6 @@ import { usePermissions } from '../hooks/usePermissions';
 import { PermissionGuard } from './PermissionGuard';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { ERMSDashboard } from './ERMSDashboard';
-import { FIMSDashboard } from './FIMSDashboard';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 interface DashboardProps {
@@ -211,11 +210,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
     // Special handling for ERMS
     if (selectedApp === 'erms') {
       return <ERMSDashboard user={user} onBack={handleBackToDashboard} />;
-    }
-    
-    // Special handling for FIMS
-    if (selectedApp === 'fims') {
-      return <FIMSDashboard user={user} onBack={handleBackToDashboard} />;
     }
 
     const app = systems.find(s => s.id === selectedApp);
