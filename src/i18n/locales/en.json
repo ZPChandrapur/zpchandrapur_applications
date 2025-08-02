@@ -481,7 +481,7 @@
   },
   "fims": {
     "title": "Field Inspection Management System"
-    "subtitle": "Conduct and manage field inspections with photo documentation"{
+    "subtitle": "Conduct and manage field inspections with photo documentation",{
     "dashboard": "Dashboard",
     "inspections": "Inspections",
     "newInspection": "New Inspection",
