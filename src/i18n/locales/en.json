@@ -480,7 +480,7 @@
     "year2020": "2020 Year"
   },
   "fims": {
-    "title": "Field Inspection Management System"}
+    "title": "Field Inspection Management System"
     "subtitle": "Conduct and manage field inspections with photo documentation",
     "dashboard": "Dashboard",
     "inspections": "Inspections",
@@ -530,4 +530,5 @@
     "anganwadiInspection": "Anganwadi Center Inspection",
     "documentInspection": "Document Inspection",
     "comingSoon": "Coming Soon"
+  }
 }
