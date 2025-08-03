@@ -194,6 +194,8 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
   const [showSubmitConfirmation, setShowSubmitConfirmation] = useState(false);
   const [selectedPhotos, setSelectedPhotos] = useState<{file: File, description: string}[]>([]);
   const [isCreating, setIsCreating] = useState(false);
+  const [editingInspection, setEditingInspection] = useState<any>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
 
   useEffect(() => {
     // Detect mobile device
@@ -423,6 +425,106 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
     setCurrentLocation(null);
   };
 
+  const handleEditInspection = async (inspection: any) => {
+    try {
+      setIsLoading(true);
+      
+      // Fetch the complete inspection data including anganwadi form if it exists
+      let anganwadiFormData = null;
+      if (inspection.category_id) {
+        const { data: formData, error: formError } = await supabase
+          .from('fims_anganwadi_forms')
+          .select('*')
+          .eq('inspection_id', inspection.id)
+          .single();
+        
+        if (!formError && formData) {
+          anganwadiFormData = formData;
+        }
+      }
+      
+      // Set the form data for editing
+      setNewInspection({
+        category_id: inspection.category_id || '',
+        location_name: inspection.location_name || '',
+        address: inspection.address || '',
+        planned_date: inspection.planned_date || '',
+        latitude: inspection.latitude || null,
+        longitude: inspection.longitude || null,
+        location_accuracy: inspection.location_accuracy || null
+      });
+      
+      // Set anganwadi form data if exists
+      if (anganwadiFormData) {
+        setAnganwadiForm({
+          anganwadi_name: anganwadiFormData.anganwadi_name || '',
+          anganwadi_number: anganwadiFormData.anganwadi_number || '',
+          supervisor_name: anganwadiFormData.supervisor_name || userProfile?.name || '',
+          helper_name: anganwadiFormData.helper_name || '',
+          village_name: anganwadiFormData.village_name || '',
+          building_condition: anganwadiFormData.building_condition || '',
+          room_availability: anganwadiFormData.room_availability || false,
+          toilet_facility: anganwadiFormData.toilet_facility || false,
+          drinking_water: anganwadiFormData.drinking_water || false,
+          electricity: anganwadiFormData.electricity || false,
+          kitchen_garden: anganwadiFormData.kitchen_garden || false,
+          weighing_machine: anganwadiFormData.weighing_machine || false,
+          height_measuring_scale: anganwadiFormData.height_measuring_scale || false,
+          first_aid_kit: anganwadiFormData.first_aid_kit || false,
+          teaching_materials: anganwadiFormData.teaching_materials || false,
+          toys_available: anganwadiFormData.toys_available || false,
+          attendance_register: anganwadiFormData.attendance_register || false,
+          growth_chart_updated: anganwadiFormData.growth_chart_updated || false,
+          vaccination_records: anganwadiFormData.vaccination_records || false,
+          nutrition_records: anganwadiFormData.nutrition_records || false,
+          total_registered_children: anganwadiFormData.total_registered_children || 0,
+          children_present_today: anganwadiFormData.children_present_today || 0,
+          children_0_3_years: anganwadiFormData.children_0_3_years || 0,
+          children_3_6_years: anganwadiFormData.children_3_6_years || 0,
+          hot_meal_served: anganwadiFormData.hot_meal_served || false,
+          meal_quality: anganwadiFormData.meal_quality || '',
+          take_home_ration: anganwadiFormData.take_home_ration || false,
+          health_checkup_conducted: anganwadiFormData.health_checkup_conducted || false,
+          immunization_updated: anganwadiFormData.immunization_updated || false,
+          vitamin_a_given: anganwadiFormData.vitamin_a_given || false,
+          iron_tablets_given: anganwadiFormData.iron_tablets_given || false,
+          general_observations: anganwadiFormData.general_observations || '',
+          recommendations: anganwadiFormData.recommendations || '',
+          action_required: anganwadiFormData.action_required || ''
+        });
+      }
+      
+      // Fetch existing photos
+      const { data: photosData, error: photosError } = await supabase
+        .from('fims_inspection_photos')
+        .select('*')
+        .eq('inspection_id', inspection.id)
+        .order('photo_order');
+      
+      if (!photosError && photosData) {
+        setSelectedPhotos(photosData.map(photo => ({
+          file: null, // We don't have the original file
+          preview: photo.photo_url,
+          description: photo.description || '',
+          name: photo.photo_name || '',
+          uploaded: true,
+          id: photo.id
+        })));
+      }
+      
+      setEditingInspection(inspection);
+      setIsEditMode(true);
+      setCurrentStep(1);
+      setActiveTab('new');
+      
+    } catch (error) {
+      console.error('Error loading inspection for editing:', error);
+      alert('Error loading inspection data: ' + error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleCreateInspectionWithForm = async (submitStatus: 'draft' | 'submitted' = 'draft') => {
     if (!selectedCategoryForForm) return;
 
@@ -430,82 +532,122 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
     try {
       const inspectionData = {
         ...newInspection,
-        inspection_number: generateInspectionNumber(),
-        inspector_id: user.id,
-        assigned_by: user.id,
+        inspection_number: isEditMode ? editingInspection.inspection_number : generateInspectionNumber(),
+        inspector_id: isEditMode ? editingInspection.inspector_id : user.id,
+        assigned_by: isEditMode ? editingInspection.assigned_by : user.id,
         status: submitStatus,
         inspection_date: new Date().toISOString()
       };
 
-      const { data: inspectionResult, error: inspectionError } = await supabase
-        .from('fims_inspections')
-        .insert([inspectionData])
-        .select()
-        .single();
-
-      if (inspectionError) throw inspectionError;
+      let inspectionResult;
+      if (isEditMode) {
+        // Update existing inspection
+        const { data, error: inspectionError } = await supabase
+          .from('fims_inspections')
+          .update(inspectionData)
+          .eq('id', editingInspection.id)
+          .select()
+          .single();
+        
+        if (inspectionError) throw inspectionError;
+        inspectionResult = data;
+      } else {
+        // Create new inspection
+        const { data, error: inspectionError } = await supabase
+          .from('fims_inspections')
+          .insert([inspectionData])
+          .select()
+          .single();
+        
+        if (inspectionError) throw inspectionError;
+        inspectionResult = data;
+      }
 
       // If it's an anganwadi inspection, save the form data
       if (selectedCategoryForForm.form_type === 'anganwadi') {
-        const { error: formError } = await supabase
-          .from('fims_anganwadi_forms')
-          .insert({
-            inspection_id: inspectionResult.id,
-            anganwadi_name: anganwadiForm.anganwadi_name,
-            anganwadi_number: anganwadiForm.anganwadi_number,
-            supervisor_name: anganwadiForm.supervisor_name,
-            helper_name: anganwadiForm.helper_name,
-            village_name: anganwadiForm.village_name,
-            building_condition: anganwadiForm.building_condition,
-            room_availability: anganwadiForm.room_availability,
-            toilet_facility: anganwadiForm.toilet_facility,
-            drinking_water: anganwadiForm.drinking_water,
-            electricity: anganwadiForm.electricity,
-            kitchen_garden: anganwadiForm.kitchen_garden,
-            weighing_machine: anganwadiForm.weighing_machine,
-            height_measuring_scale: anganwadiForm.height_measuring_scale,
-            first_aid_kit: anganwadiForm.first_aid_kit,
-            teaching_materials: anganwadiForm.teaching_materials,
-            toys_available: anganwadiForm.toys_available,
-            attendance_register: anganwadiForm.attendance_register,
-            growth_chart_updated: anganwadiForm.growth_chart_updated,
-            vaccination_records: anganwadiForm.vaccination_records,
-            nutrition_records: anganwadiForm.nutrition_records,
-            total_registered_children: anganwadiForm.total_registered_children,
-            children_present_today: anganwadiForm.children_present_today,
-            children_0_3_years: anganwadiForm.children_0_3_years,
-            children_3_6_years: anganwadiForm.children_3_6_years,
-            hot_meal_served: anganwadiForm.hot_meal_served,
-            meal_quality: anganwadiForm.meal_quality,
-            take_home_ration: anganwadiForm.take_home_ration,
-            health_checkup_conducted: anganwadiForm.health_checkup_conducted,
-            immunization_updated: anganwadiForm.immunization_updated,
-            vitamin_a_given: anganwadiForm.vitamin_a_given,
-            iron_tablets_given: anganwadiForm.iron_tablets_given,
-            general_observations: anganwadiForm.general_observations,
-            recommendations: anganwadiForm.recommendations,
-            action_required: anganwadiForm.action_required
-          });
+        const anganwadiData = {
+          inspection_id: inspectionResult.id,
+          anganwadi_name: anganwadiForm.anganwadi_name,
+          anganwadi_number: anganwadiForm.anganwadi_number,
+          supervisor_name: anganwadiForm.supervisor_name,
+          helper_name: anganwadiForm.helper_name,
+          village_name: anganwadiForm.village_name,
+          building_condition: anganwadiForm.building_condition,
+          room_availability: anganwadiForm.room_availability,
+          toilet_facility: anganwadiForm.toilet_facility,
+          drinking_water: anganwadiForm.drinking_water,
+          electricity: anganwadiForm.electricity,
+          kitchen_garden: anganwadiForm.kitchen_garden,
+          weighing_machine: anganwadiForm.weighing_machine,
+          height_measuring_scale: anganwadiForm.height_measuring_scale,
+          first_aid_kit: anganwadiForm.first_aid_kit,
+          teaching_materials: anganwadiForm.teaching_materials,
+          toys_available: anganwadiForm.toys_available,
+          attendance_register: anganwadiForm.attendance_register,
+          growth_chart_updated: anganwadiForm.growth_chart_updated,
+          vaccination_records: anganwadiForm.vaccination_records,
+          nutrition_records: anganwadiForm.nutrition_records,
+          total_registered_children: anganwadiForm.total_registered_children,
+          children_present_today: anganwadiForm.children_present_today,
+          children_0_3_years: anganwadiForm.children_0_3_years,
+          children_3_6_years: anganwadiForm.children_3_6_years,
+          hot_meal_served: anganwadiForm.hot_meal_served,
+          meal_quality: anganwadiForm.meal_quality,
+          take_home_ration: anganwadiForm.take_home_ration,
+          health_checkup_conducted: anganwadiForm.health_checkup_conducted,
+          immunization_updated: anganwadiForm.immunization_updated,
+          vitamin_a_given: anganwadiForm.vitamin_a_given,
+          iron_tablets_given: anganwadiForm.iron_tablets_given,
+          general_observations: anganwadiForm.general_observations,
+          recommendations: anganwadiForm.recommendations,
+          action_required: anganwadiForm.action_required
+        };
 
-        if (formError) throw formError;
+        if (isEditMode) {
+          // Update existing anganwadi form
+          const { error: anganwadiError } = await supabase
+            .from('fims_anganwadi_forms')
+            .update(anganwadiData)
+            .eq('inspection_id', editingInspection.id);
+          
+          if (anganwadiError) throw anganwadiError;
+        } else {
+          // Create new anganwadi form
+          const { error: anganwadiError } = await supabase
+            .from('fims_anganwadi_forms')
+            .insert([anganwadiData]);
+          
+          if (anganwadiError) throw anganwadiError;
+        }
       }
 
       // Upload photos if any
       if (selectedPhotos.length > 0) {
-        for (let i = 0; i < selectedPhotos.length; i++) {
-          const photo = selectedPhotos[i];
+        // Delete existing photos if in edit mode
+        if (isEditMode) {
+          const { error: deleteError } = await supabase
+            .from('fims_inspection_photos')
+            .delete()
+            .eq('inspection_id', editingInspection.id);
           
-          // In a real implementation, you would upload to Supabase Storage
-          // For now, we'll just store the photo metadata
+          if (deleteError) console.error('Error deleting existing photos:', deleteError);
+        }
+        
+        // Insert new photos
+        const photoData = selectedPhotos
+          .filter(photo => !photo.uploaded) // Only new photos
+          .map((photo, index) => ({
+            inspection_id: inspectionResult.id,
+            photo_url: `placeholder_${Date.now()}_${index}.jpg`, // Placeholder URL
+            photo_name: photo.file?.name || `photo_${index + 1}`,
+            description: photo.description,
+            photo_order: index + 1
+          }));
+        
+        if (photoData.length > 0) {
           const { error: photoError } = await supabase
             .from('fims_inspection_photos')
-            .insert({
-              inspection_id: inspectionResult.id,
-              photo_url: `placeholder_${Date.now()}_${i}.jpg`, // Placeholder URL
-              photo_name: photo.file.name,
-              description: photo.description,
-              photo_order: i + 1
-            });
+            .insert(photoData);
           
           if (photoError) throw photoError;
         }
@@ -513,11 +655,13 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
 
       await fetchData();
       resetForm();
+      setEditingInspection(null);
+      setIsEditMode(false);
       
       if (submitStatus === 'submitted') {
-        alert(t('fims.inspectionSubmittedSuccessfully', 'Inspection submitted successfully!'));
+        alert(t('fims.inspectionSubmittedSuccessfully', isEditMode ? 'Inspection updated and submitted successfully!' : 'Inspection submitted successfully!'));
       } else {
-        alert(t('fims.inspectionSavedAsDraft', 'Inspection saved as draft!'));
+        alert(t('fims.inspectionSavedAsDraft', isEditMode ? 'Inspection updated successfully!' : 'Inspection saved as draft!'));
       }
     } catch (error) {
       console.error('Error creating inspection:', error);
@@ -596,11 +740,6 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
   const handleViewInspection = (inspection: Inspection) => {
     // TODO: Implement view functionality
     alert(`View inspection: ${inspection.inspection_number}`);
-  };
-
-  const handleEditInspection = (inspection: Inspection) => {
-    // TODO: Implement edit functionality
-    alert(`Edit inspection: ${inspection.inspection_number}`);
   };
 
   const handlePhotoInspection = (inspection: Inspection) => {
@@ -1253,8 +1392,8 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                     <div key={index} className="flex items-center space-x-4 p-3 border border-gray-200 rounded-lg">
                       <Camera className="h-8 w-8 text-purple-600" />
                       <div className="flex-1">
-                        <div className="font-medium text-gray-900">{photo.file.name}</div>
-                        <div className="text-sm text-gray-500">{(photo.file.size / 1024 / 1024).toFixed(2)} MB</div>
+                        <div className="font-medium text-gray-900">{photo.file?.name || photo.name || `Photo ${index + 1}`}</div>
+                        <div className="text-sm text-gray-500">{photo.file ? (photo.file.size / 1024 / 1024).toFixed(2) + ' MB' : 'Uploaded'}</div>
                         <input
                           type="text"
                           value={photo.description}
@@ -1350,7 +1489,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                   className="flex items-center space-x-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-all duration-200 disabled:opacity-50"
                 >
                   <Save className="h-4 w-4" />
-                  <span>जतन करा (Save)</span>
+                  <span>{isEditMode ? 'अपडेट करा (Update)' : 'जतन करा (Save)'}</span>
                 </button>
                 
                 <button
@@ -1359,7 +1498,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                   className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-200 disabled:opacity-50"
                 >
                   <Edit className="h-4 w-4" />
-                  <span>संपादित करा (Edit)</span>
+                  <span>{isEditMode ? 'मसुदा म्हणून जतन करा (Save as Draft)' : 'संपादित करा (Edit)'}</span>
                 </button>
                 
                 <button
@@ -1368,7 +1507,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                   className="flex items-center space-x-2 px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all duration-200 disabled:opacity-50"
                 >
                   <CheckCircle className="h-4 w-4" />
-                  <span>सबमिट करा (Submit)</span>
+                  <span>{isEditMode ? 'अपडेट आणि सबमिट करा (Update & Submit)' : 'सबमिट करा (Submit)'}</span>
                 </button>
               </div>
             )}
@@ -1392,7 +1531,10 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                 आपल्याला खात्री आहे की आपण ही तपासणी सबमिट करू इच्छिता? सबमिट केल्यानंतर ती पुनरावलोकनासाठी पाठवली जाईल.
               </p>
               <p className="text-sm text-gray-500 mb-6">
-                Are you sure you want to submit this inspection? Once submitted, it will be sent for review.
+                {isEditMode 
+                  ? 'तुम्हाला खात्री आहे की तुम्ही ही तपासणी अपडेट आणि सबमिट करू इच्छिता?'
+                  : 'Are you sure you want to submit this inspection? Once submitted, it will be sent for review.'
+                }
               </p>
               
               <div className="flex items-center justify-end space-x-3">
@@ -1410,7 +1552,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                   disabled={isCreating}
                   className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 disabled:opacity-50"
                 >
-                  {isCreating ? 'सबमिट करत आहे...' : 'सबमिट करा (Submit)'}
+                  {isCreating ? 'सबमिट करत आहे...' : (isEditMode ? 'Yes, Update & Submit' : 'सबमिट करा (Submit)')}
                 </button>
               </div>
             </div>
