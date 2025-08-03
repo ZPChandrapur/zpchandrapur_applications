@@ -285,12 +285,15 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
       
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        const fileName = `${Date.now()}_${i}_${file.name}`;
+        const fileName = `${user.id}/${Date.now()}_${i}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
         
         // Upload to Supabase storage
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from('field-visit-images')
-          .upload(fileName, file);
+          .upload(fileName, file, {
+            cacheControl: '3600',
+            upsert: false
+          });
 
         if (uploadError) throw uploadError;
 
@@ -311,7 +314,7 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
       setPhotos(prev => [...prev, ...newPhotos]);
     } catch (error) {
       console.error('Error uploading photos:', error);
-      alert('Error uploading photos: ' + error.message);
+      alert('Error uploading photos: ' + (error?.message || 'Unknown error occurred'));
     } finally {
       setUploadingPhotos(false);
     }
@@ -347,6 +350,25 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
       return;
     }
 
+    // Validate GPS coordinates to prevent numeric overflow
+    const latitude = inspectionData.latitude;
+    const longitude = inspectionData.longitude;
+    const locationAccuracy = inspectionData.location_accuracy;
+
+    if (latitude && (latitude < -90 || latitude > 90)) {
+      alert('Invalid latitude value. Must be between -90 and 90.');
+      return;
+    }
+
+    if (longitude && (longitude < -180 || longitude > 180)) {
+      alert('Invalid longitude value. Must be between -180 and 180.');
+      return;
+    }
+
+    if (locationAccuracy && locationAccuracy > 999999) {
+      alert('Location accuracy value is too large. Please try capturing location again.');
+      return;
+    }
     setIsLoading(true);
     try {
       let inspectionId = editingInspection?.id;
@@ -359,9 +381,9 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
             location_name: inspectionData.location_name,
             address: inspectionData.address,
             planned_date: inspectionData.planned_date || null,
-            latitude: inspectionData.latitude,
-            longitude: inspectionData.longitude,
-            location_accuracy: inspectionData.location_accuracy,
+            latitude: latitude ? Number(latitude.toFixed(8)) : null,
+            longitude: longitude ? Number(longitude.toFixed(8)) : null,
+            location_accuracy: locationAccuracy ? Number(locationAccuracy.toFixed(2)) : null,
             status,
             inspection_date: status === 'submitted' ? new Date().toISOString() : null
           })
@@ -381,9 +403,9 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
             location_name: inspectionData.location_name,
             address: inspectionData.address,
             planned_date: inspectionData.planned_date || null,
-            latitude: inspectionData.latitude,
-            longitude: inspectionData.longitude,
-            location_accuracy: inspectionData.location_accuracy,
+            latitude: latitude ? Number(latitude.toFixed(8)) : null,
+            longitude: longitude ? Number(longitude.toFixed(8)) : null,
+            location_accuracy: locationAccuracy ? Number(locationAccuracy.toFixed(2)) : null,
             status,
             inspection_date: status === 'submitted' ? new Date().toISOString() : null
           })
@@ -420,7 +442,7 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
       // Save photos
       for (const photo of photos) {
         if (!photo.id) { // Only save new photos
-          const { error: photoError } = await supabase
+          const { data: photoData, error: photoError } = await supabase
             .from('fims_inspection_photos')
             .insert({
               inspection_id: inspectionId,
@@ -428,9 +450,13 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
               photo_name: photo.photo_name,
               description: photo.description,
               photo_order: photo.photo_order
-            });
+            })
+            .select();
           
-          if (photoError) throw photoError;
+          if (photoError) {
+            console.error('Photo save error:', photoError);
+            throw new Error(`Failed to save photo: ${photoError.message}`);
+          }
         }
       }
 
@@ -440,7 +466,7 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
       
     } catch (error) {
       console.error('Error saving inspection:', error);
-      alert('Error saving inspection: ' + error.message);
+      alert('Error saving inspection: ' + (error?.message || 'Unknown error occurred'));
     } finally {
       setIsLoading(false);
     }
