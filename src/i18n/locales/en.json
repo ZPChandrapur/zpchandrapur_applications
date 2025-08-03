@@ -612,6 +612,19 @@
     "readyToSubmit": "Ready to Submit?",
     "reviewInspectionDetails": "Review your inspection details and choose to save as draft or submit for review.",
     "saveAsDraft": "Save as Draft",
-    "submitInspection": "Submit Inspection"
+    "submitInspection": "Submit Inspection",
+    "sectionA": "A) Infrastructure and Basic Facilities",
+    "sectionB": "B) Equipment and Materials", 
+    "sectionC": "C) Records and Documentation",
+    "sectionD": "D) Children Information",
+    "sectionE": "E) Nutrition & Health Services",
+    "sectionF": "F) Observations & Recommendations",
+    "geolocationNotSupported": "Geolocation is not supported by this browser.",
+    "gettingLocation": "Getting Location...",
+    "unableToGetLocation": "Unable to get location. Please enter location manually.",
+    "detectedLocation": "Detected Location",
+    "maxPhotosAllowed": "Maximum 5 photos allowed. Please remove some photos first.",
+    "photosUploaded": "photos uploaded",
+    "maxPhotosReached": "Maximum 5 photos reached"
   }
 }

@@ -592,6 +592,19 @@
     "readyToSubmit": "सबमिट करण्यासाठी तयार आहात?",
     "reviewInspectionDetails": "आपल्या तपासणी तपशीलांचे पुनरावलोकन करा आणि मसुदा म्हणून जतन करणे किंवा पुनरावलोकनासाठी सबमिट करणे निवडा.",
     "saveAsDraft": "मसुदा म्हणून जतन करा",
-    "submitInspection": "तपासणी सबमिट करा"
+    "submitInspection": "तपासणी सबमिट करा",
+    "sectionA": "अ) पायाभूत सुविधा (Infrastructure and Basic Facilities)",
+    "sectionB": "ब) उपकरणे आणि साहित्य (Equipment and Materials)",
+    "sectionC": "क) नोंदी आणि दस्तऐवजीकरण (Records and Documentation)",
+    "sectionD": "ड) मुलांची माहिती (Children Information)",
+    "sectionE": "इ) पोषण आणि आरोग्य सेवा (Nutrition & Health Services)",
+    "sectionF": "फ) निरीक्षणे आणि शिफारसी (Observations & Recommendations)",
+    "geolocationNotSupported": "या ब्राउझरमध्ये भौगोलिक स्थान समर्थित नाही.",
+    "gettingLocation": "स्थान मिळवत आहे...",
+    "unableToGetLocation": "स्थान मिळवू शकत नाही. कृपया स्थान मॅन्युअली प्रविष्ट करा.",
+    "detectedLocation": "शोधलेले स्थान",
+    "maxPhotosAllowed": "जास्तीत जास्त 5 फोटो अनुमतीत आहेत. कृपया प्रथम काही फोटो काढा.",
+    "photosUploaded": "फोटो अपलोड केले",
+    "maxPhotosReached": "जास्तीत जास्त 5 फोटो पोहोचले"
   }
 }

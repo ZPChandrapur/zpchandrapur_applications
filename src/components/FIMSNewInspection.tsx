@@ -141,10 +141,11 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
   const [inspectionData, setInspectionData] = useState({
     location_name: '',
     address: '',
-    planned_date: '',
+    planned_date: new Date().toISOString().split('T')[0], // Default to today's date
     latitude: null as number | null,
     longitude: null as number | null,
-    location_accuracy: null as number | null
+    location_accuracy: null as number | null,
+    place_name: '' // For reverse geocoding
   });
 
   const [anganwadiForm, setAnganwadiForm] = useState<Partial<AnganwadiForm>>({
@@ -186,6 +187,7 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
 
   const [photos, setPhotos] = useState<InspectionPhoto[]>([]);
   const [uploadingPhotos, setUploadingPhotos] = useState(false);
+  const [isGettingLocation, setIsGettingLocation] = useState(false);
 
   // Initialize form data if editing
   useEffect(() => {
@@ -201,7 +203,8 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
         planned_date: editingInspection.planned_date ? editingInspection.planned_date.split('T')[0] : '',
         latitude: editingInspection.latitude,
         longitude: editingInspection.longitude,
-        location_accuracy: editingInspection.location_accuracy
+        location_accuracy: editingInspection.location_accuracy,
+        place_name: ''
       });
 
       // Set anganwadi form data if available
@@ -239,29 +242,49 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
     }
   };
 
+  // Reverse geocoding function to get place name from coordinates
+  const getPlaceName = async (lat: number, lng: number) => {
+    try {
+      const response = await fetch(
+        `https://api.opencagedata.com/geocode/v1/json?q=${lat}+${lng}&key=YOUR_API_KEY&language=en&pretty=1`
+      );
+      const data = await response.json();
+      if (data.results && data.results.length > 0) {
+        const result = data.results[0];
+        const placeName = result.formatted || result.components?.village || result.components?.town || result.components?.city || 'Unknown location';
+        return placeName;
+      }
+    } catch (error) {
+      console.log('Reverse geocoding failed, using coordinates only');
+    }
+    return `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+  };
+
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
-      alert('Geolocation is not supported by this browser.');
+      alert(t('fims.geolocationNotSupported', 'Geolocation is not supported by this browser.'));
       return;
     }
 
-    setIsLoading(true);
+    setIsGettingLocation(true);
     navigator.geolocation.getCurrentPosition(
-      (position) => {
+      async (position) => {
+        const placeName = await getPlaceName(position.coords.latitude, position.coords.longitude);
         setInspectionData(prev => ({
           ...prev,
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
-          location_accuracy: position.coords.accuracy
+          location_accuracy: position.coords.accuracy,
+          place_name: placeName
         }));
         setLocationPermission('granted');
-        setIsLoading(false);
+        setIsGettingLocation(false);
       },
       (error) => {
         console.error('Error getting location:', error);
         setLocationPermission('denied');
-        setIsLoading(false);
-        alert('Unable to get location. Please enter location manually.');
+        setIsGettingLocation(false);
+        alert(t('fims.unableToGetLocation', 'Unable to get location. Please enter location manually.'));
       },
       {
         enableHighAccuracy: true,
@@ -278,6 +301,12 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
 
   const handlePhotoUpload = async (files: FileList) => {
     if (!files || files.length === 0) return;
+
+    // Check photo limit
+    if (photos.length + files.length > 5) {
+      alert(t('fims.maxPhotosAllowed', 'Maximum 5 photos allowed. Please remove some photos first.'));
+      return;
+    }
 
     setUploadingPhotos(true);
     try {
@@ -864,16 +893,30 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
                     <h4 className="text-lg font-semibold text-blue-900">{t('fims.gpsLocationCapture')}</h4>
                     <button
                       onClick={getCurrentLocation}
-                      disabled={isLoading}
+                      disabled={isGettingLocation}
                       className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-200 disabled:opacity-50"
                     >
-                      <MapPin className="h-4 w-4" />
-                      <span>{t('fims.getCurrentLocation')}</span>
+                      {isGettingLocation ? (
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      ) : (
+                        <MapPin className="h-4 w-4" />
+                      )}
+                      <span>{isGettingLocation ? t('fims.gettingLocation', 'Getting Location...') : t('fims.getCurrentLocation')}</span>
                     </button>
                   </div>
 
                   {inspectionData.latitude && inspectionData.longitude ? (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-4">
+                      {/* Place Name Display */}
+                      {inspectionData.place_name && (
+                        <div className="bg-white p-4 rounded-lg border border-blue-200">
+                          <div className="text-sm font-medium text-blue-700 mb-1">{t('fims.detectedLocation', 'Detected Location')}</div>
+                          <div className="text-lg font-bold text-blue-900">{inspectionData.place_name}</div>
+                        </div>
+                      )}
+                      
+                      {/* GPS Coordinates */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="bg-white p-4 rounded-lg">
                         <div className="text-sm font-medium text-blue-700 mb-1">{t('fims.latitude')}</div>
                         <div className="text-lg font-bold text-blue-900">{inspectionData.latitude.toFixed(6)}</div>
@@ -885,6 +928,7 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
                       <div className="bg-white p-4 rounded-lg">
                         <div className="text-sm font-medium text-blue-700 mb-1">{t('fims.accuracy')}</div>
                         <div className="text-lg font-bold text-blue-900">{Math.round(inspectionData.location_accuracy || 0)}m</div>
+                      </div>
                       </div>
                     </div>
                   ) : (
@@ -910,28 +954,84 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
               </div>
 
               <div className="space-y-8">
-                {/* Facilities Checklist */}
+                {/* Section A: Infrastructure and Basic Facilities */}
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                    <Home className="h-5 w-5 text-blue-600 mr-2" />
-                    {t('fims.facilitiesAvailable')}
+                    <Building2 className="h-5 w-5 text-blue-600 mr-2" />
+                    {t('fims.sectionA', 'अ) पायाभूत सुविधा (Infrastructure and Basic Facilities)')}
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {[
-                      { key: 'room_availability', labelKey: 'fims.roomAvailability', icon: Home },
-                      { key: 'toilet_facility', labelKey: 'fims.toiletFacility', icon: Home },
-                      { key: 'drinking_water', labelKey: 'fims.drinkingWater', icon: Activity },
-                      { key: 'electricity', labelKey: 'fims.electricity', icon: Activity },
-                      { key: 'kitchen_garden', labelKey: 'fims.kitchenGarden', icon: Activity },
-                      { key: 'weighing_machine', labelKey: 'fims.weighingMachine', icon: Scale },
-                      { key: 'height_measuring_scale', labelKey: 'fims.heightMeasuringScale', icon: Scale },
-                      { key: 'first_aid_kit', labelKey: 'fims.firstAidKit', icon: Heart },
-                      { key: 'teaching_materials', labelKey: 'fims.teachingMaterials', icon: FileText },
-                      { key: 'toys_available', labelKey: 'fims.toysAvailable', icon: Users },
-                      { key: 'attendance_register', labelKey: 'fims.attendanceRegister', icon: ClipboardList },
-                      { key: 'growth_chart_updated', labelKey: 'fims.growthChartUpdated', icon: TrendingUp },
-                      { key: 'vaccination_records', labelKey: 'fims.vaccinationRecords', icon: Shield },
-                      { key: 'nutrition_records', labelKey: 'fims.nutritionRecords', icon: Utensils }
+                      { key: 'room_availability', label: t('fims.roomAvailability'), icon: Home },
+                      { key: 'toilet_facility', label: t('fims.toiletFacility'), icon: Home },
+                      { key: 'drinking_water', label: t('fims.drinkingWater'), icon: Activity },
+                      { key: 'electricity', label: t('fims.electricity'), icon: Activity },
+                      { key: 'kitchen_garden', label: t('fims.kitchenGarden'), icon: Activity }
+                    ].map((item) => (
+                      <div key={item.key} className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200">
+                        <input
+                          type="checkbox"
+                          checked={anganwadiForm[item.key as keyof AnganwadiForm] === true}
+                          onChange={(e) => setAnganwadiForm(prev => ({ 
+                            ...prev, 
+                            [item.key]: e.target.checked 
+                          }))}
+                          className="rounded border-gray-300 text-purple-600 focus:ring-purple-500 h-4 w-4"
+                        />
+                        <item.icon className="h-4 w-4 text-gray-600" />
+                        <label className="text-sm font-medium text-gray-700 cursor-pointer flex-1">
+                          {item.label}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Section B: Equipment and Materials */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <Scale className="h-5 w-5 text-green-600 mr-2" />
+                    {t('fims.sectionB', 'ब) उपकरणे आणि साहित्य (Equipment and Materials)')}
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {[
+                      { key: 'weighing_machine', label: t('fims.weighingMachine'), icon: Scale },
+                      { key: 'height_measuring_scale', label: t('fims.heightMeasuringScale'), icon: Scale },
+                      { key: 'first_aid_kit', label: t('fims.firstAidKit'), icon: Heart },
+                      { key: 'teaching_materials', label: t('fims.teachingMaterials'), icon: FileText },
+                      { key: 'toys_available', label: t('fims.toysAvailable'), icon: Users }
+                    ].map((item) => (
+                      <div key={item.key} className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200">
+                        <input
+                          type="checkbox"
+                          checked={anganwadiForm[item.key as keyof AnganwadiForm] === true}
+                          onChange={(e) => setAnganwadiForm(prev => ({ 
+                            ...prev, 
+                            [item.key]: e.target.checked 
+                          }))}
+                          className="rounded border-gray-300 text-purple-600 focus:ring-purple-500 h-4 w-4"
+                        />
+                        <item.icon className="h-4 w-4 text-gray-600" />
+                        <label className="text-sm font-medium text-gray-700 cursor-pointer flex-1">
+                          {item.label}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Section C: Records and Documentation */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <ClipboardList className="h-5 w-5 text-purple-600 mr-2" />
+                    {t('fims.sectionC', 'क) नोंदी आणि दस्तऐवजीकरण (Records and Documentation)')}
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {[
+                      { key: 'attendance_register', label: t('fims.attendanceRegister'), icon: ClipboardList },
+                      { key: 'growth_chart_updated', label: t('fims.growthChartUpdated'), icon: TrendingUp },
+                      { key: 'vaccination_records', label: t('fims.vaccinationRecords'), icon: Shield },
+                      { key: 'nutrition_records', label: t('fims.nutritionRecords'), icon: Utensils }
                     ].map((item) => (
                       <div key={item.key} className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200">
                         <input
@@ -956,57 +1056,61 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                     <Baby className="h-5 w-5 text-green-600 mr-2" />
-                    {t('fims.childrenInformation')}
+                    {t('fims.sectionD', 'ड) मुलांची माहिती (Children Information)')}
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">{t('fims.totalRegistered')}</label>
                       <input
                         type="number"
-                        value={anganwadiForm.total_registered_children || 0}
-                        onChange={(e) => setAnganwadiForm(prev => ({ ...prev, total_registered_children: parseInt(e.target.value) || 0 }))}
+                        value={anganwadiForm.total_registered_children || ''}
+                        onChange={(e) => setAnganwadiForm(prev => ({ ...prev, total_registered_children: e.target.value ? parseInt(e.target.value) : null }))}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                         min="0"
+                        placeholder="0"
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">{t('fims.presentToday')}</label>
                       <input
                         type="number"
-                        value={anganwadiForm.children_present_today || 0}
-                        onChange={(e) => setAnganwadiForm(prev => ({ ...prev, children_present_today: parseInt(e.target.value) || 0 }))}
+                        value={anganwadiForm.children_present_today || ''}
+                        onChange={(e) => setAnganwadiForm(prev => ({ ...prev, children_present_today: e.target.value ? parseInt(e.target.value) : null }))}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                         min="0"
+                        placeholder="0"
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">{t('fims.age0to3Years')}</label>
                       <input
                         type="number"
-                        value={anganwadiForm.children_0_3_years || 0}
-                        onChange={(e) => setAnganwadiForm(prev => ({ ...prev, children_0_3_years: parseInt(e.target.value) || 0 }))}
+                        value={anganwadiForm.children_0_3_years || ''}
+                        onChange={(e) => setAnganwadiForm(prev => ({ ...prev, children_0_3_years: e.target.value ? parseInt(e.target.value) : null }))}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                         min="0"
+                        placeholder="0"
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">{t('fims.age3to6Years')}</label>
                       <input
                         type="number"
-                        value={anganwadiForm.children_3_6_years || 0}
-                        onChange={(e) => setAnganwadiForm(prev => ({ ...prev, children_3_6_years: parseInt(e.target.value) || 0 }))}
+                        value={anganwadiForm.children_3_6_years || ''}
+                        onChange={(e) => setAnganwadiForm(prev => ({ ...prev, children_3_6_years: e.target.value ? parseInt(e.target.value) : null }))}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                         min="0"
+                        placeholder="0"
                       />
                     </div>
                   </div>
                 </div>
 
-                {/* Nutrition & Health */}
+                {/* Section E: Nutrition & Health Services */}
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                     <Utensils className="h-5 w-5 text-orange-600 mr-2" />
-                    {t('fims.nutritionHealthServices')}
+                    {t('fims.sectionE', 'इ) पोषण आणि आरोग्य सेवा (Nutrition & Health Services)')}
                   </h3>
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1038,11 +1142,11 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {[
-                        { key: 'take_home_ration', labelKey: 'fims.takeHomeRation', icon: Utensils },
-                        { key: 'health_checkup_conducted', labelKey: 'fims.healthCheckupConducted', icon: Stethoscope },
-                        { key: 'immunization_updated', labelKey: 'fims.immunizationUpdated', icon: Shield },
-                        { key: 'vitamin_a_given', labelKey: 'fims.vitaminAGiven', icon: Pill },
-                        { key: 'iron_tablets_given', labelKey: 'fims.ironTabletsGiven', icon: Pill }
+                        { key: 'take_home_ration', label: t('fims.takeHomeRation'), icon: Utensils },
+                        { key: 'health_checkup_conducted', label: t('fims.healthCheckupConducted'), icon: Stethoscope },
+                        { key: 'immunization_updated', label: t('fims.immunizationUpdated'), icon: Shield },
+                        { key: 'vitamin_a_given', label: t('fims.vitaminAGiven'), icon: Pill },
+                        { key: 'iron_tablets_given', label: t('fims.ironTabletsGiven'), icon: Pill }
                       ].map((item) => (
                         <div key={item.key} className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200">
                           <input
@@ -1068,7 +1172,7 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                     <FileText className="h-5 w-5 text-purple-600 mr-2" />
-                    {t('fims.observationsRecommendations')}
+                    {t('fims.sectionF', 'फ) निरीक्षणे आणि शिफारसी (Observations & Recommendations)')}
                   </h3>
                   <div className="space-y-4">
                     <div>
@@ -1121,7 +1225,12 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
               <div className="space-y-6">
                 {/* Photo Upload Area */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-4">{t('fims.uploadInspectionPhotos')}</label>
+                  <div className="flex items-center justify-between mb-4">
+                    <label className="block text-sm font-medium text-gray-700">{t('fims.uploadInspectionPhotos')}</label>
+                    <span className="text-sm text-gray-500">
+                      {photos.length}/5 {t('fims.photosUploaded', 'photos uploaded')}
+                    </span>
+                  </div>
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-purple-400 transition-colors duration-200 bg-gray-50">
                     <input
                       type="file"
@@ -1130,15 +1239,23 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
                       onChange={(e) => e.target.files && handlePhotoUpload(e.target.files)}
                       className="hidden"
                       id="photo-upload"
+                      disabled={photos.length >= 5}
                     />
-                    <label htmlFor="photo-upload" className="cursor-pointer">
+                    <label htmlFor="photo-upload" className={`cursor-pointer ${photos.length >= 5 ? 'opacity-50 cursor-not-allowed' : ''}`}>
                       <Camera className="h-16 w-16 text-gray-400 mx-auto mb-4" />
                       <p className="text-xl font-medium text-gray-900 mb-2">{t('fims.uploadPhotos')}</p>
-                      <p className="text-sm text-gray-500 mb-4">{t('fims.clickToSelectPhotos')}</p>
-                      <div className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors duration-200">
+                      <p className="text-sm text-gray-500 mb-4">
+                        {photos.length >= 5 
+                          ? t('fims.maxPhotosReached', 'Maximum 5 photos reached')
+                          : t('fims.clickToSelectPhotos')
+                        }
+                      </p>
+                      {photos.length < 5 && (
+                        <div className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors duration-200">
                         <Upload className="h-4 w-4 mr-2" />
                         {t('fims.chooseFiles')}
-                      </div>
+                        </div>
+                      )}
                     </label>
                   </div>
                 </div>
