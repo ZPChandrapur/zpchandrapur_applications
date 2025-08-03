@@ -873,11 +873,6 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
     }
   };
 
-  const handleViewInspection = (inspection: Inspection) => {
-    // TODO: Implement view functionality
-    alert(`View inspection: ${inspection.inspection_number}`);
-  };
-
   const handlePhotoInspection = (inspection: Inspection) => {
     // TODO: Implement photo functionality
     alert(`Photo management for inspection: ${inspection.inspection_number}`);
