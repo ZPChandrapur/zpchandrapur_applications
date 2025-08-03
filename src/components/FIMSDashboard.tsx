@@ -542,8 +542,8 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                           </button>
                           <button
                             onClick={() => {
+                              setEditingInspection(inspection);
                               setActiveTab('newInspection');
-                              // This will be handled by passing the inspection to FIMSNewInspection
                             }}
                             className="text-green-600 hover:text-green-900 p-1 rounded"
                             title="Edit Inspection"

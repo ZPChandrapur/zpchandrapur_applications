@@ -42,6 +42,7 @@ interface FIMSNewInspectionProps {
   onBack: () => void;
   categories: Category[];
   onInspectionCreated: () => void;
+  editingInspection?: Inspection | null;
 }
 
 interface Category {
@@ -126,11 +127,13 @@ interface InspectionPhoto {
   uploaded_at: string;
 }
 
-export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({ user, onBack, categories, onInspectionCreated }) => {
+export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({ user, onBack, categories, onInspectionCreated, editingInspection }) => {
   const { t } = useTranslation();
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(editingInspection ? 2 : 1);
   const [isLoading, setIsLoading] = useState(false);
-  const [categoriesState, setCategoriesState] = useState<Category[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(
+    editingInspection ? categories.find(c => c.id === editingInspection.category_id) || null : null
+  );
   const [selectedCategory, setSelectedCategory] = useState('');
   const [locationName, setLocationName] = useState('');
   const [address, setAddress] = useState('');
@@ -152,40 +155,40 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({ user, onBa
 
   // Anganwadi form state
   const [anganwadiForm, setAnganwadiForm] = useState<AnganwadiForm>({
-    anganwadi_name: '',
-    anganwadi_number: '',
-    supervisor_name: '',
-    helper_name: '',
-    village_name: '',
-    building_condition: '',
-    room_availability: null,
-    toilet_facility: null,
-    drinking_water: null,
-    electricity: null,
-    kitchen_garden: null,
-    weighing_machine: null,
-    height_measuring_scale: null,
-    first_aid_kit: null,
-    teaching_materials: null,
-    toys_available: null,
-    attendance_register: null,
-    growth_chart_updated: null,
-    vaccination_records: null,
-    nutrition_records: null,
-    total_registered_children: 0,
-    children_present_today: 0,
-    children_0_3_years: 0,
-    children_3_6_years: 0,
-    hot_meal_served: null,
-    meal_quality: '',
-    take_home_ration: null,
-    health_checkup_conducted: null,
-    immunization_updated: null,
-    vitamin_a_given: null,
-    iron_tablets_given: null,
-    general_observations: '',
-    recommendations: '',
-    action_required: ''
+    anganwadi_name: editingInspection?.fims_anganwadi_forms?.[0]?.anganwadi_name || '',
+    anganwadi_number: editingInspection?.fims_anganwadi_forms?.[0]?.anganwadi_number || '',
+    supervisor_name: editingInspection?.fims_anganwadi_forms?.[0]?.supervisor_name || '',
+    helper_name: editingInspection?.fims_anganwadi_forms?.[0]?.helper_name || '',
+    village_name: editingInspection?.fims_anganwadi_forms?.[0]?.village_name || '',
+    building_condition: editingInspection?.fims_anganwadi_forms?.[0]?.building_condition || '',
+    room_availability: editingInspection?.fims_anganwadi_forms?.[0]?.room_availability || null,
+    toilet_facility: editingInspection?.fims_anganwadi_forms?.[0]?.toilet_facility || null,
+    drinking_water: editingInspection?.fims_anganwadi_forms?.[0]?.drinking_water || null,
+    electricity: editingInspection?.fims_anganwadi_forms?.[0]?.electricity || null,
+    kitchen_garden: editingInspection?.fims_anganwadi_forms?.[0]?.kitchen_garden || null,
+    weighing_machine: editingInspection?.fims_anganwadi_forms?.[0]?.weighing_machine || null,
+    height_measuring_scale: editingInspection?.fims_anganwadi_forms?.[0]?.height_measuring_scale || null,
+    first_aid_kit: editingInspection?.fims_anganwadi_forms?.[0]?.first_aid_kit || null,
+    teaching_materials: editingInspection?.fims_anganwadi_forms?.[0]?.teaching_materials || null,
+    toys_available: editingInspection?.fims_anganwadi_forms?.[0]?.toys_available || null,
+    attendance_register: editingInspection?.fims_anganwadi_forms?.[0]?.attendance_register || null,
+    growth_chart_updated: editingInspection?.fims_anganwadi_forms?.[0]?.growth_chart_updated || null,
+    vaccination_records: editingInspection?.fims_anganwadi_forms?.[0]?.vaccination_records || null,
+    nutrition_records: editingInspection?.fims_anganwadi_forms?.[0]?.nutrition_records || null,
+    total_registered_children: editingInspection?.fims_anganwadi_forms?.[0]?.total_registered_children || 0,
+    children_present_today: editingInspection?.fims_anganwadi_forms?.[0]?.children_present_today || 0,
+    children_0_3_years: editingInspection?.fims_anganwadi_forms?.[0]?.children_0_3_years || 0,
+    children_3_6_years: editingInspection?.fims_anganwadi_forms?.[0]?.children_3_6_years || 0,
+    hot_meal_served: editingInspection?.fims_anganwadi_forms?.[0]?.hot_meal_served || null,
+    meal_quality: editingInspection?.fims_anganwadi_forms?.[0]?.meal_quality || '',
+    take_home_ration: editingInspection?.fims_anganwadi_forms?.[0]?.take_home_ration || null,
+    health_checkup_conducted: editingInspection?.fims_anganwadi_forms?.[0]?.health_checkup_conducted || null,
+    immunization_updated: editingInspection?.fims_anganwadi_forms?.[0]?.immunization_updated || null,
+    vitamin_a_given: editingInspection?.fims_anganwadi_forms?.[0]?.vitamin_a_given || null,
+    iron_tablets_given: editingInspection?.fims_anganwadi_forms?.[0]?.iron_tablets_given || null,
+    general_observations: editingInspection?.fims_anganwadi_forms?.[0]?.general_observations || '',
+    recommendations: editingInspection?.fims_anganwadi_forms?.[0]?.recommendations || '',
+    action_required: editingInspection?.fims_anganwadi_forms?.[0]?.action_required || ''
   });
 
   useEffect(() => {
@@ -1304,32 +1307,45 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({ user, onBa
         return currentLocation !== null;
       case 3:
         return true; // Form can be partially filled
-      case 4:
-        return true; // Photos are optional
-      default:
-        return false;
+    <div className="p-6 space-y-6">
+      <div className="text-center mb-8">
+        <h2 className="text-3xl font-bold text-gray-900 mb-4">{t('fims.inspectionCategory')}</h2>
+        <p className="text-lg text-gray-600">{t('fims.selectCategory')}</p>
     }
   };
-
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-4xl mx-auto">
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white shadow-sm border-b border-gray-200">
-        <div className="px-6 py-4">
+            className="group p-8 border-2 border-gray-200 rounded-xl hover:border-purple-500 hover:bg-purple-50 transition-all duration-300 text-center transform hover:scale-105 hover:shadow-lg"
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
               <button
                 onClick={onBack}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
               >
                 <ArrowLeft className="h-5 w-5 text-gray-600" />
               </button>
-              <div className="bg-purple-100 p-2 rounded-lg">
-                <Camera className="h-6 w-6 text-purple-600" />
+            <div className="space-y-4">
+              <div className="bg-purple-100 group-hover:bg-purple-200 p-4 rounded-full w-16 h-16 mx-auto flex items-center justify-center transition-colors duration-300">
+                {category.form_type === 'anganwadi' ? (
+                  <Users className="h-8 w-8 text-purple-600" />
+                ) : (
+                  <FileText className="h-8 w-8 text-purple-600" />
+                )}
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">
-                  {isViewMode ? 'तपासणी पहा' : isEditMode ? 'तपासणी संपादित करा' : t('fims.newInspection')}
+                <h3 className="text-xl font-bold text-gray-900 group-hover:text-purple-900 transition-colors duration-300">
+                  {category.name_marathi}
+                </h3>
+                <p className="text-sm text-gray-600 mt-2 group-hover:text-purple-700 transition-colors duration-300">
+                  {category.description}
+                </p>
+                <div className="mt-3">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 group-hover:bg-purple-200">
+                    {category.form_type === 'anganwadi' ? 'अंगणवाडी तपासणी' : 'दस्तऐवज तपासणी'}
+                  </span>
+                </div>
                 </h1>
                 <p className="text-sm text-gray-500 mt-1">
                   {isViewMode ? 'View inspection details' : isEditMode ? 'Edit inspection details' : 'Create a new field inspection'}
@@ -1398,6 +1414,14 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({ user, onBa
           </button>
 
           <div className="flex items-center space-x-3">
+      
+      {categories.length === 0 && (
+        <div className="text-center py-12">
+          <ClipboardList className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No Categories Available</h3>
+          <p className="text-gray-500">Please contact your administrator to set up inspection categories.</p>
+        </div>
+      )}
             {currentStep < steps.length ? (
               <button
                 onClick={() => setCurrentStep(currentStep + 1)}
