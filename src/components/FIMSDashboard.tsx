@@ -192,6 +192,8 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
   const [photos, setPhotos] = useState<File[]>([]);
   const [photoDescriptions, setPhotoDescriptions] = useState<string[]>([]);
   const [showSubmitConfirmation, setShowSubmitConfirmation] = useState(false);
+  const [selectedPhotos, setSelectedPhotos] = useState<{file: File, description: string}[]>([]);
+  const [isCreating, setIsCreating] = useState(false);
 
   useEffect(() => {
     // Detect mobile device
@@ -356,7 +358,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
   };
 
   const handleNextStep = () => {
-    if (currentStep < 3) {
+    if (currentStep < 4) {
       setCurrentStep(currentStep + 1);
     }
   };
@@ -415,16 +417,16 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
     });
     setPhotos([]);
     setPhotoDescriptions([]);
+    setSelectedPhotos([]);
     setCurrentStep(1);
-    setSelectedCategory(null);
-    setShowNewInspection(false);
+    setSelectedCategoryForForm(null);
     setCurrentLocation(null);
   };
 
   const handleCreateInspectionWithForm = async (submitStatus: 'draft' | 'submitted' = 'draft') => {
-    if (!selectedCategory) return;
+    if (!selectedCategoryForForm) return;
 
-    setIsLoading(true);
+    setIsCreating(true);
     try {
       const inspectionData = {
         ...newInspection,
@@ -444,7 +446,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
       if (inspectionError) throw inspectionError;
 
       // If it's an anganwadi inspection, save the form data
-      if (selectedCategory.form_type === 'anganwadi') {
+      if (selectedCategoryForForm.form_type === 'anganwadi') {
         const { error: formError } = await supabase
           .from('fims_anganwadi_forms')
           .insert({
@@ -489,10 +491,9 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
       }
 
       // Upload photos if any
-      if (photos.length > 0) {
-        for (let i = 0; i < photos.length; i++) {
-          const photo = photos[i];
-          const description = photoDescriptions[i] || '';
+      if (selectedPhotos.length > 0) {
+        for (let i = 0; i < selectedPhotos.length; i++) {
+          const photo = selectedPhotos[i];
           
           // In a real implementation, you would upload to Supabase Storage
           // For now, we'll just store the photo metadata
@@ -501,8 +502,8 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
             .insert({
               inspection_id: inspectionData.id,
               photo_url: `placeholder_${Date.now()}_${i}.jpg`, // Placeholder URL
-              photo_name: photo.name,
-              description: description,
+              photo_name: photo.file.name,
+              description: photo.description,
               photo_order: i + 1
             });
           
@@ -522,14 +523,14 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
       console.error('Error creating inspection:', error);
       alert(t('common.error') + ': ' + error.message);
     } finally {
-      setIsLoading(false);
+      setIsCreating(false);
     }
   };
 
   const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
-    setPhotos(prev => [...prev, ...files]);
-    setPhotoDescriptions(prev => [...prev, ...files.map(() => '')]);
+    const newPhotos = files.map(file => ({ file, description: '' }));
+    setSelectedPhotos(prev => [...prev, ...newPhotos]);
   };
 
   const removePhoto = (index: number) => {
@@ -684,33 +685,120 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
             {t('fims.locationInformation', 'Location Information')}
           </h3>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                स्थानाचे नाव (Location Name) *
+                {t('fims.locationName')}
               </label>
               <input
                 type="text"
                 value={newInspection.location_name}
-                onChange={(e) => setNewInspection({...newInspection, location_name: e.target.value})}
+                onChange={(e) => setNewInspection({ ...newInspection, location_name: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                placeholder="स्थानाचे नाव टाका"
+                placeholder={t('fims.enterLocationName')}
                 required
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                पत्ता (Address)
+                {t('fims.address')}
               </label>
-              <input
-                type="text"
+              <textarea
                 value={newInspection.address}
-                onChange={(e) => setNewInspection({...newInspection, address: e.target.value})}
+                onChange={(e) => setNewInspection({ ...newInspection, address: e.target.value })}
+                rows={3}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                placeholder="पूर्ण पत्ता टाका"
+                placeholder={t('fims.enterFullAddress')}
               />
             </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {t('fims.plannedDate')}
+              </label>
+              <input
+                type="date"
+                value={newInspection.planned_date}
+                onChange={(e) => setNewInspection({ ...newInspection, planned_date: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
+            </div>
+
+            {/* Basic Details for Anganwadi */}
+            {selectedCategoryForForm?.form_type === 'anganwadi' && (
+              <>
+                <div className="border-t border-gray-200 pt-4 mt-6">
+                  <h4 className="text-lg font-semibold text-gray-900 mb-4">मूलभूत तपशील (Basic Details)</h4>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    अंगणवाडी केंद्राचे नाव (Anganwadi Centre Name)
+                  </label>
+                  <input
+                    type="text"
+                    value={anganwadiForm.anganwadi_name}
+                    onChange={(e) => setAnganwadiForm({ ...anganwadiForm, anganwadi_name: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    placeholder="अंगणवाडी केंद्राचे नाव टाका"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    अंगणवाडी क्रमांक (Anganwadi Number)
+                  </label>
+                  <input
+                    type="text"
+                    value={anganwadiForm.anganwadi_number}
+                    onChange={(e) => setAnganwadiForm({ ...anganwadiForm, anganwadi_number: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    placeholder="अंगणवाडी क्रमांक टाका"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    पर्यवेक्षकाचे नाव (Supervisor Name)
+                  </label>
+                  <input
+                    type="text"
+                    value={anganwadiForm.supervisor_name}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600"
+                    placeholder="पर्यवेक्षकाचे नाव"
+                    readOnly
+                  />
+                  <p className="text-xs text-gray-500 mt-1">स्वयंचलितपणे भरले गेले (Auto-filled)</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    मदतनीसाचे नाव (Helper Name)
+                  </label>
+                  <input
+                    type="text"
+                    value={anganwadiForm.helper_name}
+                    onChange={(e) => setAnganwadiForm({ ...anganwadiForm, helper_name: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    placeholder="मदतनीसाचे नाव टाका"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    गावाचे नाव (Village Name)
+                  </label>
+                  <input
+                    type="text"
+                    value={anganwadiForm.village_name}
+                    onChange={(e) => setAnganwadiForm({ ...anganwadiForm, village_name: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    placeholder="गावाचे नाव टाका"
+                  />
+                </div>
+              </>
+            )}
           </div>
         </div>
       );
@@ -777,91 +865,14 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
       return (
         <div className="space-y-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            {selectedCategory?.form_type === 'anganwadi' ? 'अंगणवाडी केंद्र माहिती आणि तपासणी' : 'Inspection Details'}
+            {selectedCategoryForForm?.form_type === 'anganwadi' ? 'अंगणवाडी केंद्र माहिती आणि तपासणी' : 'Inspection Details'}
           </h3>
           
-          {selectedCategory?.form_type === 'anganwadi' && (
+          {selectedCategoryForForm?.form_type === 'anganwadi' && (
             <div className="space-y-6">
-              {/* Basic Details Section */}
-              <div className="bg-gray-50 rounded-lg p-6">
-                <h4 className="text-md font-semibold text-gray-800 mb-4">मूलभूत माहिती (Basic Details)</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      अंगणवाडी केंद्राचे नाव (Anganwadi Name) *
-                    </label>
-                    <input
-                      type="text"
-                      value={anganwadiForm.anganwadi_name}
-                      onChange={(e) => setAnganwadiForm({...anganwadiForm, anganwadi_name: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="अंगणवाडी केंद्राचे नाव टाका"
-                      required
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      अंगणवाडी क्रमांक (Anganwadi Number) *
-                    </label>
-                    <input
-                      type="text"
-                      value={anganwadiForm.anganwadi_number}
-                      onChange={(e) => setAnganwadiForm({...anganwadiForm, anganwadi_number: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="अंगणवाडी क्रमांक टाका"
-                      required
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      पर्यवेक्षकाचे नाव (Supervisor Name) *
-                    </label>
-                    <input
-                      type="text"
-                      value={anganwadiForm.supervisor_name}
-                      onChange={(e) => setAnganwadiForm({...anganwadiForm, supervisor_name: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-gray-100"
-                      placeholder="पर्यवेक्षकाचे नाव"
-                      required
-                      readOnly
-                    />
-                    <p className="text-xs text-gray-500 mt-1">स्वयंचलितपणे भरले गेले (Auto-filled)</p>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      सहाय्यकाचे नाव (Helper Name)
-                    </label>
-                    <input
-                      type="text"
-                      value={anganwadiForm.helper_name}
-                      onChange={(e) => setAnganwadiForm({...anganwadiForm, helper_name: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="सहाय्यकाचे नाव टाका"
-                    />
-                  </div>
-                  
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      गावाचे नाव (Village Name) *
-                    </label>
-                    <input
-                      type="text"
-                      value={anganwadiForm.village_name}
-                      onChange={(e) => setAnganwadiForm({...anganwadiForm, village_name: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="गावाचे नाव टाका"
-                      required
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Infrastructure Section */}
-              <div className="bg-gray-50 rounded-lg p-6">
-                <h4 className="text-md font-semibold text-gray-800 mb-4">पायाभूत सुविधा (Infrastructure)</h4>
+              {/* Infrastructure */}
+              <div>
+                <h4 className="text-lg font-semibold text-gray-900 mb-4">पायाभूत सुविधा (Infrastructure)</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1211,108 +1222,65 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
     } else if (currentStep === 4) {
       return (
         <div className="space-y-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            फोटो अपलोड करा (Upload Photos)
-          </h3>
-          
-          <div className="bg-gray-50 rounded-lg p-6">
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                तपासणी फोटो जोडा (Add Inspection Photos)
-              </label>
+          <div>
+            <h4 className="text-lg font-semibold text-gray-900 mb-4">फोटो अपलोड करा (Upload Photos)</h4>
+            
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
               <input
                 type="file"
                 multiple
                 accept="image/*"
                 onChange={handlePhotoUpload}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="hidden"
+                id="photo-upload"
               />
-              <p className="text-xs text-gray-500 mt-1">
-                एकाधिक फोटो निवडू शकता (You can select multiple photos)
-              </p>
+              <label
+                htmlFor="photo-upload"
+                className="cursor-pointer flex flex-col items-center space-y-2"
+              >
+                <Camera className="h-12 w-12 text-gray-400" />
+                <span className="text-lg font-medium text-gray-700">फोटो निवडा (Select Photos)</span>
+                <span className="text-sm text-gray-500">एकाधिक फोटो निवडू शकता (You can select multiple photos)</span>
+              </label>
             </div>
-            
-            {photos.length > 0 && (
-              <div className="space-y-4">
-                <h5 className="font-medium text-gray-800">निवडलेले फोटो (Selected Photos):</h5>
-                {photos.map((photo, index) => (
-                  <div key={index} className="flex items-center space-x-4 p-3 bg-white rounded-lg border">
-                    <div className="flex-shrink-0">
+
+            {/* Selected Photos */}
+            {selectedPhotos.length > 0 && (
+              <div className="mt-6">
+                <h5 className="text-md font-semibold text-gray-900 mb-3">निवडलेले फोटो ({selectedPhotos.length})</h5>
+                <div className="space-y-3">
+                  {selectedPhotos.map((photo, index) => (
+                    <div key={index} className="flex items-center space-x-4 p-3 border border-gray-200 rounded-lg">
                       <Camera className="h-8 w-8 text-purple-600" />
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-900">{photo.file.name}</div>
+                        <div className="text-sm text-gray-500">{(photo.file.size / 1024 / 1024).toFixed(2)} MB</div>
+                        <input
+                          type="text"
+                          value={photo.description}
+                          onChange={(e) => {
+                            const updatedPhotos = [...selectedPhotos];
+                            updatedPhotos[index].description = e.target.value;
+                            setSelectedPhotos(updatedPhotos);
+                          }}
+                          className="mt-2 w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-purple-500 focus:border-transparent"
+                          placeholder="फोटोचे वर्णन (Photo description)"
+                        />
+                      </div>
+                      <button
+                        onClick={() => {
+                          const updatedPhotos = selectedPhotos.filter((_, i) => i !== index);
+                          setSelectedPhotos(updatedPhotos);
+                        }}
+                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
                     </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-900">{photo.name}</p>
-                      <p className="text-xs text-gray-500">{(photo.size / 1024 / 1024).toFixed(2)} MB</p>
-                      <input
-                        type="text"
-                        value={photoDescriptions[index]}
-                        onChange={(e) => updatePhotoDescription(index, e.target.value)}
-                        placeholder="फोटोचे वर्णन टाका (Add photo description)"
-                        className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-purple-500 focus:border-transparent"
-                      />
-                    </div>
-                    <button
-                      onClick={() => removePhoto(index)}
-                      className="text-red-600 hover:text-red-800"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             )}
-          </div>
-          
-          {/* Action Buttons */}
-          <div className="flex items-center justify-between pt-6 border-t border-gray-200">
-            <button
-              onClick={() => setCurrentStep(3)}
-              className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all duration-200"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              <span>मागे (Back)</span>
-            </button>
-            
-            <div className="flex items-center space-x-3">
-              <button
-                onClick={() => handleCreateInspectionWithForm('draft')}
-                disabled={isLoading}
-                className="flex items-center space-x-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-all duration-200 disabled:opacity-50"
-              >
-                {isLoading ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                ) : (
-                  <Save className="h-4 w-4" />
-                )}
-                <span>जतन करा (Save)</span>
-              </button>
-              
-              <button
-                onClick={() => handleCreateInspectionWithForm('draft')}
-                disabled={isLoading}
-                className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-200 disabled:opacity-50"
-              >
-                {isLoading ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                ) : (
-                  <Edit className="h-4 w-4" />
-                )}
-                <span>संपादित करा (Edit)</span>
-              </button>
-              
-              <button
-                onClick={handleSubmitInspection}
-                disabled={isLoading}
-                className="flex items-center space-x-2 px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all duration-200 disabled:opacity-50"
-              >
-                {isLoading ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                ) : (
-                  <CheckCircle className="h-4 w-4" />
-                )}
-                <span>सबमिट करा (Submit)</span>
-              </button>
-            </div>
           </div>
         </div>
       );
@@ -1352,49 +1320,59 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
           {renderStepContent()}
           
           {/* Navigation Buttons */}
-          {currentStep < 4 && currentStep !== 3 && (
-            <div className="flex items-center justify-between pt-6 border-t border-gray-200">
+          <div className="flex items-center justify-between pt-6 border-t border-gray-200">
+            <button
+              onClick={() => setCurrentStep(Math.max(1, currentStep - 1))}
+              disabled={currentStep === 1}
+              className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span>मागे (Back)</span>
+            </button>
+
+            {currentStep < 4 ? (
               <button
-                onClick={() => setCurrentStep(Math.max(1, currentStep - 1))}
-                className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all duration-200"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                <span>मागे (Back)</span>
-              </button>
-              
-              <button
-                onClick={() => setCurrentStep(Math.min(4, currentStep + 1))}
+                onClick={() => setCurrentStep(currentStep + 1)}
                 disabled={
-                  (currentStep === 1 && !newInspection.location_name) ||
-                  (currentStep === 2 && !currentLocation)
+                  (currentStep === 1 && (!newInspection.location_name || !newInspection.address)) ||
+                  (currentStep === 2 && (!newInspection.latitude || !newInspection.longitude))
                 }
-                className="flex items-center space-x-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-all duration-200 disabled:opacity-50"
+                className="flex items-center space-x-2 px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <span>पुढे (Next)</span>
                 <ArrowRight className="h-4 w-4" />
               </button>
-            </div>
-          )}
-          
-          {currentStep === 3 && (
-            <div className="flex items-center justify-between pt-6 border-t border-gray-200">
-              <button
-                onClick={() => setCurrentStep(2)}
-                className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all duration-200"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                <span>मागे (Back)</span>
-              </button>
-              
-              <button
-                onClick={() => setCurrentStep(4)}
-                className="flex items-center space-x-2 px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-all duration-200"
-              >
-                <ArrowRight className="h-4 w-4" />
-                <span>पुढे (Next)</span>
-              </button>
-            </div>
-          )}
+            ) : (
+              <div className="flex items-center space-x-3">
+                <button
+                  onClick={() => handleCreateInspectionWithForm('draft')}
+                  disabled={isCreating}
+                  className="flex items-center space-x-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-all duration-200 disabled:opacity-50"
+                >
+                  <Save className="h-4 w-4" />
+                  <span>जतन करा (Save)</span>
+                </button>
+                
+                <button
+                  onClick={() => handleCreateInspectionWithForm('draft')}
+                  disabled={isCreating}
+                  className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-200 disabled:opacity-50"
+                >
+                  <Edit className="h-4 w-4" />
+                  <span>संपादित करा (Edit)</span>
+                </button>
+                
+                <button
+                  onClick={() => setShowSubmitConfirmation(true)}
+                  disabled={isCreating}
+                  className="flex items-center space-x-2 px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all duration-200 disabled:opacity-50"
+                >
+                  <CheckCircle className="h-4 w-4" />
+                  <span>सबमिट करा (Submit)</span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       )}
       
@@ -1407,16 +1385,14 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                 <div className="bg-green-100 p-2 rounded-full">
                   <CheckCircle className="h-6 w-6 text-green-600" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900">
-                  तपासणी सबमिट करा (Submit Inspection)
-                </h3>
+                <h3 className="text-lg font-semibold text-gray-900">तपासणी सबमिट करा (Submit Inspection)</h3>
               </div>
               
               <p className="text-gray-600 mb-6">
                 आपल्याला खात्री आहे की आपण ही तपासणी सबमिट करू इच्छिता? सबमिट केल्यानंतर ती पुनरावलोकनासाठी पाठवली जाईल.
               </p>
               <p className="text-sm text-gray-500 mb-6">
-                (Are you sure you want to submit this inspection? Once submitted, it will be sent for review.)
+                Are you sure you want to submit this inspection? Once submitted, it will be sent for review.
               </p>
               
               <div className="flex items-center justify-end space-x-3">
@@ -1427,11 +1403,14 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                   रद्द करा (Cancel)
                 </button>
                 <button
-                  onClick={confirmSubmitInspection}
-                  disabled={isLoading}
-                  className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 disabled:opacity-50"
+                  onClick={() => {
+                    setShowSubmitConfirmation(false);
+                    handleCreateInspectionWithForm('submitted');
+                  }}
+                  disabled={isCreating}
+                  className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 disabled:opacity-50"
                 >
-                  {isLoading ? 'सबमिट करत आहे...' : 'सबमिट करा (Submit)'}
+                  {isCreating ? 'सबमिट करत आहे...' : 'सबमिट करा (Submit)'}
                 </button>
               </div>
             </div>
