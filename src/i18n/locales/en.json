@@ -625,6 +625,10 @@
     "detectedLocation": "Detected Location",
     "maxPhotosAllowed": "Maximum 5 photos allowed. Please remove some photos first.",
     "photosUploaded": "photos uploaded",
-    "maxPhotosReached": "Maximum 5 photos reached"
+    "maxPhotosReached": "Maximum 5 photos reached",
+    "assignForRevisit": "Assign for Revisit",
+    "selectInspector": "Select Inspector",
+    "chooseInspector": "Choose Inspector",
+    "revisitNote": "This inspection will be reassigned to the selected inspector for revisit. The status will be changed to 'In Progress'."
   }
 }

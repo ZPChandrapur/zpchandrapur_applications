@@ -302,6 +302,12 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
   const handlePhotoUpload = async (files: FileList) => {
     if (!files || files.length === 0) return;
 
+    // Check if adding these files would exceed the limit
+    if (photos.length + files.length > 5) {
+      alert(t('fims.maxPhotosAllowed'));
+      return;
+    }
+
     // Check photo limit
     if (photos.length + files.length > 5) {
       alert(t('fims.maxPhotosAllowed', 'Maximum 5 photos allowed. Please remove some photos first.'));
@@ -313,6 +319,10 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
       const newPhotos: InspectionPhoto[] = [];
       
       for (let i = 0; i < files.length; i++) {
+        if (photos.length + newPhotos.length >= 5) {
+          break; // Stop if we've reached the limit
+        }
+        
         const file = files[i];
         const fileName = `${user.id}/${Date.now()}_${i}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
         
@@ -1159,7 +1169,33 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
                             className="rounded border-gray-300 text-purple-600 focus:ring-purple-500 h-4 w-4"
                           />
                           <item.icon className="h-4 w-4 text-gray-600" />
-                          <label className="text-sm font-medium text-gray-700 cursor-pointer flex-1">
+                           <label 
+                             className="text-sm font-medium text-gray-700 cursor-pointer flex-1"
+                             onClick={(e) => {
+                               e.preventDefault();
+                               const checkbox = e.currentTarget.parentElement?.querySelector('input[type="checkbox"]') as HTMLInputElement;
+                               if (checkbox) {
+                                 checkbox.checked = !checkbox.checked;
+                                 setAnganwadiForm(prev => ({ 
+                                   ...prev, 
+                                   [item.key]: checkbox.checked 
+                                 }));
+                               }
+                             }}
+                           >
+                            className="text-sm font-medium text-gray-700 cursor-pointer flex-1"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              const checkbox = e.currentTarget.parentElement?.querySelector('input[type="checkbox"]') as HTMLInputElement;
+                              if (checkbox) {
+                                checkbox.checked = !checkbox.checked;
+                                setAnganwadiForm(prev => ({ 
+                                  ...prev, 
+                                  [item.key]: checkbox.checked 
+                                }));
+                              }
+                            }}
+                          >
                             {t(item.labelKey)}
                           </label>
                         </div>
@@ -1269,11 +1305,23 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                       {photos.map((photo, index) => (
                         <div key={index} className="relative bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-                          <img
-                            src={photo.photo_url}
-                            alt={photo.photo_name || `Photo ${index + 1}`}
-                            className="w-full h-40 object-cover rounded-lg mb-3"
-                          />
+                          {photo.file ? (
+                            <img
+                              src={URL.createObjectURL(photo.file)}
+                              alt={photo.photo_name || `Photo ${index + 1}`}
+                              className="w-full h-40 object-cover rounded-lg mb-3"
+                            />
+                          ) : (
+                            <img
+                              src={photo.photo_url}
+                              alt={photo.photo_name || `Photo ${index + 1}`}
+                              className="w-full h-40 object-cover rounded-lg mb-3"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE2MCIgdmlld0JveD0iMCAwIDIwMCAxNjAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMTYwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik04NSA2MEw5NSA3MEw4NSA4MEw3NSA3MEw4NSA2MFoiIGZpbGw9IiM5Q0EzQUYiLz4KPHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTkgMTJMMTEgMTRMMTUgMTBNMjEgMTJDMjEgMTYuOTcwNiAxNi45NzA2IDIxIDEyIDIxQzcuMDI5NDQgMjEgMyAxNi45NzA2IDMgMTJDMyA3LjAyOTQ0IDcuMDI5NDQgMyAxMiAzQzE2Ljk3MDYgMyAyMSA3LjAyOTQ0IDIxIDEyWiIgc3Ryb2tlPSIjOUNBM0FGIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8L3N2Zz4KPC9zdmc+';
+                              }}
+                            />
+                          )}
                           <input
                             type="text"
                             value={photo.description || ''}

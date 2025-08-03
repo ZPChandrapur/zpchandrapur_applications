@@ -24,6 +24,8 @@ import {
   X
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { supabase } from '../lib/supabase';
+import { usePermissions } from '../hooks/usePermissions';
 import { FIMSNewInspection } from './FIMSNewInspection';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
@@ -85,6 +87,10 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
   const [viewingPhotos, setViewingPhotos] = useState<InspectionPhoto[]>([]);
   const [editingInspection, setEditingInspection] = useState<Inspection | null>(null);
+  const [showRevisitModal, setShowRevisitModal] = useState(false);
+  const [revisitInspectionId, setRevisitInspectionId] = useState<string>('');
+  const [availableInspectors, setAvailableInspectors] = useState<any[]>([]);
+  const [selectedInspector, setSelectedInspector] = useState('');
 
   useEffect(() => {
     fetchAllData();
@@ -95,7 +101,8 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
     try {
       await Promise.all([
         fetchInspections(),
-        fetchCategories()
+        fetchCategories(),
+        fetchAvailableInspectors()
       ]);
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -151,6 +158,25 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
       setCategories(data || []);
     } catch (error) {
       console.error('Error fetching categories:', error);
+    }
+  };
+
+  const fetchAvailableInspectors = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select(`
+          user_id,
+          name,
+          roles!inner(name)
+        `)
+        .in('roles.name', ['inspector', 'officer', 'admin'])
+        .not('name', 'is', null);
+      
+      if (error) throw error;
+      setAvailableInspectors(data || []);
+    } catch (error) {
+      console.error('Error fetching inspectors:', error);
     }
   };
 
@@ -223,23 +249,40 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
     }
   };
 
-  const handleRevisitInspection = async (inspectionId: string) => {
+  const handleRevisitInspection = (inspectionId: string) => {
+    setRevisitInspectionId(inspectionId);
+    setSelectedInspector('');
+    setShowRevisitModal(true);
+  };
+
+  const handleConfirmRevisit = async () => {
+    if (!selectedInspector) {
+      alert('Please select an inspector for revisit');
+      return;
+    }
+
     try {
+      setIsLoading(true);
+      
       const { error } = await supabase
         .from('fims_inspections')
         .update({ 
           status: 'in_progress',
-          requires_revisit: true 
+          requires_revisit: true,
+          inspector_id: selectedInspector
         })
-        .eq('id', inspectionId);
+        .eq('id', revisitInspectionId);
       
       if (error) throw error;
       
       await fetchInspections();
-      alert('Inspection sent for revisit');
+      setShowRevisitModal(false);
+      alert('Inspection assigned for revisit successfully');
     } catch (error) {
       console.error('Error sending for revisit:', error);
       alert('Error sending for revisit: ' + error.message);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -821,6 +864,72 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                   Next
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Revisit Assignment Modal */}
+      {showRevisitModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">
+                {t('fims.assignForRevisit', 'Assign for Revisit')}
+              </h3>
+              <button
+                onClick={() => setShowRevisitModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            
+            <div className="p-6">
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {t('fims.selectInspector', 'Select Inspector')}
+                </label>
+                <select
+                  value={selectedInspector}
+                  onChange={(e) => setSelectedInspector(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                >
+                  <option value="">{t('fims.chooseInspector', 'Choose Inspector')}</option>
+                  {availableInspectors.map(inspector => (
+                    <option key={inspector.user_id} value={inspector.user_id}>
+                      {inspector.name} ({inspector.roles?.name || 'Inspector'})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
+                <div className="flex items-start space-x-2">
+                  <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm text-amber-800">
+                      {t('fims.revisitNote', 'This inspection will be reassigned to the selected inspector for revisit. The status will be changed to "In Progress".')}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200">
+              <button
+                onClick={() => setShowRevisitModal(false)}
+                className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200"
+              >
+                {t('common.cancel')}
+              </button>
+              <button
+                onClick={handleConfirmRevisit}
+                disabled={isLoading || !selectedInspector}
+                className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors duration-200 disabled:opacity-50"
+              >
+                {isLoading ? t('common.saving') : t('fims.assignForRevisit', 'Assign for Revisit')}
+              </button>
             </div>
           </div>
         </div>
