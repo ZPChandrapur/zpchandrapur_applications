@@ -253,7 +253,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
           ...prev,
           latitude,
           longitude,
-          location_accuracy: accuracy
+          location_accuracy: accuracy ? Math.min(accuracy, 999.99) : null
         }));
         setIsLoading(false);
       },
