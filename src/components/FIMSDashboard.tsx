@@ -84,6 +84,12 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
   const [showPhotoModal, setShowPhotoModal] = useState(false);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
   const [viewingPhotos, setViewingPhotos] = useState<InspectionPhoto[]>([]);
+  const [editingInspection, setEditingInspection] = useState<Inspection | null>(null);
+
+  const handleNewInspection = () => {
+    setEditingInspection(null);
+    setActiveTab('newInspection');
+  };
 
   useEffect(() => {
     fetchAllData();
