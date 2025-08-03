@@ -204,6 +204,8 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
   const [completionAction, setCompletionAction] = useState<'complete' | 'revisit'>('complete');
   const [revisitAssignee, setRevisitAssignee] = useState('');
   const [revisitUsers, setRevisitUsers] = useState<any[]>([]);
+  const [showPhotoModal, setShowPhotoModal] = useState(false);
+  const [selectedInspectionPhotos, setSelectedInspectionPhotos] = useState<any[]>([]);
 
   useEffect(() => {
     // Detect mobile device
@@ -350,7 +352,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
 
     setIsLoading(true);
     navigator.geolocation.getCurrentPosition(
-      (position) => {
+      async (position) => {
         const { latitude, longitude, accuracy } = position.coords;
         setCurrentLocation({ lat: latitude, lng: longitude, accuracy });
         setNewInspection(prev => ({
@@ -359,6 +361,23 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
           longitude,
           location_accuracy: accuracy ? Math.min(accuracy, 999.99) : null
         }));
+        
+        // Get place name using reverse geocoding
+        try {
+          const response = await fetch(
+            `https://api.opencagedata.com/geocode/v1/json?q=${latitude}+${longitude}&key=YOUR_API_KEY&limit=1`
+          );
+          const data = await response.json();
+          if (data.results && data.results.length > 0) {
+            const placeName = data.results[0].formatted;
+            setNewInspection(prev => ({
+              ...prev,
+              address: placeName
+            }));
+          }
+        } catch (error) {
+          console.log('Could not fetch place name:', error);
+        }
         setIsLoading(false);
       },
       (error) => {
@@ -461,6 +480,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
   const handleEditInspection = async (inspection: any) => {
     try {
       setIsLoading(true);
+      console.log('Editing inspection:', inspection.id);
       
       // Fetch the complete inspection data including anganwadi form if it exists
       let anganwadiFormData = null;
@@ -473,6 +493,9 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
         
         if (!formError && formData) {
           anganwadiFormData = formData;
+        } else {
+          console.error('Error fetching anganwadi form:', formError);
+          // Don't return here, anganwadi form might not exist yet
         }
       }
       
@@ -543,6 +566,9 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
           uploaded: true,
           id: photo.id
         })));
+      } else {
+        console.error('Error fetching photos:', photosError);
+        // Don't return here, photos might not exist yet
       }
       
       setEditingInspection(inspection);
@@ -550,6 +576,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
       setCurrentStep(1);
       setActiveTab('new');
       
+      console.log('Edit mode set successfully');
     } catch (error) {
       console.error('Error loading inspection for editing:', error);
       alert('Error loading inspection data: ' + error.message);
@@ -559,8 +586,111 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
   };
 
   const handleViewInspection = async (inspection: any) => {
-    await handleEditInspection(inspection);
-    setIsViewMode(true);
+    try {
+      setIsLoading(true);
+      console.log('Viewing inspection:', inspection.id);
+      
+      // Fetch the complete inspection data including anganwadi form if it exists
+      let anganwadiFormData = null;
+      if (inspection.category_id) {
+        const { data: formData, error: formError } = await supabase
+          .from('fims_anganwadi_forms')
+          .select('*')
+          .eq('inspection_id', inspection.id)
+          .single();
+        
+        if (!formError && formData) {
+          anganwadiFormData = formData;
+        } else {
+          console.error('Error fetching anganwadi form:', formError);
+          // Don't return here, anganwadi form might not exist yet
+        }
+      }
+      
+      // Set the form data for viewing
+      setNewInspection({
+        category_id: inspection.category_id || '',
+        location_name: inspection.location_name || '',
+        address: inspection.address || '',
+        planned_date: inspection.planned_date || '',
+        latitude: inspection.latitude || null,
+        longitude: inspection.longitude || null,
+        location_accuracy: inspection.location_accuracy || null
+      });
+      
+      // Set anganwadi form data if exists
+      if (anganwadiFormData) {
+        setAnganwadiForm({
+          anganwadi_name: anganwadiFormData.anganwadi_name || '',
+          anganwadi_number: anganwadiFormData.anganwadi_number || '',
+          supervisor_name: anganwadiFormData.supervisor_name || userProfile?.name || '',
+          helper_name: anganwadiFormData.helper_name || '',
+          village_name: anganwadiFormData.village_name || '',
+          building_condition: anganwadiFormData.building_condition || '',
+          room_availability: anganwadiFormData.room_availability || false,
+          toilet_facility: anganwadiFormData.toilet_facility || false,
+          drinking_water: anganwadiFormData.drinking_water || false,
+          electricity: anganwadiFormData.electricity || false,
+          kitchen_garden: anganwadiFormData.kitchen_garden || false,
+          weighing_machine: anganwadiFormData.weighing_machine || false,
+          height_measuring_scale: anganwadiFormData.height_measuring_scale || false,
+          first_aid_kit: anganwadiFormData.first_aid_kit || false,
+          teaching_materials: anganwadiFormData.teaching_materials || false,
+          toys_available: anganwadiFormData.toys_available || false,
+          attendance_register: anganwadiFormData.attendance_register || false,
+          growth_chart_updated: anganwadiFormData.growth_chart_updated || false,
+          vaccination_records: anganwadiFormData.vaccination_records || false,
+          nutrition_records: anganwadiFormData.nutrition_records || false,
+          total_registered_children: anganwadiFormData.total_registered_children || 0,
+          children_present_today: anganwadiFormData.children_present_today || 0,
+          children_0_3_years: anganwadiFormData.children_0_3_years || 0,
+          children_3_6_years: anganwadiFormData.children_3_6_years || 0,
+          hot_meal_served: anganwadiFormData.hot_meal_served || false,
+          meal_quality: anganwadiFormData.meal_quality || '',
+          take_home_ration: anganwadiFormData.take_home_ration || false,
+          health_checkup_conducted: anganwadiFormData.health_checkup_conducted || false,
+          immunization_updated: anganwadiFormData.immunization_updated || false,
+          vitamin_a_given: anganwadiFormData.vitamin_a_given || false,
+          iron_tablets_given: anganwadiFormData.iron_tablets_given || false,
+          general_observations: anganwadiFormData.general_observations || '',
+          recommendations: anganwadiFormData.recommendations || '',
+          action_required: anganwadiFormData.action_required || ''
+        });
+      }
+      
+      // Fetch existing photos
+      const { data: photosData, error: photosError } = await supabase
+        .from('fims_inspection_photos')
+        .select('*')
+        .eq('inspection_id', inspection.id)
+        .order('photo_order');
+      
+      if (!photosError && photosData) {
+        setSelectedPhotos(photosData.map(photo => ({
+          file: null, // We don't have the original file
+          preview: photo.photo_url,
+          description: photo.description || '',
+          name: photo.photo_name || '',
+          uploaded: true,
+          id: photo.id
+        })));
+      } else {
+        console.error('Error fetching photos:', photosError);
+        // Don't return here, photos might not exist yet
+      }
+      
+      setViewingInspection(inspection);
+      setIsViewMode(true);
+      setCurrentStep(1);
+      setActiveTab('new');
+      
+      console.log('View mode set successfully');
+    } catch (error) {
+      console.error('Error loading inspection for viewing:', error);
+      alert('Error loading inspection data: ' + error.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleDeleteInspection = async (inspection: any) => {
@@ -571,32 +701,41 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
     try {
       setIsLoading(true);
       
-      // Delete related photos first
-      const { error: photosError } = await supabase
+      // First delete related photos from storage and database
+      const { data: photos } = await supabase
         .from('fims_inspection_photos')
-        .delete()
+        .select('photo_url')
         .eq('inspection_id', inspection.id);
-      
-      if (photosError) throw photosError;
-      
+
+      if (photos && photos.length > 0) {
+        // Delete photos from storage
+        const photoUrls = photos.map(p => p.photo_url.split('/').pop()).filter(Boolean);
+        if (photoUrls.length > 0) {
+          await supabase.storage
+            .from('field-visit-images')
+            .remove(photoUrls);
+        }
+
+        // Delete photo records
+        await supabase
+          .from('fims_inspection_photos')
+          .delete()
+          .eq('inspection_id', inspection.id);
+      }
+
       // Delete anganwadi form if exists
-      const { error: formError } = await supabase
+      await supabase
         .from('fims_anganwadi_forms')
         .delete()
         .eq('inspection_id', inspection.id);
-      
-      // Don't throw error if no form exists
-      if (formError && formError.code !== 'PGRST116') {
-        throw formError;
-      }
-      
+
       // Delete the inspection
-      const { error: inspectionError } = await supabase
+      const { error } = await supabase
         .from('fims_inspections')
         .delete()
         .eq('id', inspection.id);
       
-      if (inspectionError) throw inspectionError;
+      if (error) throw error;
       
       await fetchInspections();
       alert('Inspection deleted successfully');
@@ -658,6 +797,59 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const uploadPhotosToSupabase = async (photos: File[], inspectionId: string) => {
+    const uploadedPhotos = [];
+    
+    for (let i = 0; i < photos.length; i++) {
+      const photo = photos[i];
+      const fileExt = photo.name.split('.').pop();
+      const fileName = `${inspectionId}_${Date.now()}_${i}.${fileExt}`;
+      
+      try {
+        // Upload to Supabase storage
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('field-visit-images')
+          .upload(fileName, photo);
+
+        if (uploadError) {
+          console.error('Error uploading photo:', uploadError);
+          continue;
+        }
+
+        // Get public URL
+        const { data: { publicUrl } } = supabase.storage
+          .from('field-visit-images')
+          .getPublicUrl(fileName);
+
+        // Save photo record to database
+        const { error: dbError } = await supabase
+          .from('fims_inspection_photos')
+          .insert({
+            inspection_id: inspectionId,
+            photo_url: publicUrl,
+            photo_name: photo.name,
+            description: `Photo ${i + 1}`,
+            photo_order: i + 1
+          });
+
+        if (dbError) {
+          console.error('Error saving photo record:', dbError);
+          continue;
+        }
+
+        uploadedPhotos.push({
+          url: publicUrl,
+          name: photo.name,
+          order: i + 1
+        });
+      } catch (error) {
+        console.error('Error processing photo:', error);
+      }
+    }
+    
+    return uploadedPhotos;
   };
 
   const handleCreateInspectionWithForm = async (submitStatus: 'draft' | 'submitted' = 'draft') => {
@@ -758,33 +950,31 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
 
       // Upload photos if any
       if (selectedPhotos.length > 0) {
-        // Delete existing photos if in edit mode
         if (isEditMode) {
-          const { error: deleteError } = await supabase
+          // Delete existing photos first
+          const { data: existingPhotos } = await supabase
             .from('fims_inspection_photos')
-            .delete()
+            .select('photo_url')
             .eq('inspection_id', editingInspection.id);
-          
-          if (deleteError) console.error('Error deleting existing photos:', deleteError);
-        }
-        
-        // Insert new photos
-        const photoData = selectedPhotos
-          .filter(photo => !photo.uploaded) // Only new photos
-          .map((photo, index) => ({
-            inspection_id: inspectionResult.id,
-            photo_url: `placeholder_${Date.now()}_${index}.jpg`, // Placeholder URL
-            photo_name: photo.file?.name || `photo_${index + 1}`,
-            description: photo.description,
-            photo_order: index + 1
-          }));
-        
-        if (photoData.length > 0) {
-          const { error: photoError } = await supabase
-            .from('fims_inspection_photos')
-            .insert(photoData);
-          
-          if (photoError) throw photoError;
+
+          if (existingPhotos && existingPhotos.length > 0) {
+            const photoUrls = existingPhotos.map(p => p.photo_url.split('/').pop()).filter(Boolean);
+            if (photoUrls.length > 0) {
+              await supabase.storage
+                .from('field-visit-images')
+                .remove(photoUrls);
+            }
+
+            await supabase
+              .from('fims_inspection_photos')
+              .delete()
+              .eq('inspection_id', editingInspection.id);
+          }
+
+          // Upload new photos
+          await uploadPhotosToSupabase(selectedPhotos, editingInspection.id);
+        } else {
+          await uploadPhotosToSupabase(selectedPhotos, inspectionResult.id);
         }
       }
 
@@ -831,43 +1021,83 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
     handleCreateInspectionWithForm('submitted');
   };
 
-  const handleCreateInspection = async () => {
-    if (!newInspection.category_id || !newInspection.location_name) {
-      alert('Please fill in all required fields');
-      return;
-    }
+  const handleCreateInspection = () => {
+    // Reset all form data for new inspection
+    setNewInspection({
+      category_id: '',
+      location_name: '',
+      address: '',
+      planned_date: new Date().toISOString().split('T')[0],
+      latitude: null,
+      longitude: null,
+      location_accuracy: null
+    });
+    
+    setAnganwadiForm({
+      anganwadi_name: '',
+      anganwadi_number: '',
+      supervisor_name: userProfile?.name || user.email?.split('@')[0] || '',
+      helper_name: '',
+      village_name: '',
+      building_condition: '',
+      room_availability: null,
+      toilet_facility: null,
+      drinking_water: null,
+      electricity: null,
+      kitchen_garden: null,
+      weighing_machine: null,
+      height_measuring_scale: null,
+      first_aid_kit: null,
+      teaching_materials: null,
+      toys_available: null,
+      attendance_register: null,
+      growth_chart_updated: null,
+      vaccination_records: null,
+      nutrition_records: null,
+      total_registered_children: 0,
+      children_present_today: 0,
+      children_0_3_years: 0,
+      children_3_6_years: 0,
+      hot_meal_served: null,
+      meal_quality: '',
+      take_home_ration: null,
+      health_checkup_conducted: null,
+      immunization_updated: null,
+      vitamin_a_given: null,
+      iron_tablets_given: null,
+      general_observations: '',
+      recommendations: '',
+      action_required: ''
+    });
+    
+    setSelectedPhotos([]);
+    setCurrentStep(1);
+    setIsEditMode(false);
+    setIsViewMode(false);
+    setEditingInspection(null);
+    setActiveTab('new');
+  };
 
-    setIsLoading(true);
+  const handleViewPhotos = async (inspection: Inspection) => {
     try {
-      const inspectionData = {
-        ...newInspection,
-        inspection_number: generateInspectionNumber(),
-        inspector_id: user.id,
-        assigned_by: user.id,
-        status: 'planned'
-      };
+      setIsLoading(true);
+      const { data: photos, error } = await supabase
+        .from('fims_inspection_photos')
+        .select('*')
+        .eq('inspection_id', inspection.id)
+        .order('photo_order');
 
-      const { error } = await supabase
-        .from('fims_inspections')
-        .insert([inspectionData]);
+      if (error) {
+        console.error('Error fetching photos:', error);
+        alert('Error loading photos: ' + error.message);
+        return;
+      }
 
-      if (error) throw error;
-      
-      await fetchInspections();
-      setNewInspection({
-        category_id: '',
-        location_name: '',
-        address: '',
-        planned_date: '',
-        latitude: null,
-        longitude: null,
-        location_accuracy: null
-      });
-      setCurrentLocation(null);
-      setActiveTab('inspections');
+      setSelectedInspectionPhotos(photos || []);
+      setShowPhotoModal(true);
     } catch (error) {
-      console.error('Error creating inspection:', error);
-      alert('Error creating inspection: ' + error.message);
+      console.error('Error in handleViewPhotos:', error);
+      alert('Error loading photos: ' + error.message);
     } finally {
       setIsLoading(false);
     }
@@ -1941,13 +2171,14 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">तारीख</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">स्थान अचूकता</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">क्रिया</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Photos</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Complete</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredInspections.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="px-6 py-8 text-center text-gray-500">
+                  <td colSpan={10} className="px-6 py-8 text-center text-gray-500">
                     कोणतीही तपासणी सापडली नाही / No inspections found
                   </td>
                 </tr>
@@ -2009,22 +2240,34 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                         <button
                           onClick={() => handleDeleteInspection(inspection)}
                           className="text-red-600 hover:text-red-900 p-1 rounded"
+                          title="Delete"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <button
+                        onClick={() => handleViewPhotos(inspection)}
+                        className="text-purple-600 hover:text-purple-900 p-1 rounded"
+                        title="View Photos"
+                      >
+                        <Camera className="h-4 w-4" />
+                      </button>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex items-center space-x-2">
                         <button
                           onClick={() => handleInspectionCompletion(inspection, 'complete')}
-                          className="px-3 py-1 bg-green-100 text-green-700 hover:bg-green-200 rounded text-xs font-medium"
+                          className="px-2 py-1 text-xs bg-green-100 text-green-700 hover:bg-green-200 rounded"
+                          title="Complete"
                         >
                           Complete
                         </button>
                         <button
                           onClick={() => handleInspectionCompletion(inspection, 'revisit')}
-                          className="px-3 py-1 bg-orange-100 text-orange-700 hover:bg-orange-200 rounded text-xs font-medium"
+                          className="px-2 py-1 text-xs bg-orange-100 text-orange-700 hover:bg-orange-200 rounded"
+                          title="Revisit"
                         >
                           Revisit
                         </button>
@@ -2232,6 +2475,51 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
           {activeTab === 'analytics' && renderAnalytics()}
         </div>
       </div>
+
+      {/* Photo View Modal */}
+      {showPhotoModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">Inspection Photos</h3>
+              <button
+                onClick={() => setShowPhotoModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            
+            <div className="p-6">
+              {selectedInspectionPhotos.length === 0 ? (
+                <div className="text-center py-8">
+                  <Camera className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-500">No photos available for this inspection</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {selectedInspectionPhotos.map((photo, index) => (
+                    <div key={photo.id} className="border border-gray-200 rounded-lg overflow-hidden">
+                      <img
+                        src={photo.photo_url}
+                        alt={photo.photo_name || `Photo ${index + 1}`}
+                        className="w-full h-48 object-cover"
+                      />
+                      <div className="p-3">
+                        <p className="text-sm font-medium text-gray-900">{photo.photo_name}</p>
+                        <p className="text-xs text-gray-500">{photo.description}</p>
+                        <p className="text-xs text-gray-400">
+                          Uploaded: {new Date(photo.uploaded_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Completion Modal */}
       {showCompletionModal && selectedInspectionForCompletion && (
