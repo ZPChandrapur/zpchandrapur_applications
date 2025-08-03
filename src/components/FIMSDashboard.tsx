@@ -130,34 +130,52 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
 
   const fetchInspections = async () => {
     try {
-      let query = supabase
+      // First, fetch inspections with category data
+      let inspectionsQuery = supabase
         .from('fims_inspections')
         .select(`
           *,
-          category:fims_categories(name, name_marathi, form_type),
-          inspector:user_roles!user_roles_user_id_fkey(
-            name,
-            roles(name)
-          )
+          category:fims_categories(name, name_marathi, form_type)
         `)
         .order('created_at', { ascending: false });
 
       // Filter by user role
       if (userRole === 'clerk' || userRole === 'officer') {
-        query = query.eq('inspector_id', user.id);
+        inspectionsQuery = inspectionsQuery.eq('inspector_id', user.id);
       }
 
-      const { data, error } = await query;
+      const { data: inspectionsData, error: inspectionsError } = await inspectionsQuery;
       
-      if (error) throw error;
+      if (inspectionsError) throw inspectionsError;
+
+      // Get unique inspector IDs
+      const inspectorIds = [...new Set(inspectionsData?.map(i => i.inspector_id).filter(Boolean))];
       
-      // Transform the data to include inspector info
-      const transformedData = data?.map(inspection => ({
+      // Fetch inspector information separately
+      const { data: inspectorsData, error: inspectorsError } = await supabase
+        .from('user_roles')
+        .select(`
+          user_id,
+          name,
+          roles(name)
+        `)
+        .in('user_id', inspectorIds);
+      
+      if (inspectorsError) throw inspectorsError;
+
+      // Create a map of inspector data for quick lookup
+      const inspectorMap = new Map();
+      inspectorsData?.forEach(inspector => {
+        inspectorMap.set(inspector.user_id, {
+          name: inspector.name,
+          role_name: inspector.roles?.name || 'Unknown'
+        });
+      });
+      
+      // Merge inspector data with inspections
+      const transformedData = inspectionsData?.map(inspection => ({
         ...inspection,
-        inspector: inspection.inspector ? {
-          name: inspection.inspector.name,
-          role_name: inspection.inspector.roles?.name || 'Unknown'
-        } : null
+        inspector: inspectorMap.get(inspection.inspector_id) || null
       })) || [];
       
       setInspections(transformedData);
