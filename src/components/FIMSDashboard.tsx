@@ -135,7 +135,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
         .select(`
           *,
           category:fims_categories(name, name_marathi, form_type),
-          inspector:user_roles!fims_inspections_inspector_id_fkey(
+          inspector:user_roles!user_roles_user_id_fkey(
             name,
             roles(name)
           )
