@@ -26,7 +26,14 @@ import {
   Heart,
   Scale,
   RotateCcw,
-  ClipboardList
+  ClipboardList,
+  ChevronRight,
+  ChevronLeft,
+  Building2,
+  UserCheck,
+  Home,
+  Utensils,
+  Baby
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
@@ -125,7 +132,7 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
   editingInspection 
 }) => {
   const { t } = useTranslation();
-  const [currentStep, setCurrentStep] = useState(editingInspection ? 2 : 1);
+  const [currentStep, setCurrentStep] = useState(editingInspection ? 1 : 0); // 0 = category, 1-4 = form steps
   const [isLoading, setIsLoading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [locationPermission, setLocationPermission] = useState<'granted' | 'denied' | 'prompt'>('prompt');
@@ -266,7 +273,7 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
 
   const handleCategorySelect = (category: Category) => {
     setSelectedCategory(category);
-    setCurrentStep(2);
+    setCurrentStep(1);
   };
 
   const handlePhotoUpload = async (files: FileList) => {
@@ -439,432 +446,468 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
     }
   };
 
-  const renderCategorySelection = () => (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b border-gray-200">
-        <div className="px-6 py-4">
-          <div className="flex items-center space-x-3">
-            <button
-              onClick={onBack}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
-            >
-              <ArrowLeft className="h-5 w-5 text-gray-600" />
-            </button>
-            <div className="bg-purple-100 p-2 rounded-lg">
-              <Plus className="h-6 w-6 text-purple-600" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">{t('fims.newInspection')}</h1>
-              <p className="text-sm text-gray-500 mt-1">Select inspection category to begin</p>
-            </div>
-          </div>
-        </div>
-      </div>
+  const validateCurrentStep = () => {
+    switch (currentStep) {
+      case 1: // Basic Details
+        return anganwadiForm.anganwadi_name && anganwadiForm.supervisor_name && anganwadiForm.village_name;
+      case 2: // Location Details
+        return inspectionData.location_name.trim() !== '';
+      case 3: // Inspection Details
+        return true; // Optional fields
+      case 4: // Photos
+        return true; // Optional
+      default:
+        return true;
+    }
+  };
 
-      {/* Category Grid */}
-      <div className="p-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="mb-8 text-center">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">{t('fims.inspectionCategory')}</h2>
-            <p className="text-lg text-gray-600">Choose the type of inspection you want to conduct</p>
-          </div>
+  const handleNextStep = () => {
+    if (!validateCurrentStep()) {
+      alert('Please fill in all required fields before proceeding.');
+      return;
+    }
+    setCurrentStep(prev => Math.min(4, prev + 1));
+  };
 
-          {categories.length === 0 ? (
-            <div className="text-center py-12">
-              <FileText className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-xl font-medium text-gray-900 mb-2">No Categories Available</h3>
-              <p className="text-gray-500">Please contact your administrator to set up inspection categories.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {categories.map((category) => (
-                <div
-                  key={category.id}
-                  onClick={() => handleCategorySelect(category)}
-                  className="bg-white rounded-xl shadow-lg border border-gray-200 p-8 cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-xl hover:border-purple-300 group"
-                >
-                  {/* Category Icon */}
-                  <div className="flex justify-center mb-6">
-                    <div className="bg-gradient-to-br from-purple-500 to-indigo-600 p-6 rounded-full group-hover:from-purple-600 group-hover:to-indigo-700 transition-all duration-300">
-                      {category.form_type === 'anganwadi' ? (
-                        <Users className="h-12 w-12 text-white" />
-                      ) : (
-                        <FileText className="h-12 w-12 text-white" />
-                      )}
-                    </div>
-                  </div>
+  const handlePrevStep = () => {
+    setCurrentStep(prev => Math.max(editingInspection ? 1 : 0, prev - 1));
+  };
 
-                  {/* Category Info */}
-                  <div className="text-center">
-                    <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-purple-700 transition-colors duration-300">
-                      {category.name_marathi}
-                    </h3>
-                    <p className="text-sm text-gray-600 mb-3">{category.name}</p>
-                    
-                    {category.description && (
-                      <p className="text-sm text-gray-500 mb-4 line-clamp-2">
-                        {category.description}
-                      </p>
-                    )}
+  const getStepTitle = () => {
+    switch (currentStep) {
+      case 0: return 'Select Category';
+      case 1: return 'Basic Details';
+      case 2: return 'Location Details';
+      case 3: return 'Inspection Details';
+      case 4: return 'Photos & Submit';
+      default: return 'Inspection Form';
+    }
+  };
 
-                    {/* Form Type Badge */}
-                    <div className="flex justify-center">
-                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                        category.form_type === 'anganwadi' 
-                          ? 'bg-blue-100 text-blue-800' 
-                          : 'bg-green-100 text-green-800'
-                      }`}>
-                        {category.form_type === 'anganwadi' ? 'Anganwadi Center' : 'Document Inspection'}
-                      </span>
-                    </div>
-                  </div>
+  const getStepIcon = () => {
+    switch (currentStep) {
+      case 0: return FileText;
+      case 1: return Building2;
+      case 2: return MapPin;
+      case 3: return ClipboardList;
+      case 4: return Camera;
+      default: return FileText;
+    }
+  };
 
-                  {/* Hover Arrow */}
-                  <div className="flex justify-center mt-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <div className="bg-purple-100 p-2 rounded-full">
-                      <ArrowLeft className="h-5 w-5 text-purple-600 rotate-180" />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderInspectionForm = () => (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b border-gray-200">
-        <div className="px-6 py-4">
-          <div className="flex items-center justify-between">
+  // Step 0: Category Selection (only for new inspections)
+  if (currentStep === 0 && !editingInspection) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        {/* Header */}
+        <div className="bg-white shadow-sm border-b border-gray-200">
+          <div className="px-6 py-4">
             <div className="flex items-center space-x-3">
               <button
-                onClick={() => editingInspection ? onBack() : setCurrentStep(1)}
+                onClick={onBack}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
               >
                 <ArrowLeft className="h-5 w-5 text-gray-600" />
               </button>
               <div className="bg-purple-100 p-2 rounded-lg">
-                {selectedCategory?.form_type === 'anganwadi' ? (
-                  <Users className="h-6 w-6 text-purple-600" />
-                ) : (
-                  <FileText className="h-6 w-6 text-purple-600" />
-                )}
+                <Plus className="h-6 w-6 text-purple-600" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">{t('fims.newInspection')}</h1>
+                <p className="text-sm text-gray-500 mt-1">Select inspection category to begin</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Category Grid */}
+        <div className="p-6">
+          <div className="max-w-6xl mx-auto">
+            <div className="mb-8 text-center">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">{t('fims.inspectionCategory')}</h2>
+              <p className="text-lg text-gray-600">Choose the type of inspection you want to conduct</p>
+            </div>
+
+            {categories.length === 0 ? (
+              <div className="text-center py-12">
+                <FileText className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-xl font-medium text-gray-900 mb-2">No Categories Available</h3>
+                <p className="text-gray-500">Please contact your administrator to set up inspection categories.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {categories.map((category) => (
+                  <div
+                    key={category.id}
+                    onClick={() => handleCategorySelect(category)}
+                    className="bg-white rounded-xl shadow-lg border border-gray-200 p-8 cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-xl hover:border-purple-300 group"
+                  >
+                    {/* Category Icon */}
+                    <div className="flex justify-center mb-6">
+                      <div className="bg-gradient-to-br from-purple-500 to-indigo-600 p-6 rounded-full group-hover:from-purple-600 group-hover:to-indigo-700 transition-all duration-300">
+                        {category.form_type === 'anganwadi' ? (
+                          <Users className="h-12 w-12 text-white" />
+                        ) : (
+                          <FileText className="h-12 w-12 text-white" />
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Category Info */}
+                    <div className="text-center">
+                      <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-purple-700 transition-colors duration-300">
+                        {category.name_marathi}
+                      </h3>
+                      <p className="text-sm text-gray-600 mb-3">{category.name}</p>
+                      
+                      {category.description && (
+                        <p className="text-sm text-gray-500 mb-4 line-clamp-2">
+                          {category.description}
+                        </p>
+                      )}
+
+                      {/* Form Type Badge */}
+                      <div className="flex justify-center">
+                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                          category.form_type === 'anganwadi' 
+                            ? 'bg-blue-100 text-blue-800' 
+                            : 'bg-green-100 text-green-800'
+                        }`}>
+                          {category.form_type === 'anganwadi' ? 'Anganwadi Center' : 'Document Inspection'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Hover Arrow */}
+                    <div className="flex justify-center mt-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <div className="bg-purple-100 p-2 rounded-full">
+                        <ChevronRight className="h-5 w-5 text-purple-600" />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Multi-step form for Anganwadi inspection
+  const StepIcon = getStepIcon();
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header with Progress */}
+      <div className="bg-white shadow-sm border-b border-gray-200">
+        <div className="px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={() => editingInspection ? onBack() : (currentStep === 1 ? setCurrentStep(0) : handlePrevStep())}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+              >
+                <ArrowLeft className="h-5 w-5 text-gray-600" />
+              </button>
+              <div className="bg-purple-100 p-2 rounded-lg">
+                <StepIcon className="h-6 w-6 text-purple-600" />
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">
                   {editingInspection ? 'Edit Inspection' : t('fims.newInspection')}
                 </h1>
                 <p className="text-sm text-gray-500 mt-1">
-                  {selectedCategory?.name_marathi} - {selectedCategory?.name}
+                  {getStepTitle()} {selectedCategory && `- ${selectedCategory.name_marathi}`}
                 </p>
               </div>
             </div>
-            
-            <div className="flex items-center space-x-3">
-              <button
-                onClick={() => handleSaveInspection('draft')}
-                disabled={isLoading}
-                className="flex items-center space-x-2 px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-all duration-200 disabled:opacity-50"
-              >
-                <Save className="h-4 w-4" />
-                <span>Save Draft</span>
-              </button>
-              <button
-                onClick={() => handleSaveInspection('submitted')}
-                disabled={isLoading}
-                className="flex items-center space-x-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-all duration-200 disabled:opacity-50"
-              >
-                <Send className="h-4 w-4" />
-                <span>Submit</span>
-              </button>
-            </div>
+          </div>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="px-6 pb-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium text-gray-700">Step {currentStep} of 4</span>
+            <span className="text-sm text-gray-500">{Math.round((currentStep / 4) * 100)}% Complete</span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div
+              className="bg-gradient-to-r from-purple-500 to-indigo-600 h-2 rounded-full transition-all duration-300"
+              style={{ width: `${(currentStep / 4) * 100}%` }}
+            />
+          </div>
+        </div>
+
+        {/* Step Indicators */}
+        <div className="px-6 pb-4">
+          <div className="flex items-center justify-between">
+            {[
+              { step: 1, title: 'Basic Details', icon: Building2 },
+              { step: 2, title: 'Location', icon: MapPin },
+              { step: 3, title: 'Inspection', icon: ClipboardList },
+              { step: 4, title: 'Photos', icon: Camera }
+            ].map((item) => (
+              <div key={item.step} className="flex items-center">
+                <div className={`flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all duration-200 ${
+                  currentStep >= item.step
+                    ? 'bg-purple-600 border-purple-600 text-white'
+                    : 'bg-white border-gray-300 text-gray-400'
+                }`}>
+                  {currentStep > item.step ? (
+                    <CheckCircle className="h-4 w-4" />
+                  ) : (
+                    <item.icon className="h-4 w-4" />
+                  )}
+                </div>
+                <span className={`ml-2 text-sm font-medium ${
+                  currentStep >= item.step ? 'text-purple-600' : 'text-gray-400'
+                }`}>
+                  {item.title}
+                </span>
+                {item.step < 4 && (
+                  <div className={`w-12 h-0.5 mx-4 ${
+                    currentStep > item.step ? 'bg-purple-600' : 'bg-gray-300'
+                  }`} />
+                )}
+              </div>
+            ))}
           </div>
         </div>
       </div>
 
+      {/* Form Content */}
       <div className="p-6">
-        <div className="max-w-4xl mx-auto space-y-8">
-          {/* Basic Information */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-6">{t('fims.locationInformation')}</h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t('fims.locationName')} *
-                </label>
-                <input
-                  type="text"
-                  value={inspectionData.location_name}
-                  onChange={(e) => setInspectionData(prev => ({ ...prev, location_name: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  placeholder={t('fims.enterLocationName')}
-                  required
-                />
+        <div className="max-w-4xl mx-auto">
+          {/* Step 1: Basic Details */}
+          {currentStep === 1 && (
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+              <div className="text-center mb-8">
+                <div className="bg-blue-100 p-4 rounded-full w-16 h-16 mx-auto mb-4">
+                  <Building2 className="h-8 w-8 text-blue-600" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Basic Information</h2>
+                <p className="text-gray-600">Enter the basic details of the Anganwadi center</p>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t('fims.plannedDate')}
-                </label>
-                <input
-                  type="date"
-                  value={inspectionData.planned_date}
-                  onChange={(e) => setInspectionData(prev => ({ ...prev, planned_date: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                />
-              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Anganwadi Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={anganwadiForm.anganwadi_name || ''}
+                    onChange={(e) => setAnganwadiForm(prev => ({ ...prev, anganwadi_name: e.target.value }))}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    placeholder="Enter anganwadi name"
+                    required
+                  />
+                </div>
 
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t('fims.address')}
-                </label>
-                <textarea
-                  value={inspectionData.address}
-                  onChange={(e) => setInspectionData(prev => ({ ...prev, address: e.target.value }))}
-                  rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  placeholder={t('fims.enterFullAddress')}
-                />
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Anganwadi Number
+                  </label>
+                  <input
+                    type="text"
+                    value={anganwadiForm.anganwadi_number || ''}
+                    onChange={(e) => setAnganwadiForm(prev => ({ ...prev, anganwadi_number: e.target.value }))}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    placeholder="Enter anganwadi number"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Supervisor Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={anganwadiForm.supervisor_name || ''}
+                    onChange={(e) => setAnganwadiForm(prev => ({ ...prev, supervisor_name: e.target.value }))}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    placeholder="Enter supervisor name"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Helper Name
+                  </label>
+                  <input
+                    type="text"
+                    value={anganwadiForm.helper_name || ''}
+                    onChange={(e) => setAnganwadiForm(prev => ({ ...prev, helper_name: e.target.value }))}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    placeholder="Enter helper name"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Village Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={anganwadiForm.village_name || ''}
+                    onChange={(e) => setAnganwadiForm(prev => ({ ...prev, village_name: e.target.value }))}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    placeholder="Enter village name"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Building Condition
+                  </label>
+                  <select
+                    value={anganwadiForm.building_condition || ''}
+                    onChange={(e) => setAnganwadiForm(prev => ({ ...prev, building_condition: e.target.value }))}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  >
+                    <option value="">Select condition</option>
+                    <option value="excellent">Excellent</option>
+                    <option value="good">Good</option>
+                    <option value="average">Average</option>
+                    <option value="poor">Poor</option>
+                  </select>
+                </div>
               </div>
             </div>
+          )}
 
-            {/* Location Capture */}
-            <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-              <div className="flex items-center justify-between mb-4">
-                <h4 className="text-md font-semibold text-blue-900">GPS Location</h4>
-                <button
-                  onClick={getCurrentLocation}
-                  disabled={isLoading}
-                  className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-200 disabled:opacity-50"
-                >
-                  <MapPin className="h-4 w-4" />
-                  <span>{t('fims.getCurrentLocation')}</span>
-                </button>
+          {/* Step 2: Location Details */}
+          {currentStep === 2 && (
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+              <div className="text-center mb-8">
+                <div className="bg-green-100 p-4 rounded-full w-16 h-16 mx-auto mb-4">
+                  <MapPin className="h-8 w-8 text-green-600" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Location Information</h2>
+                <p className="text-gray-600">Provide location details and capture GPS coordinates</p>
               </div>
 
-              {inspectionData.latitude && inspectionData.longitude && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <span className="font-medium text-blue-700">{t('fims.latitude')}:</span>
-                    <span className="ml-2 text-blue-600">{inspectionData.latitude.toFixed(6)}</span>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Location Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={inspectionData.location_name}
+                      onChange={(e) => setInspectionData(prev => ({ ...prev, location_name: e.target.value }))}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      placeholder="Enter location name"
+                      required
+                    />
                   </div>
+
                   <div>
-                    <span className="font-medium text-blue-700">{t('fims.longitude')}:</span>
-                    <span className="ml-2 text-blue-600">{inspectionData.longitude.toFixed(6)}</span>
-                  </div>
-                  <div>
-                    <span className="font-medium text-blue-700">{t('fims.accuracy')}:</span>
-                    <span className="ml-2 text-blue-600">{Math.round(inspectionData.location_accuracy || 0)}m</span>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Planned Date
+                    </label>
+                    <input
+                      type="date"
+                      value={inspectionData.planned_date}
+                      onChange={(e) => setInspectionData(prev => ({ ...prev, planned_date: e.target.value }))}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    />
                   </div>
                 </div>
-              )}
-            </div>
-          </div>
 
-          {/* Category-specific Form */}
-          {selectedCategory?.form_type === 'anganwadi' && (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-6">{t('fims.anganwadiInspection')}</h3>
-              
-              {/* Basic Information */}
-              <div className="mb-8">
-                <h4 className="text-md font-semibold text-gray-800 mb-4">Basic Information</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Anganwadi Name</label>
-                    <input
-                      type="text"
-                      value={anganwadiForm.anganwadi_name || ''}
-                      onChange={(e) => setAnganwadiForm(prev => ({ ...prev, anganwadi_name: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="Enter anganwadi name"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Anganwadi Number</label>
-                    <input
-                      type="text"
-                      value={anganwadiForm.anganwadi_number || ''}
-                      onChange={(e) => setAnganwadiForm(prev => ({ ...prev, anganwadi_number: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="Enter anganwadi number"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Supervisor Name</label>
-                    <input
-                      type="text"
-                      value={anganwadiForm.supervisor_name || ''}
-                      onChange={(e) => setAnganwadiForm(prev => ({ ...prev, supervisor_name: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="Enter supervisor name"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Helper Name</label>
-                    <input
-                      type="text"
-                      value={anganwadiForm.helper_name || ''}
-                      onChange={(e) => setAnganwadiForm(prev => ({ ...prev, helper_name: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="Enter helper name"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Village Name</label>
-                    <input
-                      type="text"
-                      value={anganwadiForm.village_name || ''}
-                      onChange={(e) => setAnganwadiForm(prev => ({ ...prev, village_name: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="Enter village name"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Building Condition</label>
-                    <select
-                      value={anganwadiForm.building_condition || ''}
-                      onChange={(e) => setAnganwadiForm(prev => ({ ...prev, building_condition: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Full Address
+                  </label>
+                  <textarea
+                    value={inspectionData.address}
+                    onChange={(e) => setInspectionData(prev => ({ ...prev, address: e.target.value }))}
+                    rows={3}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    placeholder="Enter complete address"
+                  />
+                </div>
+
+                {/* GPS Location Capture */}
+                <div className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="text-lg font-semibold text-blue-900">GPS Location Capture</h4>
+                    <button
+                      onClick={getCurrentLocation}
+                      disabled={isLoading}
+                      className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-200 disabled:opacity-50"
                     >
-                      <option value="">Select condition</option>
-                      <option value="excellent">Excellent</option>
-                      <option value="good">Good</option>
-                      <option value="average">Average</option>
-                      <option value="poor">Poor</option>
-                    </select>
+                      <MapPin className="h-4 w-4" />
+                      <span>Get Current Location</span>
+                    </button>
                   </div>
+
+                  {inspectionData.latitude && inspectionData.longitude ? (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="bg-white p-4 rounded-lg">
+                        <div className="text-sm font-medium text-blue-700 mb-1">Latitude</div>
+                        <div className="text-lg font-bold text-blue-900">{inspectionData.latitude.toFixed(6)}</div>
+                      </div>
+                      <div className="bg-white p-4 rounded-lg">
+                        <div className="text-sm font-medium text-blue-700 mb-1">Longitude</div>
+                        <div className="text-lg font-bold text-blue-900">{inspectionData.longitude.toFixed(6)}</div>
+                      </div>
+                      <div className="bg-white p-4 rounded-lg">
+                        <div className="text-sm font-medium text-blue-700 mb-1">Accuracy</div>
+                        <div className="text-lg font-bold text-blue-900">{Math.round(inspectionData.location_accuracy || 0)}m</div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-4">
+                      <MapPin className="h-8 w-8 text-blue-400 mx-auto mb-2" />
+                      <p className="text-blue-700">Click "Get Current Location" to capture GPS coordinates</p>
+                    </div>
+                  )}
                 </div>
               </div>
+            </div>
+          )}
 
-              {/* Facilities Checklist */}
-              <div className="mb-8">
-                <h4 className="text-md font-semibold text-gray-800 mb-4">Facilities Available</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {[
-                    { key: 'room_availability', label: 'Room Availability' },
-                    { key: 'toilet_facility', label: 'Toilet Facility' },
-                    { key: 'drinking_water', label: 'Drinking Water' },
-                    { key: 'electricity', label: 'Electricity' },
-                    { key: 'kitchen_garden', label: 'Kitchen Garden' },
-                    { key: 'weighing_machine', label: 'Weighing Machine' },
-                    { key: 'height_measuring_scale', label: 'Height Measuring Scale' },
-                    { key: 'first_aid_kit', label: 'First Aid Kit' },
-                    { key: 'teaching_materials', label: 'Teaching Materials' },
-                    { key: 'toys_available', label: 'Toys Available' },
-                    { key: 'attendance_register', label: 'Attendance Register' },
-                    { key: 'growth_chart_updated', label: 'Growth Chart Updated' },
-                    { key: 'vaccination_records', label: 'Vaccination Records' },
-                    { key: 'nutrition_records', label: 'Nutrition Records' }
-                  ].map((item) => (
-                    <div key={item.key} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                      <input
-                        type="checkbox"
-                        checked={anganwadiForm[item.key as keyof AnganwadiForm] === true}
-                        onChange={(e) => setAnganwadiForm(prev => ({ 
-                          ...prev, 
-                          [item.key]: e.target.checked 
-                        }))}
-                        className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
-                      />
-                      <label className="text-sm font-medium text-gray-700">{item.label}</label>
-                    </div>
-                  ))}
+          {/* Step 3: Inspection Details */}
+          {currentStep === 3 && (
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+              <div className="text-center mb-8">
+                <div className="bg-orange-100 p-4 rounded-full w-16 h-16 mx-auto mb-4">
+                  <ClipboardList className="h-8 w-8 text-orange-600" />
                 </div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Inspection Details</h2>
+                <p className="text-gray-600">Complete the detailed inspection checklist</p>
               </div>
 
-              {/* Children Count */}
-              <div className="mb-8">
-                <h4 className="text-md font-semibold text-gray-800 mb-4">Children Information</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Total Registered</label>
-                    <input
-                      type="number"
-                      value={anganwadiForm.total_registered_children || 0}
-                      onChange={(e) => setAnganwadiForm(prev => ({ ...prev, total_registered_children: parseInt(e.target.value) || 0 }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      min="0"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Present Today</label>
-                    <input
-                      type="number"
-                      value={anganwadiForm.children_present_today || 0}
-                      onChange={(e) => setAnganwadiForm(prev => ({ ...prev, children_present_today: parseInt(e.target.value) || 0 }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      min="0"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Age 0-3 Years</label>
-                    <input
-                      type="number"
-                      value={anganwadiForm.children_0_3_years || 0}
-                      onChange={(e) => setAnganwadiForm(prev => ({ ...prev, children_0_3_years: parseInt(e.target.value) || 0 }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      min="0"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Age 3-6 Years</label>
-                    <input
-                      type="number"
-                      value={anganwadiForm.children_3_6_years || 0}
-                      onChange={(e) => setAnganwadiForm(prev => ({ ...prev, children_3_6_years: parseInt(e.target.value) || 0 }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      min="0"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Nutrition & Health */}
-              <div className="mb-8">
-                <h4 className="text-md font-semibold text-gray-800 mb-4">Nutrition & Health</h4>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                      <input
-                        type="checkbox"
-                        checked={anganwadiForm.hot_meal_served === true}
-                        onChange={(e) => setAnganwadiForm(prev => ({ ...prev, hot_meal_served: e.target.checked }))}
-                        className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
-                      />
-                      <label className="text-sm font-medium text-gray-700">Hot Meal Served</label>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Meal Quality</label>
-                      <select
-                        value={anganwadiForm.meal_quality || ''}
-                        onChange={(e) => setAnganwadiForm(prev => ({ ...prev, meal_quality: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      >
-                        <option value="">Select quality</option>
-                        <option value="excellent">Excellent</option>
-                        <option value="good">Good</option>
-                        <option value="average">Average</option>
-                        <option value="poor">Poor</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="space-y-8">
+                {/* Facilities Checklist */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <Home className="h-5 w-5 text-blue-600 mr-2" />
+                    Facilities Available
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {[
-                      { key: 'take_home_ration', label: 'Take Home Ration' },
-                      { key: 'health_checkup_conducted', label: 'Health Checkup Conducted' },
-                      { key: 'immunization_updated', label: 'Immunization Updated' },
-                      { key: 'vitamin_a_given', label: 'Vitamin A Given' },
-                      { key: 'iron_tablets_given', label: 'Iron Tablets Given' }
+                      { key: 'room_availability', label: 'Room Availability', icon: Home },
+                      { key: 'toilet_facility', label: 'Toilet Facility', icon: Home },
+                      { key: 'drinking_water', label: 'Drinking Water', icon: Activity },
+                      { key: 'electricity', label: 'Electricity', icon: Activity },
+                      { key: 'kitchen_garden', label: 'Kitchen Garden', icon: Activity },
+                      { key: 'weighing_machine', label: 'Weighing Machine', icon: Scale },
+                      { key: 'height_measuring_scale', label: 'Height Measuring Scale', icon: Scale },
+                      { key: 'first_aid_kit', label: 'First Aid Kit', icon: Heart },
+                      { key: 'teaching_materials', label: 'Teaching Materials', icon: FileText },
+                      { key: 'toys_available', label: 'Toys Available', icon: Users },
+                      { key: 'attendance_register', label: 'Attendance Register', icon: ClipboardList },
+                      { key: 'growth_chart_updated', label: 'Growth Chart Updated', icon: TrendingUp },
+                      { key: 'vaccination_records', label: 'Vaccination Records', icon: Shield },
+                      { key: 'nutrition_records', label: 'Nutrition Records', icon: Utensils }
                     ].map((item) => (
-                      <div key={item.key} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                      <div key={item.key} className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200">
                         <input
                           type="checkbox"
                           checked={anganwadiForm[item.key as keyof AnganwadiForm] === true}
@@ -872,133 +915,307 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
                             ...prev, 
                             [item.key]: e.target.checked 
                           }))}
-                          className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                          className="rounded border-gray-300 text-purple-600 focus:ring-purple-500 h-4 w-4"
                         />
-                        <label className="text-sm font-medium text-gray-700">{item.label}</label>
+                        <item.icon className="h-4 w-4 text-gray-600" />
+                        <label className="text-sm font-medium text-gray-700 cursor-pointer flex-1">
+                          {item.label}
+                        </label>
                       </div>
                     ))}
                   </div>
                 </div>
-              </div>
 
-              {/* Observations */}
-              <div className="mb-8">
-                <h4 className="text-md font-semibold text-gray-800 mb-4">Observations & Recommendations</h4>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">General Observations</label>
-                    <textarea
-                      value={anganwadiForm.general_observations || ''}
-                      onChange={(e) => setAnganwadiForm(prev => ({ ...prev, general_observations: e.target.value }))}
-                      rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="Enter general observations"
-                    />
+                {/* Children Information */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <Baby className="h-5 w-5 text-green-600 mr-2" />
+                    Children Information
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Total Registered</label>
+                      <input
+                        type="number"
+                        value={anganwadiForm.total_registered_children || 0}
+                        onChange={(e) => setAnganwadiForm(prev => ({ ...prev, total_registered_children: parseInt(e.target.value) || 0 }))}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        min="0"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Present Today</label>
+                      <input
+                        type="number"
+                        value={anganwadiForm.children_present_today || 0}
+                        onChange={(e) => setAnganwadiForm(prev => ({ ...prev, children_present_today: parseInt(e.target.value) || 0 }))}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        min="0"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Age 0-3 Years</label>
+                      <input
+                        type="number"
+                        value={anganwadiForm.children_0_3_years || 0}
+                        onChange={(e) => setAnganwadiForm(prev => ({ ...prev, children_0_3_years: parseInt(e.target.value) || 0 }))}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        min="0"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Age 3-6 Years</label>
+                      <input
+                        type="number"
+                        value={anganwadiForm.children_3_6_years || 0}
+                        onChange={(e) => setAnganwadiForm(prev => ({ ...prev, children_3_6_years: parseInt(e.target.value) || 0 }))}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        min="0"
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Recommendations</label>
-                    <textarea
-                      value={anganwadiForm.recommendations || ''}
-                      onChange={(e) => setAnganwadiForm(prev => ({ ...prev, recommendations: e.target.value }))}
-                      rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="Enter recommendations"
-                    />
+                </div>
+
+                {/* Nutrition & Health */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <Utensils className="h-5 w-5 text-orange-600 mr-2" />
+                    Nutrition & Health Services
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg">
+                        <input
+                          type="checkbox"
+                          checked={anganwadiForm.hot_meal_served === true}
+                          onChange={(e) => setAnganwadiForm(prev => ({ ...prev, hot_meal_served: e.target.checked }))}
+                          className="rounded border-gray-300 text-purple-600 focus:ring-purple-500 h-4 w-4"
+                        />
+                        <Utensils className="h-4 w-4 text-orange-600" />
+                        <label className="text-sm font-medium text-gray-700">Hot Meal Served</label>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Meal Quality</label>
+                        <select
+                          value={anganwadiForm.meal_quality || ''}
+                          onChange={(e) => setAnganwadiForm(prev => ({ ...prev, meal_quality: e.target.value }))}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        >
+                          <option value="">Select quality</option>
+                          <option value="excellent">Excellent</option>
+                          <option value="good">Good</option>
+                          <option value="average">Average</option>
+                          <option value="poor">Poor</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {[
+                        { key: 'take_home_ration', label: 'Take Home Ration', icon: Utensils },
+                        { key: 'health_checkup_conducted', label: 'Health Checkup Conducted', icon: Stethoscope },
+                        { key: 'immunization_updated', label: 'Immunization Updated', icon: Shield },
+                        { key: 'vitamin_a_given', label: 'Vitamin A Given', icon: Pill },
+                        { key: 'iron_tablets_given', label: 'Iron Tablets Given', icon: Pill }
+                      ].map((item) => (
+                        <div key={item.key} className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200">
+                          <input
+                            type="checkbox"
+                            checked={anganwadiForm[item.key as keyof AnganwadiForm] === true}
+                            onChange={(e) => setAnganwadiForm(prev => ({ 
+                              ...prev, 
+                              [item.key]: e.target.checked 
+                            }))}
+                            className="rounded border-gray-300 text-purple-600 focus:ring-purple-500 h-4 w-4"
+                          />
+                          <item.icon className="h-4 w-4 text-gray-600" />
+                          <label className="text-sm font-medium text-gray-700 cursor-pointer flex-1">
+                            {item.label}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Action Required</label>
-                    <textarea
-                      value={anganwadiForm.action_required || ''}
-                      onChange={(e) => setAnganwadiForm(prev => ({ ...prev, action_required: e.target.value }))}
-                      rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="Enter action required"
-                    />
+                </div>
+
+                {/* Observations */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <FileText className="h-5 w-5 text-purple-600 mr-2" />
+                    Observations & Recommendations
+                  </h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">General Observations</label>
+                      <textarea
+                        value={anganwadiForm.general_observations || ''}
+                        onChange={(e) => setAnganwadiForm(prev => ({ ...prev, general_observations: e.target.value }))}
+                        rows={3}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        placeholder="Enter general observations about the anganwadi center"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Recommendations</label>
+                      <textarea
+                        value={anganwadiForm.recommendations || ''}
+                        onChange={(e) => setAnganwadiForm(prev => ({ ...prev, recommendations: e.target.value }))}
+                        rows={3}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        placeholder="Enter recommendations for improvement"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Action Required</label>
+                      <textarea
+                        value={anganwadiForm.action_required || ''}
+                        onChange={(e) => setAnganwadiForm(prev => ({ ...prev, action_required: e.target.value }))}
+                        rows={3}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        placeholder="Enter specific actions that need to be taken"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Document Inspection Form */}
-          {selectedCategory?.form_type === 'document' && (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-6">{t('fims.documentInspection')}</h3>
-              <div className="text-center py-8">
-                <FileText className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                <h4 className="text-lg font-medium text-gray-900 mb-2">{t('fims.comingSoon')}</h4>
-                <p className="text-gray-500">Document inspection form will be available soon.</p>
+          {/* Step 4: Photos & Submit */}
+          {currentStep === 4 && (
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+              <div className="text-center mb-8">
+                <div className="bg-purple-100 p-4 rounded-full w-16 h-16 mx-auto mb-4">
+                  <Camera className="h-8 w-8 text-purple-600" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Photo Documentation</h2>
+                <p className="text-gray-600">Upload photos to document your inspection findings</p>
+              </div>
+
+              <div className="space-y-6">
+                {/* Photo Upload Area */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-4">Upload Inspection Photos</label>
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-purple-400 transition-colors duration-200 bg-gray-50">
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      onChange={(e) => e.target.files && handlePhotoUpload(e.target.files)}
+                      className="hidden"
+                      id="photo-upload"
+                    />
+                    <label htmlFor="photo-upload" className="cursor-pointer">
+                      <Camera className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                      <p className="text-xl font-medium text-gray-900 mb-2">Upload Photos</p>
+                      <p className="text-sm text-gray-500 mb-4">Click to select photos or drag and drop</p>
+                      <div className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors duration-200">
+                        <Upload className="h-4 w-4 mr-2" />
+                        Choose Files
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Photo Preview Grid */}
+                {photos.length > 0 && (
+                  <div>
+                    <h4 className="text-md font-semibold text-gray-800 mb-4">
+                      Uploaded Photos ({photos.length})
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {photos.map((photo, index) => (
+                        <div key={index} className="relative bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                          <img
+                            src={photo.photo_url}
+                            alt={photo.photo_name || `Photo ${index + 1}`}
+                            className="w-full h-40 object-cover rounded-lg mb-3"
+                          />
+                          <input
+                            type="text"
+                            value={photo.description || ''}
+                            onChange={(e) => updatePhotoDescription(index, e.target.value)}
+                            placeholder="Add photo description"
+                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-purple-500 focus:border-transparent"
+                          />
+                          <button
+                            onClick={() => removePhoto(index)}
+                            className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors duration-200 shadow-lg"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                          <div className="absolute top-2 left-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">
+                            {index + 1}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {uploadingPhotos && (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+                    <p className="text-lg font-medium text-gray-700">Uploading photos...</p>
+                    <p className="text-sm text-gray-500">Please wait while we process your images</p>
+                  </div>
+                )}
+
+                {/* Final Actions */}
+                <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg p-6 border border-purple-200">
+                  <h4 className="text-lg font-semibold text-purple-900 mb-4">Ready to Submit?</h4>
+                  <p className="text-purple-700 mb-6">
+                    Review your inspection details and choose to save as draft or submit for review.
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <button
+                      onClick={() => handleSaveInspection('draft')}
+                      disabled={isLoading}
+                      className="flex-1 flex items-center justify-center space-x-2 px-6 py-3 text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg transition-all duration-200 disabled:opacity-50"
+                    >
+                      <Save className="h-5 w-5" />
+                      <span>Save as Draft</span>
+                    </button>
+                    <button
+                      onClick={() => handleSaveInspection('submitted')}
+                      disabled={isLoading}
+                      className="flex-1 flex items-center justify-center space-x-2 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-all duration-200 disabled:opacity-50"
+                    >
+                      <Send className="h-5 w-5" />
+                      <span>Submit Inspection</span>
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           )}
 
-          {/* Photo Upload */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-6">Photo Documentation</h3>
-            
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Upload Photos</label>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-purple-400 transition-colors duration-200">
-                <input
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  onChange={(e) => e.target.files && handlePhotoUpload(e.target.files)}
-                  className="hidden"
-                  id="photo-upload"
-                />
-                <label htmlFor="photo-upload" className="cursor-pointer">
-                  <Camera className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-lg font-medium text-gray-900 mb-2">Upload Inspection Photos</p>
-                  <p className="text-sm text-gray-500">Click to select photos or drag and drop</p>
-                </label>
-              </div>
+          {/* Navigation Buttons */}
+          {currentStep > 0 && (
+            <div className="flex items-center justify-between mt-8">
+              <button
+                onClick={handlePrevStep}
+                className="flex items-center space-x-2 px-6 py-3 text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg transition-all duration-200"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                <span>Previous</span>
+              </button>
+
+              {currentStep < 4 && (
+                <button
+                  onClick={handleNextStep}
+                  disabled={!validateCurrentStep()}
+                  className="flex items-center space-x-2 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <span>Next</span>
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              )}
             </div>
-
-            {/* Photo Preview */}
-            {photos.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {photos.map((photo, index) => (
-                  <div key={index} className="relative bg-gray-50 rounded-lg p-4">
-                    <img
-                      src={photo.photo_url}
-                      alt={photo.photo_name || `Photo ${index + 1}`}
-                      className="w-full h-32 object-cover rounded-lg mb-3"
-                    />
-                    <input
-                      type="text"
-                      value={photo.description || ''}
-                      onChange={(e) => updatePhotoDescription(index, e.target.value)}
-                      placeholder="Add photo description"
-                      className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-purple-500 focus:border-transparent"
-                    />
-                    <button
-                      onClick={() => removePhoto(index)}
-                      className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors duration-200"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {uploadingPhotos && (
-              <div className="text-center py-4">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
-                <p className="text-sm text-gray-500 mt-2">Uploading photos...</p>
-              </div>
-            )}
-          </div>
+          )}
         </div>
       </div>
     </div>
   );
-
-  // Render based on current step and editing mode
-  if (editingInspection || currentStep === 2) {
-    return renderInspectionForm();
-  }
-
-  return renderCategorySelection();
 };
+</anganwadiForm>
