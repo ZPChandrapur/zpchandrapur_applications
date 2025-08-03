@@ -29,7 +29,8 @@ import {
   Pill,
   MessageSquare,
   Target,
-  RotateCcw
+  Search,
+  ClipboardList
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
