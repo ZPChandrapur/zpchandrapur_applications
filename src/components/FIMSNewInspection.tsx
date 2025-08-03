@@ -501,12 +501,12 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
 
   const getStepTitle = () => {
     switch (currentStep) {
-      case 0: return 'Select Category';
-      case 1: return 'Basic Details';
-      case 2: return 'Location Details';
-      case 3: return 'Inspection Details';
-      case 4: return 'Photos & Submit';
-      default: return 'Inspection Form';
+      case 0: return t('fims.selectCategory');
+      case 1: return t('fims.basicDetails');
+      case 2: return t('fims.locationDetails');
+      case 3: return t('fims.inspectionDetails');
+      case 4: return t('fims.photosSubmit');
+      default: return t('fims.inspectionForm');
     }
   };
 
@@ -712,93 +712,93 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
                 <div className="bg-blue-100 p-4 rounded-full w-16 h-16 mx-auto mb-4">
                   <Building2 className="h-8 w-8 text-blue-600" />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Basic Information</h2>
-                <p className="text-gray-600">Enter the basic details of the Anganwadi center</p>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('fims.basicInformation')}</h2>
+                <p className="text-gray-600">{t('fims.enterBasicDetails')}</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Anganwadi Name <span className="text-red-500">*</span>
+                    {t('fims.anganwadiName')} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     value={anganwadiForm.anganwadi_name || ''}
                     onChange={(e) => setAnganwadiForm(prev => ({ ...prev, anganwadi_name: e.target.value }))}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    placeholder="Enter anganwadi name"
+                    placeholder={t('fims.enterAnganwadiName')}
                     required
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Anganwadi Number
+                    {t('fims.anganwadiNumber')}
                   </label>
                   <input
                     type="text"
                     value={anganwadiForm.anganwadi_number || ''}
                     onChange={(e) => setAnganwadiForm(prev => ({ ...prev, anganwadi_number: e.target.value }))}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    placeholder="Enter anganwadi number"
+                    placeholder={t('fims.enterAnganwadiNumber')}
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Supervisor Name <span className="text-red-500">*</span>
+                    {t('fims.supervisorName')} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     value={anganwadiForm.supervisor_name || ''}
                     onChange={(e) => setAnganwadiForm(prev => ({ ...prev, supervisor_name: e.target.value }))}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    placeholder="Enter supervisor name"
+                    placeholder={t('fims.enterSupervisorName')}
                     required
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Helper Name
+                    {t('fims.helperName')}
                   </label>
                   <input
                     type="text"
                     value={anganwadiForm.helper_name || ''}
                     onChange={(e) => setAnganwadiForm(prev => ({ ...prev, helper_name: e.target.value }))}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    placeholder="Enter helper name"
+                    placeholder={t('fims.enterHelperName')}
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Village Name <span className="text-red-500">*</span>
+                    {t('fims.villageName')} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     value={anganwadiForm.village_name || ''}
                     onChange={(e) => setAnganwadiForm(prev => ({ ...prev, village_name: e.target.value }))}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    placeholder="Enter village name"
+                    placeholder={t('fims.enterVillageName')}
                     required
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Building Condition
+                    {t('fims.buildingCondition')}
                   </label>
                   <select
                     value={anganwadiForm.building_condition || ''}
                     onChange={(e) => setAnganwadiForm(prev => ({ ...prev, building_condition: e.target.value }))}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   >
-                    <option value="">Select condition</option>
-                    <option value="excellent">Excellent</option>
-                    <option value="good">Good</option>
-                    <option value="average">Average</option>
-                    <option value="poor">Poor</option>
+                    <option value="">{t('fims.selectCondition')}</option>
+                    <option value="excellent">{t('fims.excellent')}</option>
+                    <option value="good">{t('fims.good')}</option>
+                    <option value="average">{t('fims.average')}</option>
+                    <option value="poor">{t('fims.poor')}</option>
                   </select>
                 </div>
               </div>
@@ -812,29 +812,29 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
                 <div className="bg-green-100 p-4 rounded-full w-16 h-16 mx-auto mb-4">
                   <MapPin className="h-8 w-8 text-green-600" />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Location Information</h2>
-                <p className="text-gray-600">Provide location details and capture GPS coordinates</p>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('fims.locationInformation')}</h2>
+                <p className="text-gray-600">{t('fims.provideLocationDetails')}</p>
               </div>
 
               <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Location Name <span className="text-red-500">*</span>
+                      {t('fims.locationName')} <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
                       value={inspectionData.location_name}
                       onChange={(e) => setInspectionData(prev => ({ ...prev, location_name: e.target.value }))}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="Enter location name"
+                      placeholder={t('fims.enterLocationName')}
                       required
                     />
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Planned Date
+                      {t('fims.plannedDate')}
                     </label>
                     <input
                       type="date"
@@ -847,50 +847,50 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Full Address
+                    {t('fims.fullAddress')}
                   </label>
                   <textarea
                     value={inspectionData.address}
                     onChange={(e) => setInspectionData(prev => ({ ...prev, address: e.target.value }))}
                     rows={3}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    placeholder="Enter complete address"
+                    placeholder={t('fims.enterCompleteAddress')}
                   />
                 </div>
 
                 {/* GPS Location Capture */}
                 <div className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
                   <div className="flex items-center justify-between mb-4">
-                    <h4 className="text-lg font-semibold text-blue-900">GPS Location Capture</h4>
+                    <h4 className="text-lg font-semibold text-blue-900">{t('fims.gpsLocationCapture')}</h4>
                     <button
                       onClick={getCurrentLocation}
                       disabled={isLoading}
                       className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-200 disabled:opacity-50"
                     >
                       <MapPin className="h-4 w-4" />
-                      <span>Get Current Location</span>
+                      <span>{t('fims.getCurrentLocation')}</span>
                     </button>
                   </div>
 
                   {inspectionData.latitude && inspectionData.longitude ? (
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="bg-white p-4 rounded-lg">
-                        <div className="text-sm font-medium text-blue-700 mb-1">Latitude</div>
+                        <div className="text-sm font-medium text-blue-700 mb-1">{t('fims.latitude')}</div>
                         <div className="text-lg font-bold text-blue-900">{inspectionData.latitude.toFixed(6)}</div>
                       </div>
                       <div className="bg-white p-4 rounded-lg">
-                        <div className="text-sm font-medium text-blue-700 mb-1">Longitude</div>
+                        <div className="text-sm font-medium text-blue-700 mb-1">{t('fims.longitude')}</div>
                         <div className="text-lg font-bold text-blue-900">{inspectionData.longitude.toFixed(6)}</div>
                       </div>
                       <div className="bg-white p-4 rounded-lg">
-                        <div className="text-sm font-medium text-blue-700 mb-1">Accuracy</div>
+                        <div className="text-sm font-medium text-blue-700 mb-1">{t('fims.accuracy')}</div>
                         <div className="text-lg font-bold text-blue-900">{Math.round(inspectionData.location_accuracy || 0)}m</div>
                       </div>
                     </div>
                   ) : (
                     <div className="text-center py-4">
                       <MapPin className="h-8 w-8 text-blue-400 mx-auto mb-2" />
-                      <p className="text-blue-700">Click "Get Current Location" to capture GPS coordinates</p>
+                      <p className="text-blue-700">{t('fims.clickToGetLocation')}</p>
                     </div>
                   )}
                 </div>
@@ -905,8 +905,8 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
                 <div className="bg-orange-100 p-4 rounded-full w-16 h-16 mx-auto mb-4">
                   <ClipboardList className="h-8 w-8 text-orange-600" />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Inspection Details</h2>
-                <p className="text-gray-600">Complete the detailed inspection checklist</p>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('fims.inspectionDetails')}</h2>
+                <p className="text-gray-600">{t('fims.completeDetailedChecklist')}</p>
               </div>
 
               <div className="space-y-8">
@@ -914,24 +914,24 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                     <Home className="h-5 w-5 text-blue-600 mr-2" />
-                    Facilities Available
+                    {t('fims.facilitiesAvailable')}
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {[
-                      { key: 'room_availability', label: 'Room Availability', icon: Home },
-                      { key: 'toilet_facility', label: 'Toilet Facility', icon: Home },
-                      { key: 'drinking_water', label: 'Drinking Water', icon: Activity },
-                      { key: 'electricity', label: 'Electricity', icon: Activity },
-                      { key: 'kitchen_garden', label: 'Kitchen Garden', icon: Activity },
-                      { key: 'weighing_machine', label: 'Weighing Machine', icon: Scale },
-                      { key: 'height_measuring_scale', label: 'Height Measuring Scale', icon: Scale },
-                      { key: 'first_aid_kit', label: 'First Aid Kit', icon: Heart },
-                      { key: 'teaching_materials', label: 'Teaching Materials', icon: FileText },
-                      { key: 'toys_available', label: 'Toys Available', icon: Users },
-                      { key: 'attendance_register', label: 'Attendance Register', icon: ClipboardList },
-                      { key: 'growth_chart_updated', label: 'Growth Chart Updated', icon: TrendingUp },
-                      { key: 'vaccination_records', label: 'Vaccination Records', icon: Shield },
-                      { key: 'nutrition_records', label: 'Nutrition Records', icon: Utensils }
+                      { key: 'room_availability', labelKey: 'fims.roomAvailability', icon: Home },
+                      { key: 'toilet_facility', labelKey: 'fims.toiletFacility', icon: Home },
+                      { key: 'drinking_water', labelKey: 'fims.drinkingWater', icon: Activity },
+                      { key: 'electricity', labelKey: 'fims.electricity', icon: Activity },
+                      { key: 'kitchen_garden', labelKey: 'fims.kitchenGarden', icon: Activity },
+                      { key: 'weighing_machine', labelKey: 'fims.weighingMachine', icon: Scale },
+                      { key: 'height_measuring_scale', labelKey: 'fims.heightMeasuringScale', icon: Scale },
+                      { key: 'first_aid_kit', labelKey: 'fims.firstAidKit', icon: Heart },
+                      { key: 'teaching_materials', labelKey: 'fims.teachingMaterials', icon: FileText },
+                      { key: 'toys_available', labelKey: 'fims.toysAvailable', icon: Users },
+                      { key: 'attendance_register', labelKey: 'fims.attendanceRegister', icon: ClipboardList },
+                      { key: 'growth_chart_updated', labelKey: 'fims.growthChartUpdated', icon: TrendingUp },
+                      { key: 'vaccination_records', labelKey: 'fims.vaccinationRecords', icon: Shield },
+                      { key: 'nutrition_records', labelKey: 'fims.nutritionRecords', icon: Utensils }
                     ].map((item) => (
                       <div key={item.key} className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200">
                         <input
@@ -945,7 +945,7 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
                         />
                         <item.icon className="h-4 w-4 text-gray-600" />
                         <label className="text-sm font-medium text-gray-700 cursor-pointer flex-1">
-                          {item.label}
+                          {t(item.labelKey)}
                         </label>
                       </div>
                     ))}
@@ -956,11 +956,11 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                     <Baby className="h-5 w-5 text-green-600 mr-2" />
-                    Children Information
+                    {t('fims.childrenInformation')}
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Total Registered</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">{t('fims.totalRegistered')}</label>
                       <input
                         type="number"
                         value={anganwadiForm.total_registered_children || 0}
@@ -970,7 +970,7 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Present Today</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">{t('fims.presentToday')}</label>
                       <input
                         type="number"
                         value={anganwadiForm.children_present_today || 0}
@@ -980,7 +980,7 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Age 0-3 Years</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">{t('fims.age0to3Years')}</label>
                       <input
                         type="number"
                         value={anganwadiForm.children_0_3_years || 0}
@@ -990,7 +990,7 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Age 3-6 Years</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">{t('fims.age3to6Years')}</label>
                       <input
                         type="number"
                         value={anganwadiForm.children_3_6_years || 0}
@@ -1006,7 +1006,7 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                     <Utensils className="h-5 w-5 text-orange-600 mr-2" />
-                    Nutrition & Health Services
+                    {t('fims.nutritionHealthServices')}
                   </h3>
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1018,31 +1018,31 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
                           className="rounded border-gray-300 text-purple-600 focus:ring-purple-500 h-4 w-4"
                         />
                         <Utensils className="h-4 w-4 text-orange-600" />
-                        <label className="text-sm font-medium text-gray-700">Hot Meal Served</label>
+                        <label className="text-sm font-medium text-gray-700">{t('fims.hotMealServed')}</label>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Meal Quality</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('fims.mealQuality')}</label>
                         <select
                           value={anganwadiForm.meal_quality || ''}
                           onChange={(e) => setAnganwadiForm(prev => ({ ...prev, meal_quality: e.target.value }))}
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                         >
-                          <option value="">Select quality</option>
-                          <option value="excellent">Excellent</option>
-                          <option value="good">Good</option>
-                          <option value="average">Average</option>
-                          <option value="poor">Poor</option>
+                          <option value="">{t('fims.selectQuality')}</option>
+                          <option value="excellent">{t('fims.excellent')}</option>
+                          <option value="good">{t('fims.good')}</option>
+                          <option value="average">{t('fims.average')}</option>
+                          <option value="poor">{t('fims.poor')}</option>
                         </select>
                       </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {[
-                        { key: 'take_home_ration', label: 'Take Home Ration', icon: Utensils },
-                        { key: 'health_checkup_conducted', label: 'Health Checkup Conducted', icon: Stethoscope },
-                        { key: 'immunization_updated', label: 'Immunization Updated', icon: Shield },
-                        { key: 'vitamin_a_given', label: 'Vitamin A Given', icon: Pill },
-                        { key: 'iron_tablets_given', label: 'Iron Tablets Given', icon: Pill }
+                        { key: 'take_home_ration', labelKey: 'fims.takeHomeRation', icon: Utensils },
+                        { key: 'health_checkup_conducted', labelKey: 'fims.healthCheckupConducted', icon: Stethoscope },
+                        { key: 'immunization_updated', labelKey: 'fims.immunizationUpdated', icon: Shield },
+                        { key: 'vitamin_a_given', labelKey: 'fims.vitaminAGiven', icon: Pill },
+                        { key: 'iron_tablets_given', labelKey: 'fims.ironTabletsGiven', icon: Pill }
                       ].map((item) => (
                         <div key={item.key} className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200">
                           <input
@@ -1056,7 +1056,7 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
                           />
                           <item.icon className="h-4 w-4 text-gray-600" />
                           <label className="text-sm font-medium text-gray-700 cursor-pointer flex-1">
-                            {item.label}
+                            {t(item.labelKey)}
                           </label>
                         </div>
                       ))}
@@ -1068,37 +1068,37 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                     <FileText className="h-5 w-5 text-purple-600 mr-2" />
-                    Observations & Recommendations
+                    {t('fims.observationsRecommendations')}
                   </h3>
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">General Observations</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">{t('fims.generalObservations')}</label>
                       <textarea
                         value={anganwadiForm.general_observations || ''}
                         onChange={(e) => setAnganwadiForm(prev => ({ ...prev, general_observations: e.target.value }))}
                         rows={3}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        placeholder="Enter general observations about the anganwadi center"
+                        placeholder={t('fims.enterGeneralObservations')}
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Recommendations</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">{t('fims.recommendations')}</label>
                       <textarea
                         value={anganwadiForm.recommendations || ''}
                         onChange={(e) => setAnganwadiForm(prev => ({ ...prev, recommendations: e.target.value }))}
                         rows={3}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        placeholder="Enter recommendations for improvement"
+                        placeholder={t('fims.enterRecommendations')}
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Action Required</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">{t('fims.actionRequired')}</label>
                       <textarea
                         value={anganwadiForm.action_required || ''}
                         onChange={(e) => setAnganwadiForm(prev => ({ ...prev, action_required: e.target.value }))}
                         rows={3}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        placeholder="Enter specific actions that need to be taken"
+                        placeholder={t('fims.enterActionRequired')}
                       />
                     </div>
                   </div>
@@ -1114,14 +1114,14 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
                 <div className="bg-purple-100 p-4 rounded-full w-16 h-16 mx-auto mb-4">
                   <Camera className="h-8 w-8 text-purple-600" />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Photo Documentation</h2>
-                <p className="text-gray-600">Upload photos to document your inspection findings</p>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('fims.photoDocumentation')}</h2>
+                <p className="text-gray-600">{t('fims.uploadPhotosToDocument')}</p>
               </div>
 
               <div className="space-y-6">
                 {/* Photo Upload Area */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-4">Upload Inspection Photos</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-4">{t('fims.uploadInspectionPhotos')}</label>
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-purple-400 transition-colors duration-200 bg-gray-50">
                     <input
                       type="file"
@@ -1133,11 +1133,11 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
                     />
                     <label htmlFor="photo-upload" className="cursor-pointer">
                       <Camera className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                      <p className="text-xl font-medium text-gray-900 mb-2">Upload Photos</p>
-                      <p className="text-sm text-gray-500 mb-4">Click to select photos or drag and drop</p>
+                      <p className="text-xl font-medium text-gray-900 mb-2">{t('fims.uploadPhotos')}</p>
+                      <p className="text-sm text-gray-500 mb-4">{t('fims.clickToSelectPhotos')}</p>
                       <div className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors duration-200">
                         <Upload className="h-4 w-4 mr-2" />
-                        Choose Files
+                        {t('fims.chooseFiles')}
                       </div>
                     </label>
                   </div>
@@ -1147,7 +1147,7 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
                 {photos.length > 0 && (
                   <div>
                     <h4 className="text-md font-semibold text-gray-800 mb-4">
-                      Uploaded Photos ({photos.length})
+                      {t('fims.uploadedPhotos')} ({photos.length})
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                       {photos.map((photo, index) => (
@@ -1161,7 +1161,7 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
                             type="text"
                             value={photo.description || ''}
                             onChange={(e) => updatePhotoDescription(index, e.target.value)}
-                            placeholder="Add photo description"
+                            placeholder={t('fims.addPhotoDescription')}
                             className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-purple-500 focus:border-transparent"
                           />
                           <button
@@ -1182,16 +1182,16 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
                 {uploadingPhotos && (
                   <div className="text-center py-8">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-                    <p className="text-lg font-medium text-gray-700">Uploading photos...</p>
-                    <p className="text-sm text-gray-500">Please wait while we process your images</p>
+                    <p className="text-lg font-medium text-gray-700">{t('fims.uploadingPhotos')}</p>
+                    <p className="text-sm text-gray-500">{t('fims.pleaseWaitProcessing')}</p>
                   </div>
                 )}
 
                 {/* Final Actions */}
                 <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg p-6 border border-purple-200">
-                  <h4 className="text-lg font-semibold text-purple-900 mb-4">Ready to Submit?</h4>
+                  <h4 className="text-lg font-semibold text-purple-900 mb-4">{t('fims.readyToSubmit')}</h4>
                   <p className="text-purple-700 mb-6">
-                    Review your inspection details and choose to save as draft or submit for review.
+                    {t('fims.reviewInspectionDetails')}
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4">
                     <button
@@ -1200,7 +1200,7 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
                       className="flex-1 flex items-center justify-center space-x-2 px-6 py-3 text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg transition-all duration-200 disabled:opacity-50"
                     >
                       <Save className="h-5 w-5" />
-                      <span>Save as Draft</span>
+                      <span>{t('fims.saveAsDraft')}</span>
                     </button>
                     <button
                       onClick={() => handleSaveInspection('submitted')}
@@ -1208,7 +1208,7 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
                       className="flex-1 flex items-center justify-center space-x-2 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-all duration-200 disabled:opacity-50"
                     >
                       <Send className="h-5 w-5" />
-                      <span>Submit Inspection</span>
+                      <span>{t('fims.submitInspection')}</span>
                     </button>
                   </div>
                 </div>
@@ -1224,7 +1224,7 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
                 className="flex items-center space-x-2 px-6 py-3 text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg transition-all duration-200"
               >
                 <ChevronLeft className="h-4 w-4" />
-                <span>Previous</span>
+                <span>{t('common.previous')}</span>
               </button>
 
               {currentStep < 4 && (
@@ -1233,7 +1233,7 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
                   disabled={!validateCurrentStep()}
                   className="flex items-center space-x-2 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <span>Next</span>
+                  <span>{t('common.next')}</span>
                   <ChevronRight className="h-4 w-4" />
                 </button>
               )}
