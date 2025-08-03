@@ -1218,4 +1218,3 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
     </div>
   );
 };
-</anganwadiForm>
