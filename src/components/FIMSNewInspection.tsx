@@ -23,6 +23,7 @@ import {
   Heart,
   GraduationCap,
   Scale,
+  RotateCcw
   Activity,
   Shield,
   Stethoscope,
