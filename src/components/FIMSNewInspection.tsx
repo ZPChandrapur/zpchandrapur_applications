@@ -1055,7 +1055,7 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
                         />
                         <item.icon className="h-4 w-4 text-gray-600" />
                         <label className="text-sm font-medium text-gray-700 cursor-pointer flex-1">
-                          {t(item.labelKey)}
+                          {item.label}
                         </label>
                       </div>
                     ))}
@@ -1169,34 +1169,8 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({
                             className="rounded border-gray-300 text-purple-600 focus:ring-purple-500 h-4 w-4"
                           />
                           <item.icon className="h-4 w-4 text-gray-600" />
-                           <label 
-                             className="text-sm font-medium text-gray-700 cursor-pointer flex-1"
-                             onClick={(e) => {
-                               e.preventDefault();
-                               const checkbox = e.currentTarget.parentElement?.querySelector('input[type="checkbox"]') as HTMLInputElement;
-                               if (checkbox) {
-                                 checkbox.checked = !checkbox.checked;
-                                 setAnganwadiForm(prev => ({ 
-                                   ...prev, 
-                                   [item.key]: checkbox.checked 
-                                 }));
-                               }
-                             }}
-                           >
-                            className="text-sm font-medium text-gray-700 cursor-pointer flex-1"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              const checkbox = e.currentTarget.parentElement?.querySelector('input[type="checkbox"]') as HTMLInputElement;
-                              if (checkbox) {
-                                checkbox.checked = !checkbox.checked;
-                                setAnganwadiForm(prev => ({ 
-                                  ...prev, 
-                                  [item.key]: checkbox.checked 
-                                }));
-                              }
-                            }}
-                          >
-                            {t(item.labelKey)}
+                          <label className="text-sm font-medium text-gray-700 cursor-pointer flex-1">
+                            {item.label}
                           </label>
                         </div>
                       ))}
