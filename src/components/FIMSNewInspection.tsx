@@ -36,7 +36,8 @@ import {
   Baby
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import type { User as SupabaseUser } from '@supabase/supabase-js';
+  Eye,
+  TrendingUp
 
 interface FIMSNewInspectionProps {
   user: SupabaseUser;
