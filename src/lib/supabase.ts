@@ -50,6 +50,8 @@ export const testERMSConnection = async () => {
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     if (userError) {
       console.log('ℹ️ No current user session');
+      // Clear any stale session data if there's an auth error
+      await supabase.auth.signOut();
     } else if (user) {
       console.log('👤 Current User Info:');
       console.log('   User ID:', user.id);
@@ -98,6 +100,8 @@ export const testERMSConnection = async () => {
     const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
     
     if (sessionError) {
+      // Clear any stale session data if there's a session error
+      await supabase.auth.signOut();
       console.error('❌ Basic connection failed:', sessionError);
       return { success: false, error: `Basic connection failed: ${sessionError.message}`, data: null };
     }
@@ -105,6 +109,12 @@ export const testERMSConnection = async () => {
     
     // Test 2: ERMS schema access with detailed logging
   } catch (error) {
+    // Clear any stale session data if there's an unexpected error
+    try {
+      await supabase.auth.signOut();
+    } catch (signOutError) {
+      console.error('❌ Error during signOut:', signOutError);
+    }
     console.error('❌ Error in testERMSConnection:', error);
     return { success: false, error: error.message, data: null };
   }
