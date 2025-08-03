@@ -338,6 +338,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
             </div>
             <div className="bg-purple-100 p-3 rounded-lg">
               <TrendingUp className="h-8 w-8 text-purple-600" />
+            </div>
             <p className="text-sm text-gray-500">{t('fims.title')}</p>
           </div>
         </div>
@@ -563,8 +564,9 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <button
                           onClick={() => handleViewInspectionPhotos(inspection)}
-                            setEditingInspection(inspection);
-                            setActiveTab('newInspection');
+                          className="text-purple-600 hover:text-purple-900 p-1 rounded"
+                          title="View Photos"
+                        >
                           <Camera className="h-4 w-4" />
                         </button>
                       </td>
