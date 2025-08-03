@@ -510,6 +510,8 @@
     "export": "निर्यात",
     "anganwadiInspection": "अंगणवाडी केंद्र तपासणी",
     "documentInspection": "दस्तऐवज तपासणी",
+    "viewAndManageInspections": "तपासणी पहा आणि व्यवस्थापित करा",
+    "createNewInspection": "नवीन तपासणी तयार करा",
     "comingSoon": "लवकरच येत आहे"
   }
 }

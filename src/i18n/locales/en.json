@@ -529,6 +529,9 @@
     "export": "Export",
     "anganwadiInspection": "Anganwadi Center Inspection",
     "documentInspection": "Document Inspection",
+    "viewAndManageInspections": "View and manage inspections",
+    "createNewInspection": "Create new inspection",
+    "viewAnalyticsAndReports": "View analytics and reports",
     "comingSoon": "Coming Soon"
   }
 }

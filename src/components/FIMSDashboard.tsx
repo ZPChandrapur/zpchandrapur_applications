@@ -338,7 +338,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
             </div>
             <div className="bg-purple-100 p-3 rounded-lg">
               <TrendingUp className="h-8 w-8 text-purple-600" />
-            </div>
+            <p className="text-sm text-gray-500">{t('fims.title')}</p>
           </div>
         </div>
       </div>
@@ -533,8 +533,8 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                         <div className="flex items-center space-x-2">
                           <button
                             onClick={() => {
+                              setEditingInspection(inspection);
                               setActiveTab('newInspection');
-                              // This will be handled by passing the inspection to FIMSNewInspection
                             }}
                             className="text-blue-600 hover:text-blue-900 p-1 rounded"
                             title="View Inspection"
@@ -563,9 +563,8 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <button
                           onClick={() => handleViewInspectionPhotos(inspection)}
-                          className="text-purple-600 hover:text-purple-900 p-1 rounded"
-                          title="View Photos"
-                        >
+                            setEditingInspection(inspection);
+                            setActiveTab('newInspection');
                           <Camera className="h-4 w-4" />
                         </button>
                       </td>
@@ -665,7 +664,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                   <p className={`text-sm ${
                     activeTab === 'dashboard' ? 'text-purple-700' : 'text-gray-500'
                   }`}>
-                    Overview and Statistics
+                    {t('dashboard.overview')}
                   </p>
                 </div>
               </div>
@@ -692,7 +691,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                   <p className={`text-sm ${
                     activeTab === 'inspections' ? 'text-purple-700' : 'text-gray-500'
                   }`}>
-                    View and manage inspections
+                    {t('fims.viewAndManageInspections', 'View and manage inspections')}
                   </p>
                 </div>
               </div>
@@ -719,7 +718,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                   <p className={`text-sm ${
                     activeTab === 'newInspection' ? 'text-purple-700' : 'text-gray-500'
                   }`}>
-                    Create new inspection
+                    {t('fims.createNewInspection', 'Create new inspection')}
                   </p>
                 </div>
               </div>
@@ -746,7 +745,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                   <p className={`text-sm ${
                     activeTab === 'analytics' ? 'text-purple-700' : 'text-gray-500'
                   }`}>
-                    View analytics and reports
+                    {t('fims.viewAnalyticsAndReports', 'View analytics and reports')}
                   </p>
                 </div>
               </div>
