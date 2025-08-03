@@ -450,7 +450,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
         const { error: formError } = await supabase
           .from('fims_anganwadi_forms')
           .insert({
-            inspection_id: inspectionData.id,
+            inspection_id: inspectionResult.id,
             anganwadi_name: anganwadiForm.anganwadi_name,
             anganwadi_number: anganwadiForm.anganwadi_number,
             supervisor_name: anganwadiForm.supervisor_name,
@@ -500,7 +500,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
           const { error: photoError } = await supabase
             .from('fims_inspection_photos')
             .insert({
-              inspection_id: inspectionData.id,
+              inspection_id: inspectionResult.id,
               photo_url: `placeholder_${Date.now()}_${i}.jpg`, // Placeholder URL
               photo_name: photo.file.name,
               description: photo.description,
