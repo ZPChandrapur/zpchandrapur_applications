@@ -58,6 +58,10 @@ interface Inspection {
     name_marathi: string;
     form_type: string;
   };
+  inspector?: {
+    name: string;
+    role_name: string;
+  };
 }
 
 interface Category {
@@ -79,7 +83,6 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
-  const [showNewInspectionModal, setShowNewInspectionModal] = useState(false);
   const [currentLocation, setCurrentLocation] = useState<{lat: number, lng: number, accuracy: number} | null>(null);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -131,7 +134,11 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
         .from('fims_inspections')
         .select(`
           *,
-          category:fims_categories(name, name_marathi, form_type)
+          category:fims_categories(name, name_marathi, form_type),
+          inspector:user_roles!fims_inspections_inspector_id_fkey(
+            name,
+            roles(name)
+          )
         `)
         .order('created_at', { ascending: false });
 
@@ -143,7 +150,17 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
       const { data, error } = await query;
       
       if (error) throw error;
-      setInspections(data || []);
+      
+      // Transform the data to include inspector info
+      const transformedData = data?.map(inspection => ({
+        ...inspection,
+        inspector: inspection.inspector ? {
+          name: inspection.inspector.name,
+          role_name: inspection.inspector.roles?.name || 'Unknown'
+        } : null
+      })) || [];
+      
+      setInspections(transformedData);
     } catch (error) {
       console.error('Error fetching inspections:', error);
     }
@@ -228,7 +245,6 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
       if (error) throw error;
       
       await fetchInspections();
-      setShowNewInspectionModal(false);
       setNewInspection({
         category_id: '',
         location_name: '',
@@ -239,12 +255,28 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
         location_accuracy: null
       });
       setCurrentLocation(null);
+      setActiveTab('inspections');
     } catch (error) {
       console.error('Error creating inspection:', error);
       alert('Error creating inspection: ' + error.message);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleViewInspection = (inspection: Inspection) => {
+    // TODO: Implement view functionality
+    alert(`View inspection: ${inspection.inspection_number}`);
+  };
+
+  const handleEditInspection = (inspection: Inspection) => {
+    // TODO: Implement edit functionality
+    alert(`Edit inspection: ${inspection.inspection_number}`);
+  };
+
+  const handlePhotoInspection = (inspection: Inspection) => {
+    // TODO: Implement photo functionality
+    alert(`Photo management for inspection: ${inspection.inspection_number}`);
   };
 
   const getStatusCounts = () => {
@@ -330,45 +362,6 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">त्वरित क्रिया / Quick Actions</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <button
-            onClick={() => setShowNewInspectionModal(true)}
-            className="flex items-center space-x-3 p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors duration-200"
-          >
-            <Plus className="h-6 w-6 text-blue-600" />
-            <div className="text-left">
-              <div className="font-medium text-blue-900">नवीन तपासणी / New Inspection</div>
-              <div className="text-sm text-blue-600">नवीन साइट तपासणी नियोजित करा</div>
-            </div>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('inspections')}
-            className="flex items-center space-x-3 p-4 bg-green-50 hover:bg-green-100 rounded-lg transition-colors duration-200"
-          >
-            <FileText className="h-6 w-6 text-green-600" />
-            <div className="text-left">
-              <div className="font-medium text-green-900">तपासणी पहा / View Inspections</div>
-              <div className="text-sm text-green-600">सर्व तपासणी रेकॉर्ड पहा</div>
-            </div>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('analytics')}
-            className="flex items-center space-x-3 p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors duration-200"
-          >
-            <BarChart3 className="h-6 w-6 text-purple-600" />
-            <div className="text-left">
-              <div className="font-medium text-purple-900">अहवाल / Reports</div>
-              <div className="text-sm text-purple-600">विश्लेषण आणि अहवाल पहा</div>
-            </div>
-          </button>
-        </div>
-      </div>
-
       {/* Recent Inspections */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
         <div className="px-6 py-4 border-b border-gray-200">
@@ -381,6 +374,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">तपासणी क्रमांक</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">स्थान</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">श्रेणी</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">तपासणीकर्ता</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">स्थिती</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">तारीख</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">क्रिया</th>
@@ -398,6 +392,12 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {inspection.category?.name_marathi || inspection.category?.name}
                   </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <div>
+                      <div className="font-medium">{inspection.inspector?.name || 'Unknown'}</div>
+                      <div className="text-xs text-gray-500">{inspection.inspector?.role_name || ''}</div>
+                    </div>
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                       inspection.status === 'approved' ? 'bg-green-100 text-green-800' :
@@ -414,11 +414,23 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex items-center space-x-2">
-                      <button className="text-blue-600 hover:text-blue-900 p-1 rounded">
+                      <button 
+                        onClick={() => handleViewInspection(inspection)}
+                        className="text-blue-600 hover:text-blue-900 p-1 rounded"
+                      >
                         <Eye className="h-4 w-4" />
                       </button>
-                      <button className="text-green-600 hover:text-green-900 p-1 rounded">
+                      <button 
+                        onClick={() => handleEditInspection(inspection)}
+                        className="text-green-600 hover:text-green-900 p-1 rounded"
+                      >
                         <Edit className="h-4 w-4" />
+                      </button>
+                      <button 
+                        onClick={() => handlePhotoInspection(inspection)}
+                        className="text-purple-600 hover:text-purple-900 p-1 rounded"
+                      >
+                        <Camera className="h-4 w-4" />
                       </button>
                     </div>
                   </td>
@@ -435,7 +447,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
     <div className="space-y-6">
       {/* Filters */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <input
@@ -472,14 +484,6 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
             <option value="submitted">सबमिट केले / Submitted</option>
             <option value="approved">मंजूर / Approved</option>
           </select>
-
-          <button
-            onClick={() => setShowNewInspectionModal(true)}
-            className="flex items-center justify-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200"
-          >
-            <Plus className="h-4 w-4" />
-            <span>नवीन तपासणी / New</span>
-          </button>
         </div>
       </div>
 
@@ -511,6 +515,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">तपासणी क्रमांक</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">स्थान</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">श्रेणी</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">तपासणीकर्ता</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">स्थिती</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">तारीख</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">स्थान अचूकता</th>
@@ -520,7 +525,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredInspections.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
+                  <td colSpan={8} className="px-6 py-8 text-center text-gray-500">
                     कोणतीही तपासणी सापडली नाही / No inspections found
                   </td>
                 </tr>
@@ -540,6 +545,12 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {inspection.category?.name_marathi || inspection.category?.name}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <div>
+                        <div className="font-medium">{inspection.inspector?.name || 'Unknown'}</div>
+                        <div className="text-xs text-gray-500">{inspection.inspector?.role_name || ''}</div>
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -561,13 +572,22 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex items-center space-x-2">
-                        <button className="text-blue-600 hover:text-blue-900 p-1 rounded">
+                        <button 
+                          onClick={() => handleViewInspection(inspection)}
+                          className="text-blue-600 hover:text-blue-900 p-1 rounded"
+                        >
                           <Eye className="h-4 w-4" />
                         </button>
-                        <button className="text-green-600 hover:text-green-900 p-1 rounded">
+                        <button 
+                          onClick={() => handleEditInspection(inspection)}
+                          className="text-green-600 hover:text-green-900 p-1 rounded"
+                        >
                           <Edit className="h-4 w-4" />
                         </button>
-                        <button className="text-purple-600 hover:text-purple-900 p-1 rounded">
+                        <button 
+                          onClick={() => handlePhotoInspection(inspection)}
+                          className="text-purple-600 hover:text-purple-900 p-1 rounded"
+                        >
                           <Camera className="h-4 w-4" />
                         </button>
                       </div>
@@ -577,6 +597,125 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
               )}
             </tbody>
           </table>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderNewInspection = () => (
+    <div className="space-y-6">
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-6">नवीन तपासणी तयार करा / Create New Inspection</h3>
+        
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              तपासणी श्रेणी / Inspection Category *
+            </label>
+            <select
+              value={newInspection.category_id}
+              onChange={(e) => setNewInspection({ ...newInspection, category_id: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              required
+            >
+              <option value="">श्रेणी निवडा / Select Category</option>
+              {categories.map(category => (
+                <option key={category.id} value={category.id}>
+                  {category.name_marathi} / {category.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              स्थानाचे नाव / Location Name *
+            </label>
+            <input
+              type="text"
+              value={newInspection.location_name}
+              onChange={(e) => setNewInspection({ ...newInspection, location_name: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="स्थानाचे नाव टाका / Enter location name"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              पत्ता / Address
+            </label>
+            <textarea
+              value={newInspection.address}
+              onChange={(e) => setNewInspection({ ...newInspection, address: e.target.value })}
+              rows={3}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="संपूर्ण पत्ता टाका / Enter full address"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              नियोजित तारीख / Planned Date
+            </label>
+            <input
+              type="date"
+              value={newInspection.planned_date}
+              onChange={(e) => setNewInspection({ ...newInspection, planned_date: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+
+          {/* Location Section */}
+          <div className="border-t border-gray-200 pt-4">
+            <div className="flex items-center justify-between mb-3">
+              <label className="block text-sm font-medium text-gray-700">
+                स्थान माहिती / Location Information
+              </label>
+              <button
+                onClick={getCurrentLocation}
+                disabled={isLoading}
+                className="flex items-center space-x-2 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors duration-200 disabled:opacity-50"
+              >
+                {isLoading ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                ) : (
+                  <Navigation className="h-4 w-4" />
+                )}
+                <span>सध्याचे स्थान / Get Location</span>
+              </button>
+            </div>
+
+            {currentLocation && (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                <div className="flex items-center space-x-2 text-green-800">
+                  <MapPin className="h-4 w-4" />
+                  <span className="text-sm font-medium">स्थान मिळाले / Location Captured</span>
+                </div>
+                <div className="mt-2 text-sm text-green-700">
+                  <div>अक्षांश / Latitude: {currentLocation.lat.toFixed(6)}</div>
+                  <div>रेखांश / Longitude: {currentLocation.lng.toFixed(6)}</div>
+                  <div>अचूकता / Accuracy: {Math.round(currentLocation.accuracy)}m</div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-center justify-end space-x-3 pt-6 border-t border-gray-200">
+            <button
+              onClick={() => setActiveTab('inspections')}
+              className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200"
+            >
+              रद्द करा / Cancel
+            </button>
+            <button
+              onClick={handleCreateInspection}
+              disabled={isLoading || !newInspection.category_id || !newInspection.location_name}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 disabled:opacity-50"
+            >
+              {isLoading ? 'तयार करत आहे...' : 'तपासणी तयार करा / Create Inspection'}
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -596,21 +735,154 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-purple-600 to-indigo-700 shadow-lg border-b border-gray-200">
-        <div className="px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <button
-                onClick={onBack}
-                className="bg-white/20 hover:bg-white/30 p-2 rounded-lg transition-colors duration-200"
-              >
-                <ArrowLeft className="h-5 w-5 text-white" />
-              </button>
-              <div className="bg-white/20 p-2 rounded-lg">
-                <Camera className="h-6 w-6 text-white" />
+    <div className="min-h-screen bg-gray-50 flex">
+      {/* Left Sidebar */}
+      <div className="w-80 bg-white shadow-lg border-r border-gray-200 flex flex-col">
+        {/* Header */}
+        <div className="p-6 border-b border-gray-200">
+          <div className="flex items-center space-x-3 mb-4">
+            <button
+              onClick={onBack}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+            >
+              <ArrowLeft className="h-5 w-5 text-gray-600" />
+            </button>
+            <div className="bg-purple-100 p-2 rounded-lg">
+              <Camera className="h-6 w-6 text-purple-600" />
+            </div>
+            <div>
+              <h1 className="text-lg font-semibold text-gray-900">FIMS</h1>
+              <p className="text-sm text-gray-500">क्षेत्रीय तपासणी व्यवस्थापन</p>
+            </div>
+          </div>
+          {isMobile && (
+            <div className="flex items-center space-x-2">
+              <Camera className="h-4 w-4 text-purple-600" />
+              <span className="text-sm text-purple-600 font-medium">Mobile App</span>
+            </div>
+          )}
+        </div>
+
+        {/* Navigation Menu */}
+        <div className="flex-1 overflow-y-auto p-4">
+          <nav className="space-y-2">
+            <button
+              onClick={() => setActiveTab('dashboard')}
+              className={`w-full text-left p-4 rounded-lg transition-all duration-200 group ${
+                activeTab === 'dashboard'
+                  ? 'bg-purple-50 border-2 border-purple-200 shadow-sm'
+                  : 'hover:bg-gray-50 border-2 border-transparent'
+              }`}
+            >
+              <div className="flex items-start space-x-3">
+                <div className="bg-purple-500 hover:bg-purple-600 p-2 rounded-lg transition-colors duration-200">
+                  <BarChart3 className="h-5 w-5 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className={`font-medium transition-colors duration-200 ${
+                    activeTab === 'dashboard' ? 'text-purple-900' : 'text-gray-900 group-hover:text-gray-700'
+                  }`}>
+                    डॅशबोर्ड / Dashboard
+                  </h3>
+                  <p className={`text-sm mt-1 transition-colors duration-200 ${
+                    activeTab === 'dashboard' ? 'text-purple-700' : 'text-gray-500 group-hover:text-gray-600'
+                  }`}>
+                    मुख्य आकडेवारी आणि विहंगावलोकन
+                  </p>
+                </div>
               </div>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('inspections')}
+              className={`w-full text-left p-4 rounded-lg transition-all duration-200 group ${
+                activeTab === 'inspections'
+                  ? 'bg-purple-50 border-2 border-purple-200 shadow-sm'
+                  : 'hover:bg-gray-50 border-2 border-transparent'
+              }`}
+            >
+              <div className="flex items-start space-x-3">
+                <div className="bg-blue-500 hover:bg-blue-600 p-2 rounded-lg transition-colors duration-200">
+                  <FileText className="h-5 w-5 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className={`font-medium transition-colors duration-200 ${
+                    activeTab === 'inspections' ? 'text-purple-900' : 'text-gray-900 group-hover:text-gray-700'
+                  }`}>
+                    तपासणी / Inspections
+                  </h3>
+                  <p className={`text-sm mt-1 transition-colors duration-200 ${
+                    activeTab === 'inspections' ? 'text-purple-700' : 'text-gray-500 group-hover:text-gray-600'
+                  }`}>
+                    सर्व तपासणी रेकॉर्ड पहा आणि व्यवस्थापित करा
+                  </p>
+                </div>
+              </div>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('new')}
+              className={`w-full text-left p-4 rounded-lg transition-all duration-200 group ${
+                activeTab === 'new'
+                  ? 'bg-purple-50 border-2 border-purple-200 shadow-sm'
+                  : 'hover:bg-gray-50 border-2 border-transparent'
+              }`}
+            >
+              <div className="flex items-start space-x-3">
+                <div className="bg-green-500 hover:bg-green-600 p-2 rounded-lg transition-colors duration-200">
+                  <Plus className="h-5 w-5 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className={`font-medium transition-colors duration-200 ${
+                    activeTab === 'new' ? 'text-purple-900' : 'text-gray-900 group-hover:text-gray-700'
+                  }`}>
+                    नवीन तपासणी / New Inspection
+                  </h3>
+                  <p className={`text-sm mt-1 transition-colors duration-200 ${
+                    activeTab === 'new' ? 'text-purple-700' : 'text-gray-500 group-hover:text-gray-600'
+                  }`}>
+                    नवीन साइट तपासणी नियोजित करा
+                  </p>
+                </div>
+              </div>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('analytics')}
+              className={`w-full text-left p-4 rounded-lg transition-all duration-200 group ${
+                activeTab === 'analytics'
+                  ? 'bg-purple-50 border-2 border-purple-200 shadow-sm'
+                  : 'hover:bg-gray-50 border-2 border-transparent'
+              }`}
+            >
+              <div className="flex items-start space-x-3">
+                <div className="bg-orange-500 hover:bg-orange-600 p-2 rounded-lg transition-colors duration-200">
+                  <TrendingUp className="h-5 w-5 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className={`font-medium transition-colors duration-200 ${
+                    activeTab === 'analytics' ? 'text-purple-900' : 'text-gray-900 group-hover:text-gray-700'
+                  }`}>
+                    अहवाल / Analytics
+                  </h3>
+                  <p className={`text-sm mt-1 transition-colors duration-200 ${
+                    activeTab === 'analytics' ? 'text-purple-700' : 'text-gray-500 group-hover:text-gray-600'
+                  }`}>
+                    विश्लेषण आणि अहवाल पहा
+                  </p>
+                </div>
+              </div>
+            </button>
+          </nav>
+        </div>
+      </div>
+
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-purple-600 to-indigo-700 shadow-lg border-b border-gray-200">
+          <div className="px-6 py-4">
+            <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-lg font-semibold text-white">
                   FIMS - क्षेत्रीय तपासणी व्यवस्थापन प्रणाली
@@ -619,200 +891,26 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                   Field Inspection Management System
                 </p>
               </div>
-            </div>
-            <div className="flex items-center space-x-3">
-              {isMobile && (
-                <div className="flex items-center space-x-2">
-                  <Camera className="h-4 w-4 text-white" />
-                  <span className="text-sm text-white font-medium">Mobile App</span>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Navigation Tabs */}
-      <div className="bg-white shadow-sm border-b border-gray-200">
-        <div className="px-6">
-          <nav className="flex space-x-8">
-            <button
-              onClick={() => setActiveTab('dashboard')}
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
-                activeTab === 'dashboard'
-                  ? 'border-purple-500 text-purple-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              <div className="flex items-center space-x-2">
-                <BarChart3 className="h-4 w-4" />
-                <span>डॅशबोर्ड / Dashboard</span>
-              </div>
-            </button>
-            <button
-              onClick={() => setActiveTab('inspections')}
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
-                activeTab === 'inspections'
-                  ? 'border-purple-500 text-purple-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              <div className="flex items-center space-x-2">
-                <FileText className="h-4 w-4" />
-                <span>तपासणी / Inspections</span>
-              </div>
-            </button>
-            <button
-              onClick={() => setActiveTab('analytics')}
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
-                activeTab === 'analytics'
-                  ? 'border-purple-500 text-purple-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              <div className="flex items-center space-x-2">
-                <TrendingUp className="h-4 w-4" />
-                <span>अहवाल / Analytics</span>
-              </div>
-            </button>
-          </nav>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="p-6">
-        {activeTab === 'dashboard' && renderDashboard()}
-        {activeTab === 'inspections' && renderInspections()}
-        {activeTab === 'analytics' && renderAnalytics()}
-      </div>
-
-      {/* New Inspection Modal */}
-      {showNewInspectionModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">नवीन तपासणी / New Inspection</h3>
-              <button
-                onClick={() => setShowNewInspectionModal(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            
-            <div className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  तपासणी श्रेणी / Inspection Category *
-                </label>
-                <select
-                  value={newInspection.category_id}
-                  onChange={(e) => setNewInspection({ ...newInspection, category_id: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  required
-                >
-                  <option value="">श्रेणी निवडा / Select Category</option>
-                  {categories.map(category => (
-                    <option key={category.id} value={category.id}>
-                      {category.name_marathi} / {category.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  स्थानाचे नाव / Location Name *
-                </label>
-                <input
-                  type="text"
-                  value={newInspection.location_name}
-                  onChange={(e) => setNewInspection({ ...newInspection, location_name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="स्थानाचे नाव टाका / Enter location name"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  पत्ता / Address
-                </label>
-                <textarea
-                  value={newInspection.address}
-                  onChange={(e) => setNewInspection({ ...newInspection, address: e.target.value })}
-                  rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="संपूर्ण पत्ता टाका / Enter full address"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  नियोजित तारीख / Planned Date
-                </label>
-                <input
-                  type="date"
-                  value={newInspection.planned_date}
-                  onChange={(e) => setNewInspection({ ...newInspection, planned_date: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-
-              {/* Location Section */}
-              <div className="border-t border-gray-200 pt-4">
-                <div className="flex items-center justify-between mb-3">
-                  <label className="block text-sm font-medium text-gray-700">
-                    स्थान माहिती / Location Information
-                  </label>
-                  <button
-                    onClick={getCurrentLocation}
-                    disabled={isLoading}
-                    className="flex items-center space-x-2 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors duration-200 disabled:opacity-50"
-                  >
-                    {isLoading ? (
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    ) : (
-                      <Navigation className="h-4 w-4" />
-                    )}
-                    <span>सध्याचे स्थान / Get Location</span>
-                  </button>
-                </div>
-
-                {currentLocation && (
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                    <div className="flex items-center space-x-2 text-green-800">
-                      <MapPin className="h-4 w-4" />
-                      <span className="text-sm font-medium">स्थान मिळाले / Location Captured</span>
-                    </div>
-                    <div className="mt-2 text-sm text-green-700">
-                      <div>अक्षांश / Latitude: {currentLocation.lat.toFixed(6)}</div>
-                      <div>रेखांश / Longitude: {currentLocation.lng.toFixed(6)}</div>
-                      <div>अचूकता / Accuracy: {Math.round(currentLocation.accuracy)}m</div>
-                    </div>
+              <div className="flex items-center space-x-3">
+                {isMobile && (
+                  <div className="flex items-center space-x-2">
+                    <Camera className="h-4 w-4 text-white" />
+                    <span className="text-sm text-white font-medium">Mobile App</span>
                   </div>
                 )}
               </div>
             </div>
-            
-            <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200">
-              <button
-                onClick={() => setShowNewInspectionModal(false)}
-                className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200"
-              >
-                रद्द करा / Cancel
-              </button>
-              <button
-                onClick={handleCreateInspection}
-                disabled={isLoading || !newInspection.category_id || !newInspection.location_name}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 disabled:opacity-50"
-              >
-                {isLoading ? 'तयार करत आहे...' : 'तपासणी तयार करा / Create Inspection'}
-              </button>
-            </div>
           </div>
         </div>
-      )}
+
+        {/* Main Content */}
+        <div className="flex-1 p-6 overflow-y-auto">
+          {activeTab === 'dashboard' && renderDashboard()}
+          {activeTab === 'inspections' && renderInspections()}
+          {activeTab === 'new' && renderNewInspection()}
+          {activeTab === 'analytics' && renderAnalytics()}
+        </div>
+      </div>
     </div>
   );
 };
