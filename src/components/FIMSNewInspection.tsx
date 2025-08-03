@@ -555,6 +555,79 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({ user, onBa
     }
   };
 
+  const renderCategorySelection = () => (
+    <div className="space-y-6">
+      <div className="text-center">
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('fims.selectInspectionCategory')}</h2>
+        <p className="text-gray-600">{t('fims.chooseTypeOfInspection')}</p>
+      </div>
+      
+      {categories.length === 0 ? (
+        <div className="text-center py-8">
+          <ClipboardList className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No Categories Available</h3>
+          <p className="text-gray-500">Please contact your administrator to set up inspection categories.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-4xl mx-auto">
+          {categories.map((category) => (
+            <div
+              key={category.id}
+              onClick={() => {
+                setSelectedCategory(category.id);
+                setCurrentStep(2);
+              }}
+              className="bg-white border-2 border-gray-200 rounded-xl p-6 cursor-pointer transition-all duration-200 hover:border-purple-300 hover:shadow-lg hover:scale-105 group"
+            >
+              <div className="text-center">
+                <div className="bg-purple-100 group-hover:bg-purple-200 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center transition-colors duration-200">
+                  {category.form_type === 'anganwadi' ? (
+                    <Users className="h-8 w-8 text-purple-600" />
+                  ) : (
+                    <FileText className="h-8 w-8 text-purple-600" />
+                  )}
+                </div>
+                
+                <h3 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-purple-900 transition-colors duration-200">
+                  {category.name_marathi}
+                </h3>
+                
+                <p className="text-sm text-gray-600 mb-3 group-hover:text-gray-700 transition-colors duration-200">
+                  {category.name}
+                </p>
+                
+                {category.description && (
+                  <p className="text-xs text-gray-500 mb-4">
+                    {category.description}
+                  </p>
+                )}
+                
+                <div className="flex items-center justify-center">
+                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                    category.form_type === 'anganwadi' 
+                      ? 'bg-blue-100 text-blue-800' 
+                      : 'bg-green-100 text-green-800'
+                  }`}>
+                    {category.form_type === 'anganwadi' ? 'Anganwadi Center' : 'Document Inspection'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      
+      <div className="flex justify-center">
+        <button
+          onClick={onBack}
+          className="px-6 py-2 text-gray-600 hover:text-gray-800 transition-colors duration-200"
+        >
+          {t('common.back')}
+        </button>
+      </div>
+    </div>
+  );
+
   const renderBasicDetails = () => {
     const selectedCat = selectedCategory;
     const isAnganwadi = selectedCat?.form_type === 'anganwadi';
