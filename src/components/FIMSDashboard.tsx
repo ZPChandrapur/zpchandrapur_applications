@@ -421,10 +421,6 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
     setCurrentLocation(null);
   };
 
-  const handleNextStep = () => {
-    setCurrentStep(2);
-  };
-
   const handleCreateInspectionWithForm = async (submitStatus: 'draft' | 'submitted' = 'draft') => {
     if (!selectedCategory) return;
 
