@@ -2063,27 +2063,14 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                     {inspection.inspection_date ? new Date(inspection.inspection_date).toLocaleDateString() : 
                      inspection.planned_date ? new Date(inspection.planned_date).toLocaleDateString() : '-'}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex items-center space-x-2">
-                      <button 
-                        onClick={() => handleViewInspection(inspection)}
-                        className="text-blue-600 hover:text-blue-900 p-1 rounded"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </button>
-                      <button 
-                        onClick={() => handleEditInspection(inspection)}
-                        className="text-green-600 hover:text-green-900 p-1 rounded"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </button>
-                      <button 
-                        onClick={() => handlePhotoInspection(inspection)}
-                        className="text-purple-600 hover:text-purple-900 p-1 rounded"
-                      >
-                        <Camera className="h-4 w-4" />
-                      </button>
-                    </div>
+                  <td className="px-4 py-3 whitespace-nowrap text-sm font-medium">
+                    <button
+                      onClick={() => handleViewInspection(inspection)}
+                      className="text-blue-600 hover:text-blue-900 p-1 rounded transition-colors duration-200"
+                      title="View Inspection"
+                    >
+                      <Eye className="h-4 w-4" />
+                    </button>
                   </td>
                 </tr>
               ))}
