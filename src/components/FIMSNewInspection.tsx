@@ -31,7 +31,8 @@ import {
   MessageSquare,
   Target,
   Search,
-  ClipboardList
+  ClipboardList,
+  TrendingUp
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
@@ -129,11 +130,12 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({ user, onBa
   const { t } = useTranslation();
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [categoriesState, setCategoriesState] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('');
   const [locationName, setLocationName] = useState('');
   const [address, setAddress] = useState('');
   const [plannedDate, setPlannedDate] = useState('');
+  const [currentLocation, setCurrentLocation] = useState<{
     latitude: number;
     longitude: number;
     accuracy: number;
@@ -187,9 +189,24 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({ user, onBa
   });
 
   useEffect(() => {
+    fetchCategories();
   }, []);
 
   const fetchCategories = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('fims_categories')
+        .select('*')
+        .eq('is_active', true)
+        .order('name');
+      
+      if (error) throw error;
+      setCategoriesState(data || []);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    }
+  };
+
   const resetForm = () => {
     setCurrentStep(1);
     setSelectedCategory('');
@@ -252,9 +269,6 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({ user, onBa
       });
 
       const { latitude, longitude, accuracy } = position.coords;
-      
-      // Call the callback to refresh inspections in parent component
-      onInspectionCreated();
       
       // Get place name using reverse geocoding
       try {
@@ -539,7 +553,7 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({ user, onBa
   };
 
   const renderBasicDetails = () => {
-    const selectedCat = categories.find(c => c.id === selectedCategory);
+    const selectedCat = categoriesState.find(c => c.id === selectedCategory);
     const isAnganwadi = selectedCat?.form_type === 'anganwadi';
 
     return (
@@ -555,7 +569,7 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({ user, onBa
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100"
           >
             <option value="">{t('fims.selectCategory')}</option>
-            {categories.map(category => (
+            {categoriesState.map(category => (
               <option key={category.id} value={category.id}>
                 {category.name_marathi} ({category.name})
               </option>
@@ -738,7 +752,7 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({ user, onBa
   );
 
   const renderAnganwadiForm = () => {
-    const selectedCat = categories.find(c => c.id === selectedCategory);
+    const selectedCat = categoriesState.find(c => c.id === selectedCategory);
     if (selectedCat?.form_type !== 'anganwadi') {
       return (
         <div className="text-center py-8">
