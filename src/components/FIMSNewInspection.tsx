@@ -134,7 +134,7 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({ user, onBa
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(
     editingInspection ? categories.find(c => c.id === editingInspection.category_id) || null : null
   );
-  const [selectedCategory, setSelectedCategory] = useState('');
+  const [categoriesState, setCategoriesState] = useState(categories);
   const [locationName, setLocationName] = useState('');
   const [address, setAddress] = useState('');
   const [plannedDate, setPlannedDate] = useState('');
@@ -150,7 +150,7 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({ user, onBa
   const [showPhotoModal, setShowPhotoModal] = useState(false);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [editingInspection, setEditingInspection] = useState<Inspection | null>(null);
+  const [editingInspectionState, setEditingInspectionState] = useState<Inspection | null>(null);
   const [isViewMode, setIsViewMode] = useState(false);
 
   // Anganwadi form state
@@ -212,7 +212,7 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({ user, onBa
 
   const resetForm = () => {
     setCurrentStep(1);
-    setSelectedCategory('');
+    setSelectedCategory(null);
     setLocationName('');
     setAddress('');
     setPlannedDate('');
@@ -220,7 +220,7 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({ user, onBa
     setPhotos([]);
     setUploadedPhotos([]);
     setIsEditMode(false);
-    setEditingInspection(null);
+    setEditingInspectionState(null);
     setIsViewMode(false);
     setAnganwadiForm({
       anganwadi_name: '',
@@ -414,12 +414,12 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({ user, onBa
       let inspectionData;
       let inspectionId;
 
-      if (isEditMode && editingInspection) {
+      if (isEditMode && editingInspectionState) {
         // Update existing inspection
         const { data, error } = await supabase
           .from('fims_inspections')
           .update({
-            category_id: selectedCategory,
+            category_id: selectedCategory.id,
             location_name: locationName,
             latitude: currentLocation?.latitude,
             longitude: currentLocation?.longitude,
@@ -430,13 +430,13 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({ user, onBa
             status: 'submitted',
             form_data: anganwadiForm
           })
-          .eq('id', editingInspection.id)
+          .eq('id', editingInspectionState.id)
           .select()
           .single();
 
         if (error) throw error;
         inspectionData = data;
-        inspectionId = editingInspection.id;
+        inspectionId = editingInspectionState.id;
 
         // Delete old photos if any new photos are being uploaded
         if (photos.length > 0) {
@@ -463,7 +463,7 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({ user, onBa
           .from('fims_inspections')
           .insert({
             inspection_number: inspectionNumber,
-            category_id: selectedCategory,
+            category_id: selectedCategory.id,
             inspector_id: user.id,
             location_name: locationName,
             latitude: currentLocation?.latitude,
@@ -511,8 +511,8 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({ user, onBa
 
   const loadInspectionForEdit = (inspection: Inspection) => {
     setIsEditMode(true);
-    setEditingInspection(inspection);
-    setSelectedCategory(inspection.category_id);
+    setEditingInspectionState(inspection);
+    setSelectedCategory(categories.find(c => c.id === inspection.category_id) || null);
     setLocationName(inspection.location_name);
     setAddress(inspection.address || '');
     setPlannedDate(inspection.planned_date ? inspection.planned_date.split('T')[0] : '');
@@ -556,7 +556,7 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({ user, onBa
   };
 
   const renderBasicDetails = () => {
-    const selectedCat = categoriesState.find(c => c.id === selectedCategory);
+    const selectedCat = selectedCategory;
     const isAnganwadi = selectedCat?.form_type === 'anganwadi';
 
     return (
@@ -566,8 +566,8 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({ user, onBa
             {t('fims.inspectionCategory')}
           </label>
           <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
+            value={selectedCategory?.id || ''}
+            onChange={(e) => setSelectedCategory(categoriesState.find(c => c.id === e.target.value) || null)}
             disabled={isViewMode}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100"
           >
@@ -755,7 +755,7 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({ user, onBa
   );
 
   const renderAnganwadiForm = () => {
-    const selectedCat = categoriesState.find(c => c.id === selectedCategory);
+    const selectedCat = selectedCategory;
     if (selectedCat?.form_type !== 'anganwadi') {
       return (
         <div className="text-center py-8">
@@ -1307,45 +1307,27 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({ user, onBa
         return currentLocation !== null;
       case 3:
         return true; // Form can be partially filled
-    <div className="p-6 space-y-6">
-      <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-gray-900 mb-4">{t('fims.inspectionCategory')}</h2>
-        <p className="text-lg text-gray-600">{t('fims.selectCategory')}</p>
+      default:
+        return true;
     }
   };
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-4xl mx-auto">
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white shadow-sm border-b border-gray-200">
-            className="group p-8 border-2 border-gray-200 rounded-xl hover:border-purple-500 hover:bg-purple-50 transition-all duration-300 text-center transform hover:scale-105 hover:shadow-lg"
+        <div className="max-w-4xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
               <button
                 onClick={onBack}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
               >
                 <ArrowLeft className="h-5 w-5 text-gray-600" />
               </button>
-            <div className="space-y-4">
-              <div className="bg-purple-100 group-hover:bg-purple-200 p-4 rounded-full w-16 h-16 mx-auto flex items-center justify-center transition-colors duration-300">
-                {category.form_type === 'anganwadi' ? (
-                  <Users className="h-8 w-8 text-purple-600" />
-                ) : (
-                  <FileText className="h-8 w-8 text-purple-600" />
-                )}
-              </div>
               <div>
-                <h3 className="text-xl font-bold text-gray-900 group-hover:text-purple-900 transition-colors duration-300">
-                  {category.name_marathi}
-                </h3>
-                <p className="text-sm text-gray-600 mt-2 group-hover:text-purple-700 transition-colors duration-300">
-                  {category.description}
-                </p>
-                <div className="mt-3">
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 group-hover:bg-purple-200">
-                    {category.form_type === 'anganwadi' ? 'अंगणवाडी तपासणी' : 'दस्तऐवज तपासणी'}
-                  </span>
-                </div>
+                <h1 className="text-2xl font-bold text-gray-900">
+                  {isViewMode ? 'View Inspection' : isEditMode ? 'Edit Inspection' : t('fims.newInspection')}
                 </h1>
                 <p className="text-sm text-gray-500 mt-1">
                   {isViewMode ? 'View inspection details' : isEditMode ? 'Edit inspection details' : 'Create a new field inspection'}
@@ -1414,14 +1396,6 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({ user, onBa
           </button>
 
           <div className="flex items-center space-x-3">
-      
-      {categories.length === 0 && (
-        <div className="text-center py-12">
-          <ClipboardList className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No Categories Available</h3>
-          <p className="text-gray-500">Please contact your administrator to set up inspection categories.</p>
-        </div>
-      )}
             {currentStep < steps.length ? (
               <button
                 onClick={() => setCurrentStep(currentStep + 1)}
