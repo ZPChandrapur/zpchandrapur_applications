@@ -130,11 +130,68 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
     category_id: '',
     location_name: '',
     address: '',
-    planned_date: '',
+    planned_date: new Date().toISOString().split('T')[0],
     latitude: null as number | null,
     longitude: null as number | null,
     location_accuracy: null as number | null
   });
+
+  // Anganwadi form state
+  const [anganwadiForm, setAnganwadiForm] = useState({
+    // Basic Details
+    anganwadi_name: '',
+    anganwadi_number: '',
+    supervisor_name: userProfile?.name || user.email?.split('@')[0] || '',
+    helper_name: '',
+    village_name: '',
+    // Infrastructure
+    building_condition: '',
+    room_availability: null as boolean | null,
+    toilet_facility: null as boolean | null,
+    drinking_water: null as boolean | null,
+    electricity: null as boolean | null,
+    kitchen_garden: null as boolean | null,
+    
+    // Equipment
+    weighing_machine: null as boolean | null,
+    height_measuring_scale: null as boolean | null,
+    first_aid_kit: null as boolean | null,
+    teaching_materials: null as boolean | null,
+    toys_available: null as boolean | null,
+    
+    // Records
+    attendance_register: null as boolean | null,
+    growth_chart_updated: null as boolean | null,
+    vaccination_records: null as boolean | null,
+    nutrition_records: null as boolean | null,
+    
+    // Children Count
+    total_registered_children: 0,
+    children_present_today: 0,
+    children_0_3_years: 0,
+    children_3_6_years: 0,
+    
+    // Nutrition
+    hot_meal_served: null as boolean | null,
+    meal_quality: '',
+    take_home_ration: null as boolean | null,
+    
+    // Health
+    health_checkup_conducted: null as boolean | null,
+    immunization_updated: null as boolean | null,
+    vitamin_a_given: null as boolean | null,
+    iron_tablets_given: null as boolean | null,
+    
+    // Observations
+    general_observations: '',
+    recommendations: '',
+    action_required: ''
+  });
+
+  // Photo upload state
+  const [photos, setPhotos] = useState<File[]>([]);
+  const [photoDescriptions, setPhotoDescriptions] = useState<string[]>([]);
+  const [showSubmitConfirmation, setShowSubmitConfirmation] = useState(false);
 
   useEffect(() => {
     // Detect mobile device
@@ -152,6 +209,16 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
   useEffect(() => {
     fetchData();
   }, []);
+
+  // Update supervisor name when user profile changes
+  useEffect(() => {
+    if (userProfile?.name || user.email) {
+      setAnganwadiForm(prev => ({
+        ...prev,
+        supervisor_name: userProfile?.name || user.email?.split('@')[0] || ''
+      }));
+    }
+  }, [userProfile, user]);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -300,11 +367,66 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
     }
   };
 
-  const handleCreateInspectionWithForm = async () => {
-    if (!newInspection.category_id || !newInspection.location_name) {
-      alert('Please fill in all required fields');
-      return;
-    }
+  const resetForm = () => {
+    setNewInspection({
+      category_id: '',
+      location_name: '',
+      address: '',
+      planned_date: new Date().toISOString().split('T')[0],
+      latitude: null,
+      longitude: null,
+      location_accuracy: null
+    });
+    setAnganwadiForm({
+      anganwadi_name: '',
+      anganwadi_number: '',
+      supervisor_name: userProfile?.name || user.email?.split('@')[0] || '',
+      helper_name: '',
+      village_name: '',
+      building_condition: '',
+      room_availability: null,
+      toilet_facility: null,
+      drinking_water: null,
+      electricity: null,
+      kitchen_garden: null,
+      weighing_machine: null,
+      height_measuring_scale: null,
+      first_aid_kit: null,
+      teaching_materials: null,
+      toys_available: null,
+      attendance_register: null,
+      growth_chart_updated: null,
+      vaccination_records: null,
+      nutrition_records: null,
+      total_registered_children: 0,
+      children_present_today: 0,
+      children_0_3_years: 0,
+      children_3_6_years: 0,
+      hot_meal_served: null,
+      meal_quality: '',
+      take_home_ration: null,
+      health_checkup_conducted: null,
+      immunization_updated: null,
+      vitamin_a_given: null,
+      iron_tablets_given: null,
+      general_observations: '',
+      recommendations: '',
+      action_required: ''
+    });
+    setPhotos([]);
+    setPhotoDescriptions([]);
+    setCurrentStep(1);
+    setSelectedCategory(null);
+    setShowNewInspection(false);
+    setCurrentLocation(null);
+  };
+
+  const handleNextStep = () => {
+    setCurrentStep(2);
+  };
+
+  const handleCreateInspectionWithForm = async (submitStatus: 'draft' | 'submitted' = 'draft') => {
+    if (!selectedCategory) return;
 
     setIsLoading(true);
     try {
@@ -313,7 +435,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
         inspection_number: generateInspectionNumber(),
         inspector_id: user.id,
         assigned_by: user.id,
-        status: 'planned',
+        status: submitStatus,
         inspection_date: new Date().toISOString()
       };
 
@@ -326,75 +448,110 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
       if (inspectionError) throw inspectionError;
 
       // If it's an anganwadi inspection, save the form data
-      if (selectedCategoryForForm?.form_type === 'anganwadi') {
+      if (selectedCategory.form_type === 'anganwadi') {
         const { error: formError } = await supabase
           .from('fims_anganwadi_forms')
-          .insert([{
-            inspection_id: inspectionResult.id,
-            ...anganwadiFormData
-          }]);
+          .insert({
+            inspection_id: inspectionData.id,
+            anganwadi_name: anganwadiForm.anganwadi_name,
+            anganwadi_number: anganwadiForm.anganwadi_number,
+            supervisor_name: anganwadiForm.supervisor_name,
+            helper_name: anganwadiForm.helper_name,
+            village_name: anganwadiForm.village_name,
+            building_condition: anganwadiForm.building_condition,
+            room_availability: anganwadiForm.room_availability,
+            toilet_facility: anganwadiForm.toilet_facility,
+            drinking_water: anganwadiForm.drinking_water,
+            electricity: anganwadiForm.electricity,
+            kitchen_garden: anganwadiForm.kitchen_garden,
+            weighing_machine: anganwadiForm.weighing_machine,
+            height_measuring_scale: anganwadiForm.height_measuring_scale,
+            first_aid_kit: anganwadiForm.first_aid_kit,
+            teaching_materials: anganwadiForm.teaching_materials,
+            toys_available: anganwadiForm.toys_available,
+            attendance_register: anganwadiForm.attendance_register,
+            growth_chart_updated: anganwadiForm.growth_chart_updated,
+            vaccination_records: anganwadiForm.vaccination_records,
+            nutrition_records: anganwadiForm.nutrition_records,
+            total_registered_children: anganwadiForm.total_registered_children,
+            children_present_today: anganwadiForm.children_present_today,
+            children_0_3_years: anganwadiForm.children_0_3_years,
+            children_3_6_years: anganwadiForm.children_3_6_years,
+            hot_meal_served: anganwadiForm.hot_meal_served,
+            meal_quality: anganwadiForm.meal_quality,
+            take_home_ration: anganwadiForm.take_home_ration,
+            health_checkup_conducted: anganwadiForm.health_checkup_conducted,
+            immunization_updated: anganwadiForm.immunization_updated,
+            vitamin_a_given: anganwadiForm.vitamin_a_given,
+            iron_tablets_given: anganwadiForm.iron_tablets_given,
+            general_observations: anganwadiForm.general_observations,
+            recommendations: anganwadiForm.recommendations,
+            action_required: anganwadiForm.action_required
+          });
 
         if (formError) throw formError;
       }
+
+      // Upload photos if any
+      if (photos.length > 0) {
+        for (let i = 0; i < photos.length; i++) {
+          const photo = photos[i];
+          const description = photoDescriptions[i] || '';
+          
+          // In a real implementation, you would upload to Supabase Storage
+          // For now, we'll just store the photo metadata
+          const { error: photoError } = await supabase
+            .from('fims_inspection_photos')
+            .insert({
+              inspection_id: inspectionData.id,
+              photo_url: `placeholder_${Date.now()}_${i}.jpg`, // Placeholder URL
+              photo_name: photo.name,
+              description: description,
+              photo_order: i + 1
+            });
+          
+          if (photoError) throw photoError;
+        }
+      }
+
+      await fetchData();
+      resetForm();
       
-      await fetchInspections();
-      
-      // Reset form
-      setSelectedCategoryForForm(null);
-      setCurrentStep(1);
-      setNewInspection({
-        category_id: '',
-        location_name: '',
-        address: '',
-        planned_date: '',
-        latitude: null,
-        longitude: null,
-        location_accuracy: null
-      });
-      setAnganwadiFormData({
-        anganwadi_name: '',
-        anganwadi_number: '',
-        supervisor_name: '',
-        helper_name: '',
-        village_name: '',
-        building_condition: '',
-        room_availability: false,
-        toilet_facility: false,
-        drinking_water: false,
-        electricity: false,
-        kitchen_garden: false,
-        weighing_machine: false,
-        height_measuring_scale: false,
-        first_aid_kit: false,
-        teaching_materials: false,
-        toys_available: false,
-        attendance_register: false,
-        growth_chart_updated: false,
-        vaccination_records: false,
-        nutrition_records: false,
-        total_registered_children: 0,
-        children_present_today: 0,
-        children_0_3_years: 0,
-        children_3_6_years: 0,
-        hot_meal_served: false,
-        meal_quality: '',
-        take_home_ration: false,
-        health_checkup_conducted: false,
-        immunization_updated: false,
-        vitamin_a_given: false,
-        iron_tablets_given: false,
-        general_observations: '',
-        recommendations: '',
-        action_required: ''
-      });
-      setCurrentLocation(null);
-      setActiveTab('inspections');
+      if (submitStatus === 'submitted') {
+        alert(t('fims.inspectionSubmittedSuccessfully', 'Inspection submitted successfully!'));
+      } else {
+        alert(t('fims.inspectionSavedAsDraft', 'Inspection saved as draft!'));
+      }
     } catch (error) {
       console.error('Error creating inspection:', error);
-      alert('Error creating inspection: ' + error.message);
+      alert(t('common.error') + ': ' + error.message);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    setPhotos(prev => [...prev, ...files]);
+    setPhotoDescriptions(prev => [...prev, ...files.map(() => '')]);
+  };
+
+  const removePhoto = (index: number) => {
+    setPhotos(prev => prev.filter((_, i) => i !== index));
+    setPhotoDescriptions(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const updatePhotoDescription = (index: number, description: string) => {
+    setPhotoDescriptions(prev => prev.map((desc, i) => i === index ? description : desc));
+  };
+
+  const handleSubmitInspection = () => {
+    setShowSubmitConfirmation(true);
+  };
+
+  const confirmSubmitInspection = () => {
+    setShowSubmitConfirmation(false);
+    handleCreateInspectionWithForm('submitted');
   };
 
   const handleCreateInspection = async () => {
@@ -481,6 +638,812 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
 
   const statusCounts = getStatusCounts();
   const filteredInspections = getFilteredInspections();
+
+  const renderCategoryGrid = () => (
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <h3 className="text-lg font-semibold text-gray-900 mb-6">तपासणी श्रेणी निवडा / Select Inspection Category</h3>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {categories.map(category => (
+          <button
+            key={category.id}
+            onClick={() => handleCategorySelect(category)}
+            className="p-6 border-2 border-gray-200 rounded-lg hover:border-purple-300 hover:bg-purple-50 transition-all duration-200 text-left group"
+          >
+            <div className="flex items-center space-x-3 mb-3">
+              <div className="bg-purple-100 group-hover:bg-purple-200 p-2 rounded-lg transition-colors duration-200">
+                {category.form_type === 'anganwadi' ? (
+                  <Users className="h-6 w-6 text-purple-600" />
+                ) : (
+                  <FileText className="h-6 w-6 text-purple-600" />
+                )}
+              </div>
+              <div>
+                <h4 className="font-semibold text-gray-900">{category.name_marathi}</h4>
+                <p className="text-sm text-gray-600">{category.name}</p>
+              </div>
+            </div>
+            {category.description && (
+              <p className="text-sm text-gray-500 mb-3">{category.description}</p>
+            )}
+            <div className="flex items-center justify-between">
+              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                category.form_type === 'anganwadi' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
+              }`}>
+                {category.form_type === 'anganwadi' ? 'अंगणवाडी तपासणी' : 'दस्तऐवज तपासणी'}
+              </span>
+              <ArrowRight className="h-4 w-4 text-gray-400 group-hover:text-purple-600 transition-colors duration-200" />
+            </div>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+
+  const renderStepContent = () => {
+    if (currentStep === 1) {
+      return (
+        <div className="space-y-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            {t('fims.locationInformation', 'Location Information')}
+          </h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                स्थानाचे नाव (Location Name) *
+              </label>
+              <input
+                type="text"
+                value={newInspection.location_name}
+                onChange={(e) => setNewInspection({...newInspection, location_name: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                placeholder="स्थानाचे नाव टाका"
+                required
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                पत्ता (Address)
+              </label>
+              <input
+                type="text"
+                value={newInspection.address}
+                onChange={(e) => setNewInspection({...newInspection, address: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                placeholder="पूर्ण पत्ता टाका"
+              />
+            </div>
+          </div>
+        </div>
+      );
+    } else if (currentStep === 2) {
+      return (
+        <div className="space-y-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            {t('fims.captureLocation', 'Capture Location')}
+          </h3>
+          
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+            <div className="flex items-center space-x-2 text-blue-800 mb-2">
+              <MapPin className="h-5 w-5" />
+              <span className="font-medium">स्थान कॅप्चर करा (Capture Location)</span>
+            </div>
+            <p className="text-sm text-blue-700">
+              तपासणीसाठी अचूक स्थान मिळवण्यासाठी खालील बटणावर क्लिक करा.
+            </p>
+          </div>
+          
+          <div className="flex items-center justify-center">
+            <button
+              onClick={getCurrentLocation}
+              disabled={isLoading}
+              className="flex items-center space-x-2 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-all duration-200 disabled:opacity-50"
+            >
+              {isLoading ? (
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+              ) : (
+                <Navigation className="h-5 w-5" />
+              )}
+              <span>सध्याचे स्थान मिळवा (Get Current Location)</span>
+            </button>
+          </div>
+          
+          {currentLocation && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <div className="flex items-center space-x-2 text-green-800 mb-3">
+                <CheckCircle className="h-5 w-5" />
+                <span className="font-medium">स्थान यशस्वीरित्या कॅप्चर केले (Location Captured Successfully)</span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-green-700">
+                <div>
+                  <span className="font-medium">अक्षांश (Latitude):</span>
+                  <br />
+                  {currentLocation.lat.toFixed(6)}
+                </div>
+                <div>
+                  <span className="font-medium">रेखांश (Longitude):</span>
+                  <br />
+                  {currentLocation.lng.toFixed(6)}
+                </div>
+                <div>
+                  <span className="font-medium">अचूकता (Accuracy):</span>
+                  <br />
+                  {Math.round(currentLocation.accuracy)}m
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    } else if (currentStep === 3) {
+      return (
+        <div className="space-y-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            {selectedCategory?.form_type === 'anganwadi' ? 'अंगणवाडी केंद्र माहिती आणि तपासणी' : 'Inspection Details'}
+          </h3>
+          
+          {selectedCategory?.form_type === 'anganwadi' && (
+            <div className="space-y-6">
+              {/* Basic Details Section */}
+              <div className="bg-gray-50 rounded-lg p-6">
+                <h4 className="text-md font-semibold text-gray-800 mb-4">मूलभूत माहिती (Basic Details)</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      अंगणवाडी केंद्राचे नाव (Anganwadi Name) *
+                    </label>
+                    <input
+                      type="text"
+                      value={anganwadiForm.anganwadi_name}
+                      onChange={(e) => setAnganwadiForm({...anganwadiForm, anganwadi_name: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      placeholder="अंगणवाडी केंद्राचे नाव टाका"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      अंगणवाडी क्रमांक (Anganwadi Number) *
+                    </label>
+                    <input
+                      type="text"
+                      value={anganwadiForm.anganwadi_number}
+                      onChange={(e) => setAnganwadiForm({...anganwadiForm, anganwadi_number: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      placeholder="अंगणवाडी क्रमांक टाका"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      पर्यवेक्षकाचे नाव (Supervisor Name) *
+                    </label>
+                    <input
+                      type="text"
+                      value={anganwadiForm.supervisor_name}
+                      onChange={(e) => setAnganwadiForm({...anganwadiForm, supervisor_name: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-gray-100"
+                      placeholder="पर्यवेक्षकाचे नाव"
+                      required
+                      readOnly
+                    />
+                    <p className="text-xs text-gray-500 mt-1">स्वयंचलितपणे भरले गेले (Auto-filled)</p>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      सहाय्यकाचे नाव (Helper Name)
+                    </label>
+                    <input
+                      type="text"
+                      value={anganwadiForm.helper_name}
+                      onChange={(e) => setAnganwadiForm({...anganwadiForm, helper_name: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      placeholder="सहाय्यकाचे नाव टाका"
+                    />
+                  </div>
+                  
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      गावाचे नाव (Village Name) *
+                    </label>
+                    <input
+                      type="text"
+                      value={anganwadiForm.village_name}
+                      onChange={(e) => setAnganwadiForm({...anganwadiForm, village_name: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      placeholder="गावाचे नाव टाका"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Infrastructure Section */}
+              <div className="bg-gray-50 rounded-lg p-6">
+                <h4 className="text-md font-semibold text-gray-800 mb-4">पायाभूत सुविधा (Infrastructure)</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      इमारतीची स्थिती (Building Condition)
+                    </label>
+                    <select
+                      value={anganwadiForm.building_condition}
+                      onChange={(e) => setAnganwadiForm({...anganwadiForm, building_condition: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    >
+                      <option value="">निवडा (Select)</option>
+                      <option value="excellent">उत्कृष्ट (Excellent)</option>
+                      <option value="good">चांगली (Good)</option>
+                      <option value="average">सरासरी (Average)</option>
+                      <option value="poor">खराब (Poor)</option>
+                    </select>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    {[
+                      { key: 'room_availability', label: 'खोली उपलब्धता (Room Availability)' },
+                      { key: 'toilet_facility', label: 'शौचालय सुविधा (Toilet Facility)' },
+                      { key: 'drinking_water', label: 'पिण्याचे पाणी (Drinking Water)' },
+                      { key: 'electricity', label: 'वीज (Electricity)' },
+                      { key: 'kitchen_garden', label: 'स्वयंपाकघर बाग (Kitchen Garden)' }
+                    ].map((item) => (
+                      <div key={item.key} className="flex items-center space-x-3">
+                        <span className="text-sm text-gray-700 flex-1">{item.label}</span>
+                        <div className="flex items-center space-x-2">
+                          <label className="flex items-center">
+                            <input
+                              type="radio"
+                              name={item.key}
+                              value="true"
+                              checked={anganwadiForm[item.key as keyof typeof anganwadiForm] === true}
+                              onChange={() => setAnganwadiForm({...anganwadiForm, [item.key]: true})}
+                              className="text-green-600 focus:ring-green-500"
+                            />
+                            <span className="ml-1 text-xs text-green-600">होय</span>
+                          </label>
+                          <label className="flex items-center">
+                            <input
+                              type="radio"
+                              name={item.key}
+                              value="false"
+                              checked={anganwadiForm[item.key as keyof typeof anganwadiForm] === false}
+                              onChange={() => setAnganwadiForm({...anganwadiForm, [item.key]: false})}
+                              className="text-red-600 focus:ring-red-500"
+                            />
+                            <span className="ml-1 text-xs text-red-600">नाही</span>
+                          </label>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Equipment Section */}
+              <div className="bg-gray-50 rounded-lg p-6">
+                <h4 className="text-md font-semibold text-gray-800 mb-4">उपकरणे (Equipment)</h4>
+                <div className="grid grid-cols-1 gap-3">
+                  {[
+                    { key: 'weighing_machine', label: 'वजन मशीन (Weighing Machine)' },
+                    { key: 'height_measuring_scale', label: 'उंची मापण्याचे साधन (Height Measuring Scale)' },
+                    { key: 'first_aid_kit', label: 'प्राथमिक उपचार पेटी (First Aid Kit)' },
+                    { key: 'teaching_materials', label: 'शिकवण्याचे साहित्य (Teaching Materials)' },
+                    { key: 'toys_available', label: 'खेळणी उपलब्ध (Toys Available)' }
+                  ].map((item) => (
+                    <div key={item.key} className="flex items-center justify-between">
+                      <span className="text-sm text-gray-700">{item.label}</span>
+                      <div className="flex items-center space-x-2">
+                        <label className="flex items-center">
+                          <input
+                            type="radio"
+                            name={item.key}
+                            value="true"
+                            checked={anganwadiForm[item.key as keyof typeof anganwadiForm] === true}
+                            onChange={() => setAnganwadiForm({...anganwadiForm, [item.key]: true})}
+                            className="text-green-600 focus:ring-green-500"
+                          />
+                          <span className="ml-1 text-xs text-green-600">होय</span>
+                        </label>
+                        <label className="flex items-center">
+                          <input
+                            type="radio"
+                            name={item.key}
+                            value="false"
+                            checked={anganwadiForm[item.key as keyof typeof anganwadiForm] === false}
+                            onChange={() => setAnganwadiForm({...anganwadiForm, [item.key]: false})}
+                            className="text-red-600 focus:ring-red-500"
+                          />
+                          <span className="ml-1 text-xs text-red-600">नाही</span>
+                        </label>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Records Section */}
+              <div className="bg-gray-50 rounded-lg p-6">
+                <h4 className="text-md font-semibold text-gray-800 mb-4">नोंदी (Records)</h4>
+                <div className="grid grid-cols-1 gap-3">
+                  {[
+                    { key: 'attendance_register', label: 'उपस्थिती नोंदवही (Attendance Register)' },
+                    { key: 'growth_chart_updated', label: 'वाढ तक्ता अपडेट (Growth Chart Updated)' },
+                    { key: 'vaccination_records', label: 'लसीकरण नोंदी (Vaccination Records)' },
+                    { key: 'nutrition_records', label: 'पोषण नोंदी (Nutrition Records)' }
+                  ].map((item) => (
+                    <div key={item.key} className="flex items-center justify-between">
+                      <span className="text-sm text-gray-700">{item.label}</span>
+                      <div className="flex items-center space-x-2">
+                        <label className="flex items-center">
+                          <input
+                            type="radio"
+                            name={item.key}
+                            value="true"
+                            checked={anganwadiForm[item.key as keyof typeof anganwadiForm] === true}
+                            onChange={() => setAnganwadiForm({...anganwadiForm, [item.key]: true})}
+                            className="text-green-600 focus:ring-green-500"
+                          />
+                          <span className="ml-1 text-xs text-green-600">होय</span>
+                        </label>
+                        <label className="flex items-center">
+                          <input
+                            type="radio"
+                            name={item.key}
+                            value="false"
+                            checked={anganwadiForm[item.key as keyof typeof anganwadiForm] === false}
+                            onChange={() => setAnganwadiForm({...anganwadiForm, [item.key]: false})}
+                            className="text-red-600 focus:ring-red-500"
+                          />
+                          <span className="ml-1 text-xs text-red-600">नाही</span>
+                        </label>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Children Count Section */}
+              <div className="bg-gray-50 rounded-lg p-6">
+                <h4 className="text-md font-semibold text-gray-800 mb-4">मुलांची संख्या (Children Count)</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      एकूण नोंदणीकृत (Total Registered)
+                    </label>
+                    <input
+                      type="number"
+                      value={anganwadiForm.total_registered_children}
+                      onChange={(e) => setAnganwadiForm({...anganwadiForm, total_registered_children: parseInt(e.target.value) || 0})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      min="0"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      आज उपस्थित (Present Today)
+                    </label>
+                    <input
+                      type="number"
+                      value={anganwadiForm.children_present_today}
+                      onChange={(e) => setAnganwadiForm({...anganwadiForm, children_present_today: parseInt(e.target.value) || 0})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      min="0"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      0-3 वर्षे (0-3 Years)
+                    </label>
+                    <input
+                      type="number"
+                      value={anganwadiForm.children_0_3_years}
+                      onChange={(e) => setAnganwadiForm({...anganwadiForm, children_0_3_years: parseInt(e.target.value) || 0})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      min="0"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      3-6 वर्षे (3-6 Years)
+                    </label>
+                    <input
+                      type="number"
+                      value={anganwadiForm.children_3_6_years}
+                      onChange={(e) => setAnganwadiForm({...anganwadiForm, children_3_6_years: parseInt(e.target.value) || 0})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      min="0"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Nutrition Section */}
+              <div className="bg-gray-50 rounded-lg p-6">
+                <h4 className="text-md font-semibold text-gray-800 mb-4">पोषण (Nutrition)</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-3">
+                    {[
+                      { key: 'hot_meal_served', label: 'गरम जेवण दिले (Hot Meal Served)' },
+                      { key: 'take_home_ration', label: 'घरी नेण्याचे धान्य (Take Home Ration)' }
+                    ].map((item) => (
+                      <div key={item.key} className="flex items-center justify-between">
+                        <span className="text-sm text-gray-700">{item.label}</span>
+                        <div className="flex items-center space-x-2">
+                          <label className="flex items-center">
+                            <input
+                              type="radio"
+                              name={item.key}
+                              value="true"
+                              checked={anganwadiForm[item.key as keyof typeof anganwadiForm] === true}
+                              onChange={() => setAnganwadiForm({...anganwadiForm, [item.key]: true})}
+                              className="text-green-600 focus:ring-green-500"
+                            />
+                            <span className="ml-1 text-xs text-green-600">होय</span>
+                          </label>
+                          <label className="flex items-center">
+                            <input
+                              type="radio"
+                              name={item.key}
+                              value="false"
+                              checked={anganwadiForm[item.key as keyof typeof anganwadiForm] === false}
+                              onChange={() => setAnganwadiForm({...anganwadiForm, [item.key]: false})}
+                              className="text-red-600 focus:ring-red-500"
+                            />
+                            <span className="ml-1 text-xs text-red-600">नाही</span>
+                          </label>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      जेवणाची गुणवत्ता (Meal Quality)
+                    </label>
+                    <select
+                      value={anganwadiForm.meal_quality}
+                      onChange={(e) => setAnganwadiForm({...anganwadiForm, meal_quality: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    >
+                      <option value="">निवडा (Select)</option>
+                      <option value="excellent">उत्कृष्ट (Excellent)</option>
+                      <option value="good">चांगली (Good)</option>
+                      <option value="average">सरासरी (Average)</option>
+                      <option value="poor">खराब (Poor)</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Health Section */}
+              <div className="bg-gray-50 rounded-lg p-6">
+                <h4 className="text-md font-semibold text-gray-800 mb-4">आरोग्य (Health)</h4>
+                <div className="grid grid-cols-1 gap-3">
+                  {[
+                    { key: 'health_checkup_conducted', label: 'आरोग्य तपासणी केली (Health Checkup Conducted)' },
+                    { key: 'immunization_updated', label: 'लसीकरण अपडेट (Immunization Updated)' },
+                    { key: 'vitamin_a_given', label: 'व्हिटामिन ए दिले (Vitamin A Given)' },
+                    { key: 'iron_tablets_given', label: 'लोह गोळ्या दिल्या (Iron Tablets Given)' }
+                  ].map((item) => (
+                    <div key={item.key} className="flex items-center justify-between">
+                      <span className="text-sm text-gray-700">{item.label}</span>
+                      <div className="flex items-center space-x-2">
+                        <label className="flex items-center">
+                          <input
+                            type="radio"
+                            name={item.key}
+                            value="true"
+                            checked={anganwadiForm[item.key as keyof typeof anganwadiForm] === true}
+                            onChange={() => setAnganwadiForm({...anganwadiForm, [item.key]: true})}
+                            className="text-green-600 focus:ring-green-500"
+                          />
+                          <span className="ml-1 text-xs text-green-600">होय</span>
+                        </label>
+                        <label className="flex items-center">
+                          <input
+                            type="radio"
+                            name={item.key}
+                            value="false"
+                            checked={anganwadiForm[item.key as keyof typeof anganwadiForm] === false}
+                            onChange={() => setAnganwadiForm({...anganwadiForm, [item.key]: false})}
+                            className="text-red-600 focus:ring-red-500"
+                          />
+                          <span className="ml-1 text-xs text-red-600">नाही</span>
+                        </label>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Observations Section */}
+              <div className="bg-gray-50 rounded-lg p-6">
+                <h4 className="text-md font-semibold text-gray-800 mb-4">निरीक्षणे आणि शिफारसी (Observations & Recommendations)</h4>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      सामान्य निरीक्षणे (General Observations)
+                    </label>
+                    <textarea
+                      value={anganwadiForm.general_observations}
+                      onChange={(e) => setAnganwadiForm({...anganwadiForm, general_observations: e.target.value})}
+                      rows={3}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      placeholder="सामान्य निरीक्षणे टाका..."
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      शिफारसी (Recommendations)
+                    </label>
+                    <textarea
+                      value={anganwadiForm.recommendations}
+                      onChange={(e) => setAnganwadiForm({...anganwadiForm, recommendations: e.target.value})}
+                      rows={3}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      placeholder="शिफारसी टाका..."
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      आवश्यक कृती (Action Required)
+                    </label>
+                    <textarea
+                      value={anganwadiForm.action_required}
+                      onChange={(e) => setAnganwadiForm({...anganwadiForm, action_required: e.target.value})}
+                      rows={3}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      placeholder="आवश्यक कृती टाका..."
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    } else if (currentStep === 4) {
+      return (
+        <div className="space-y-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            फोटो अपलोड करा (Upload Photos)
+          </h3>
+          
+          <div className="bg-gray-50 rounded-lg p-6">
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                तपासणी फोटो जोडा (Add Inspection Photos)
+              </label>
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={handlePhotoUpload}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                एकाधिक फोटो निवडू शकता (You can select multiple photos)
+              </p>
+            </div>
+            
+            {photos.length > 0 && (
+              <div className="space-y-4">
+                <h5 className="font-medium text-gray-800">निवडलेले फोटो (Selected Photos):</h5>
+                {photos.map((photo, index) => (
+                  <div key={index} className="flex items-center space-x-4 p-3 bg-white rounded-lg border">
+                    <div className="flex-shrink-0">
+                      <Camera className="h-8 w-8 text-purple-600" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-900">{photo.name}</p>
+                      <p className="text-xs text-gray-500">{(photo.size / 1024 / 1024).toFixed(2)} MB</p>
+                      <input
+                        type="text"
+                        value={photoDescriptions[index]}
+                        onChange={(e) => updatePhotoDescription(index, e.target.value)}
+                        placeholder="फोटोचे वर्णन टाका (Add photo description)"
+                        className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-purple-500 focus:border-transparent"
+                      />
+                    </div>
+                    <button
+                      onClick={() => removePhoto(index)}
+                      className="text-red-600 hover:text-red-800"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          
+          {/* Action Buttons */}
+          <div className="flex items-center justify-between pt-6 border-t border-gray-200">
+            <button
+              onClick={() => setCurrentStep(3)}
+              className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all duration-200"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span>मागे (Back)</span>
+            </button>
+            
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={() => handleCreateInspectionWithForm('draft')}
+                disabled={isLoading}
+                className="flex items-center space-x-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-all duration-200 disabled:opacity-50"
+              >
+                {isLoading ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                ) : (
+                  <Save className="h-4 w-4" />
+                )}
+                <span>जतन करा (Save)</span>
+              </button>
+              
+              <button
+                onClick={() => handleCreateInspectionWithForm('draft')}
+                disabled={isLoading}
+                className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-200 disabled:opacity-50"
+              >
+                {isLoading ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                ) : (
+                  <Edit className="h-4 w-4" />
+                )}
+                <span>संपादित करा (Edit)</span>
+              </button>
+              
+              <button
+                onClick={handleSubmitInspection}
+                disabled={isLoading}
+                className="flex items-center space-x-2 px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all duration-200 disabled:opacity-50"
+              >
+                {isLoading ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                ) : (
+                  <CheckCircle className="h-4 w-4" />
+                )}
+                <span>सबमिट करा (Submit)</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+  };
+
+  const renderNewInspectionForm = () => (
+    <div className="space-y-6">
+      {!selectedCategoryForForm ? (
+        renderCategoryGrid()
+      ) : (
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center space-x-4 mb-6">
+            {[1, 2, 3, 4].map((step) => (
+              <div key={step} className="flex items-center">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                  step <= currentStep 
+                    ? 'bg-purple-600 text-white' 
+                    : 'bg-gray-200 text-gray-600'
+                }`}>
+                  {step}
+                </div>
+                <div className="ml-2 text-sm">
+                  {step === 1 ? 'स्थान' : step === 2 ? 'GPS' : step === 3 ? 'तपासणी' : 'फोटो'}
+                </div>
+                {step < 4 && <div className="w-8 h-0.5 bg-gray-300 mx-2"></div>}
+              </div>
+            ))}
+          </div>
+          
+          <div className="text-center mb-6">
+            <h3 className="text-lg font-semibold text-gray-900">
+              पायरी {currentStep}/4 - {selectedCategoryForForm?.name_marathi}
+            </h3>
+          </div>
+          
+          {renderStepContent()}
+          
+          {/* Navigation Buttons */}
+          {currentStep < 4 && currentStep !== 3 && (
+            <div className="flex items-center justify-between pt-6 border-t border-gray-200">
+              <button
+                onClick={() => setCurrentStep(Math.max(1, currentStep - 1))}
+                className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all duration-200"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                <span>मागे (Back)</span>
+              </button>
+              
+              <button
+                onClick={() => setCurrentStep(Math.min(4, currentStep + 1))}
+                disabled={
+                  (currentStep === 1 && !newInspection.location_name) ||
+                  (currentStep === 2 && !currentLocation)
+                }
+                className="flex items-center space-x-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-all duration-200 disabled:opacity-50"
+              >
+                <span>पुढे (Next)</span>
+                <ArrowRight className="h-4 w-4" />
+              </button>
+            </div>
+          )}
+          
+          {currentStep === 3 && (
+            <div className="flex items-center justify-between pt-6 border-t border-gray-200">
+              <button
+                onClick={() => setCurrentStep(2)}
+                className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all duration-200"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                <span>मागे (Back)</span>
+              </button>
+              
+              <button
+                onClick={() => setCurrentStep(4)}
+                className="flex items-center space-x-2 px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-all duration-200"
+              >
+                <ArrowRight className="h-4 w-4" />
+                <span>पुढे (Next)</span>
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+      
+      {/* Submit Confirmation Modal */}
+      {showSubmitConfirmation && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div className="p-6">
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="bg-green-100 p-2 rounded-full">
+                  <CheckCircle className="h-6 w-6 text-green-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  तपासणी सबमिट करा (Submit Inspection)
+                </h3>
+              </div>
+              
+              <p className="text-gray-600 mb-6">
+                आपल्याला खात्री आहे की आपण ही तपासणी सबमिट करू इच्छिता? सबमिट केल्यानंतर ती पुनरावलोकनासाठी पाठवली जाईल.
+              </p>
+              <p className="text-sm text-gray-500 mb-6">
+                (Are you sure you want to submit this inspection? Once submitted, it will be sent for review.)
+              </p>
+              
+              <div className="flex items-center justify-end space-x-3">
+                <button
+                  onClick={() => setShowSubmitConfirmation(false)}
+                  className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200"
+                >
+                  रद्द करा (Cancel)
+                </button>
+                <button
+                  onClick={confirmSubmitInspection}
+                  disabled={isLoading}
+                  className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 disabled:opacity-50"
+                >
+                  {isLoading ? 'सबमिट करत आहे...' : 'सबमिट करा (Submit)'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 
   const renderDashboard = () => (
     <div className="space-y-6">
@@ -777,597 +1740,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
     </div>
   );
 
-  const renderNewInspection = () => (
-    <div className="space-y-6">
-      {!selectedCategoryForForm ? (
-        // Category Selection Grid
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-6">तपासणी श्रेणी निवडा / Select Inspection Category</h3>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {categories.map(category => (
-              <button
-                key={category.id}
-                onClick={() => handleCategorySelect(category)}
-                className="p-6 border-2 border-gray-200 rounded-lg hover:border-purple-300 hover:bg-purple-50 transition-all duration-200 text-left group"
-              >
-                <div className="flex items-center space-x-3 mb-3">
-                  <div className="bg-purple-100 group-hover:bg-purple-200 p-2 rounded-lg transition-colors duration-200">
-                    {category.form_type === 'anganwadi' ? (
-                      <Users className="h-6 w-6 text-purple-600" />
-                    ) : (
-                      <FileText className="h-6 w-6 text-purple-600" />
-                    )}
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900">{category.name_marathi}</h4>
-                    <p className="text-sm text-gray-600">{category.name}</p>
-                  </div>
-                </div>
-                {category.description && (
-                  <p className="text-sm text-gray-500 mb-3">{category.description}</p>
-                )}
-                <div className="flex items-center justify-between">
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    category.form_type === 'anganwadi' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
-                  }`}>
-                    {category.form_type === 'anganwadi' ? 'अंगणवाडी तपासणी' : 'दस्तऐवज तपासणी'}
-                  </span>
-                  <ArrowRight className="h-4 w-4 text-gray-400 group-hover:text-purple-600 transition-colors duration-200" />
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
-      ) : (
-        // Step-by-Step Form
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-          {/* Progress Header */}
-          <div className="px-6 py-4 border-b border-gray-200">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center space-x-3">
-                <button
-                  onClick={() => setSelectedCategoryForForm(null)}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
-                >
-                  <ArrowLeft className="h-5 w-5 text-gray-600" />
-                </button>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900">{selectedCategoryForForm.name_marathi}</h3>
-                  <p className="text-sm text-gray-500">{selectedCategoryForForm.name}</p>
-                </div>
-              </div>
-              <div className="text-sm text-gray-500">
-                पायरी {currentStep} / 3
-              </div>
-            </div>
-            
-            {/* Progress Steps */}
-            <div className="flex items-center space-x-4">
-              {[1, 2, 3].map((step) => (
-                <div key={step} className="flex items-center">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                    step <= currentStep 
-                      ? 'bg-purple-600 text-white' 
-                      : 'bg-gray-200 text-gray-600'
-                  }`}>
-                    {step}
-                  </div>
-                  <div className="ml-2 text-sm">
-                    {step === 1 && 'मूलभूत माहिती'}
-                    {step === 2 && 'स्थान माहिती'}
-                    {step === 3 && 'तपासणी फॉर्म'}
-                  </div>
-                  {step < 3 && (
-                    <div className={`w-12 h-0.5 ml-4 ${
-                      step < currentStep ? 'bg-purple-600' : 'bg-gray-200'
-                    }`} />
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="p-6">
-            {/* Step 1: Basic Information */}
-            {currentStep === 1 && (
-              <div className="space-y-4">
-                <h4 className="text-md font-semibold text-gray-800 mb-4">मूलभूत माहिती / Basic Information</h4>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    स्थानाचे नाव / Location Name *
-                  </label>
-                  <input
-                    type="text"
-                    value={newInspection.location_name}
-                    onChange={(e) => setNewInspection({ ...newInspection, location_name: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    placeholder="स्थानाचे नाव टाका / Enter location name"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    पत्ता / Address
-                  </label>
-                  <textarea
-                    value={newInspection.address}
-                    onChange={(e) => setNewInspection({ ...newInspection, address: e.target.value })}
-                    rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    placeholder="संपूर्ण पत्ता टाका / Enter full address"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    तपासणी तारीख / Inspection Date
-                  </label>
-                  <input
-                    type="date"
-                    value={new Date().toISOString().split('T')[0]}
-                    disabled
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">आजची तारीख आपोआप निवडली आहे / Today's date is automatically selected</p>
-                </div>
-              </div>
-            )}
-
-            {/* Step 2: Location Information */}
-            {currentStep === 2 && (
-              <div className="space-y-4">
-                <h4 className="text-md font-semibold text-gray-800 mb-4">स्थान माहिती / Location Information</h4>
-                
-                <div className="flex items-center justify-between mb-4">
-                  <p className="text-sm text-gray-600">
-                    तपासणीसाठी अचूक स्थान मिळवा / Get accurate location for inspection
-                  </p>
-                  <button
-                    onClick={getCurrentLocation}
-                    disabled={isLoading}
-                    className="flex items-center space-x-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-lg transition-colors duration-200 disabled:opacity-50"
-                  >
-                    {isLoading ? (
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    ) : (
-                      <Navigation className="h-4 w-4" />
-                    )}
-                    <span>सध्याचे स्थान मिळवा / Get Current Location</span>
-                  </button>
-                </div>
-
-                {currentLocation ? (
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                    <div className="flex items-center space-x-2 text-green-800 mb-3">
-                      <MapPin className="h-5 w-5" />
-                      <span className="font-medium">स्थान यशस्वीरित्या मिळाले / Location Successfully Captured</span>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-green-700">
-                      <div>
-                        <span className="font-medium">अक्षांश / Latitude:</span>
-                        <br />
-                        {currentLocation.lat.toFixed(6)}
-                      </div>
-                      <div>
-                        <span className="font-medium">रेखांश / Longitude:</span>
-                        <br />
-                        {currentLocation.lng.toFixed(6)}
-                      </div>
-                      <div>
-                        <span className="font-medium">अचूकता / Accuracy:</span>
-                        <br />
-                        {Math.round(currentLocation.accuracy)}m
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                    <div className="flex items-center space-x-2 text-amber-800">
-                      <AlertCircle className="h-5 w-5" />
-                      <span className="font-medium">स्थान आवश्यक आहे / Location Required</span>
-                    </div>
-                    <p className="text-sm text-amber-700 mt-2">
-                      कृपया तपासणी सुरू करण्यापूर्वी आपले स्थान मिळवा / Please capture your location before starting the inspection
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Step 3: Inspection Form */}
-            {currentStep === 3 && selectedCategoryForForm?.form_type === 'anganwadi' && (
-              <div className="space-y-6">
-                <h4 className="text-md font-semibold text-gray-800 mb-4">अंगणवाडी तपासणी फॉर्म / Anganwadi Inspection Form</h4>
-                
-                {/* Basic Details */}
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h5 className="font-medium text-gray-800 mb-3">मूलभूत तपशील / Basic Details</h5>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        अंगणवाडीचे नाव / Anganwadi Name
-                      </label>
-                      <input
-                        type="text"
-                        value={anganwadiFormData.anganwadi_name}
-                        onChange={(e) => setAnganwadiFormData({ ...anganwadiFormData, anganwadi_name: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        placeholder="अंगणवाडीचे नाव टाका"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        अंगणवाडी क्रमांक / Anganwadi Number
-                      </label>
-                      <input
-                        type="text"
-                        value={anganwadiFormData.anganwadi_number}
-                        onChange={(e) => setAnganwadiFormData({ ...anganwadiFormData, anganwadi_number: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        placeholder="अंगणवाडी क्रमांक टाका"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        पर्यवेक्षकाचे नाव / Supervisor Name
-                      </label>
-                      <input
-                        type="text"
-                        value={anganwadiFormData.supervisor_name}
-                        onChange={(e) => setAnganwadiFormData({ ...anganwadiFormData, supervisor_name: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        placeholder="पर्यवेक्षकाचे नाव टाका"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        सहाय्यकाचे नाव / Helper Name
-                      </label>
-                      <input
-                        type="text"
-                        value={anganwadiFormData.helper_name}
-                        onChange={(e) => setAnganwadiFormData({ ...anganwadiFormData, helper_name: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        placeholder="सहाय्यकाचे नाव टाका"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        गावाचे नाव / Village Name
-                      </label>
-                      <input
-                        type="text"
-                        value={anganwadiFormData.village_name}
-                        onChange={(e) => setAnganwadiFormData({ ...anganwadiFormData, village_name: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        placeholder="गावाचे नाव टाका"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Infrastructure */}
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h5 className="font-medium text-gray-800 mb-3">पायाभूत सुविधा / Infrastructure</h5>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        इमारतीची स्थिती / Building Condition
-                      </label>
-                      <select
-                        value={anganwadiFormData.building_condition}
-                        onChange={(e) => setAnganwadiFormData({ ...anganwadiFormData, building_condition: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      >
-                        <option value="">निवडा / Select</option>
-                        <option value="excellent">उत्कृष्ट / Excellent</option>
-                        <option value="good">चांगली / Good</option>
-                        <option value="average">सरासरी / Average</option>
-                        <option value="poor">खराब / Poor</option>
-                      </select>
-                    </div>
-                    
-                    <div className="space-y-3">
-                      {[
-                        { key: 'room_availability', label: 'खोली उपलब्धता / Room Availability' },
-                        { key: 'toilet_facility', label: 'शौचालय सुविधा / Toilet Facility' },
-                        { key: 'drinking_water', label: 'पिण्याचे पाणी / Drinking Water' },
-                        { key: 'electricity', label: 'वीज / Electricity' },
-                        { key: 'kitchen_garden', label: 'स्वयंपाकघर बाग / Kitchen Garden' }
-                      ].map((item) => (
-                        <label key={item.key} className="flex items-center space-x-2">
-                          <input
-                            type="checkbox"
-                            checked={anganwadiFormData[item.key as keyof typeof anganwadiFormData] as boolean}
-                            onChange={(e) => setAnganwadiFormData({ 
-                              ...anganwadiFormData, 
-                              [item.key]: e.target.checked 
-                            })}
-                            className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
-                          />
-                          <span className="text-sm text-gray-700">{item.label}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Equipment */}
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h5 className="font-medium text-gray-800 mb-3">उपकरणे / Equipment</h5>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {[
-                      { key: 'weighing_machine', label: 'वजन मशीन / Weighing Machine' },
-                      { key: 'height_measuring_scale', label: 'उंची मापण्याचे साधन / Height Measuring Scale' },
-                      { key: 'first_aid_kit', label: 'प्राथमिक उपचार पेटी / First Aid Kit' },
-                      { key: 'teaching_materials', label: 'शिकवण्याचे साहित्य / Teaching Materials' },
-                      { key: 'toys_available', label: 'खेळणी उपलब्ध / Toys Available' }
-                    ].map((item) => (
-                      <label key={item.key} className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          checked={anganwadiFormData[item.key as keyof typeof anganwadiFormData] as boolean}
-                          onChange={(e) => setAnganwadiFormData({ 
-                            ...anganwadiFormData, 
-                            [item.key]: e.target.checked 
-                          })}
-                          className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
-                        />
-                        <span className="text-sm text-gray-700">{item.label}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Records */}
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h5 className="font-medium text-gray-800 mb-3">नोंदी / Records</h5>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {[
-                      { key: 'attendance_register', label: 'उपस्थिती नोंदवही / Attendance Register' },
-                      { key: 'growth_chart_updated', label: 'वाढ तक्ता अपडेट / Growth Chart Updated' },
-                      { key: 'vaccination_records', label: 'लसीकरण नोंदी / Vaccination Records' },
-                      { key: 'nutrition_records', label: 'पोषण नोंदी / Nutrition Records' }
-                    ].map((item) => (
-                      <label key={item.key} className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          checked={anganwadiFormData[item.key as keyof typeof anganwadiFormData] as boolean}
-                          onChange={(e) => setAnganwadiFormData({ 
-                            ...anganwadiFormData, 
-                            [item.key]: e.target.checked 
-                          })}
-                          className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
-                        />
-                        <span className="text-sm text-gray-700">{item.label}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Children Count */}
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h5 className="font-medium text-gray-800 mb-3">मुलांची संख्या / Children Count</h5>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        एकूण नोंदणीकृत मुले / Total Registered
-                      </label>
-                      <input
-                        type="number"
-                        value={anganwadiFormData.total_registered_children}
-                        onChange={(e) => setAnganwadiFormData({ ...anganwadiFormData, total_registered_children: parseInt(e.target.value) || 0 })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        min="0"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        आज उपस्थित / Present Today
-                      </label>
-                      <input
-                        type="number"
-                        value={anganwadiFormData.children_present_today}
-                        onChange={(e) => setAnganwadiFormData({ ...anganwadiFormData, children_present_today: parseInt(e.target.value) || 0 })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        min="0"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        0-3 वर्षे / 0-3 Years
-                      </label>
-                      <input
-                        type="number"
-                        value={anganwadiFormData.children_0_3_years}
-                        onChange={(e) => setAnganwadiFormData({ ...anganwadiFormData, children_0_3_years: parseInt(e.target.value) || 0 })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        min="0"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        3-6 वर्षे / 3-6 Years
-                      </label>
-                      <input
-                        type="number"
-                        value={anganwadiFormData.children_3_6_years}
-                        onChange={(e) => setAnganwadiFormData({ ...anganwadiFormData, children_3_6_years: parseInt(e.target.value) || 0 })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        min="0"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Nutrition */}
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h5 className="font-medium text-gray-800 mb-3">पोषण / Nutrition</h5>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-3">
-                      {[
-                        { key: 'hot_meal_served', label: 'गरम जेवण दिले / Hot Meal Served' },
-                        { key: 'take_home_ration', label: 'घरी नेण्याचे धान्य / Take Home Ration' }
-                      ].map((item) => (
-                        <label key={item.key} className="flex items-center space-x-2">
-                          <input
-                            type="checkbox"
-                            checked={anganwadiFormData[item.key as keyof typeof anganwadiFormData] as boolean}
-                            onChange={(e) => setAnganwadiFormData({ 
-                              ...anganwadiFormData, 
-                              [item.key]: e.target.checked 
-                            })}
-                            className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
-                          />
-                          <span className="text-sm text-gray-700">{item.label}</span>
-                        </label>
-                      ))}
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        जेवणाची गुणवत्ता / Meal Quality
-                      </label>
-                      <select
-                        value={anganwadiFormData.meal_quality}
-                        onChange={(e) => setAnganwadiFormData({ ...anganwadiFormData, meal_quality: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      >
-                        <option value="">निवडा / Select</option>
-                        <option value="excellent">उत्कृष्ट / Excellent</option>
-                        <option value="good">चांगली / Good</option>
-                        <option value="average">सरासरी / Average</option>
-                        <option value="poor">खराब / Poor</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Health */}
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h5 className="font-medium text-gray-800 mb-3">आरोग्य / Health</h5>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {[
-                      { key: 'health_checkup_conducted', label: 'आरोग्य तपासणी केली / Health Checkup Conducted' },
-                      { key: 'immunization_updated', label: 'लसीकरण अपडेट / Immunization Updated' },
-                      { key: 'vitamin_a_given', label: 'व्हिटामिन ए दिले / Vitamin A Given' },
-                      { key: 'iron_tablets_given', label: 'लोह गोळ्या दिल्या / Iron Tablets Given' }
-                    ].map((item) => (
-                      <label key={item.key} className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          checked={anganwadiFormData[item.key as keyof typeof anganwadiFormData] as boolean}
-                          onChange={(e) => setAnganwadiFormData({ 
-                            ...anganwadiFormData, 
-                            [item.key]: e.target.checked 
-                          })}
-                          className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
-                        />
-                        <span className="text-sm text-gray-700">{item.label}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Observations */}
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h5 className="font-medium text-gray-800 mb-3">निरीक्षणे आणि शिफारसी / Observations & Recommendations</h5>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        सामान्य निरीक्षणे / General Observations
-                      </label>
-                      <textarea
-                        value={anganwadiFormData.general_observations}
-                        onChange={(e) => setAnganwadiFormData({ ...anganwadiFormData, general_observations: e.target.value })}
-                        rows={3}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        placeholder="सामान्य निरीक्षणे टाका..."
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        शिफारसी / Recommendations
-                      </label>
-                      <textarea
-                        value={anganwadiFormData.recommendations}
-                        onChange={(e) => setAnganwadiFormData({ ...anganwadiFormData, recommendations: e.target.value })}
-                        rows={3}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        placeholder="शिफारसी टाका..."
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        आवश्यक कृती / Action Required
-                      </label>
-                      <textarea
-                        value={anganwadiFormData.action_required}
-                        onChange={(e) => setAnganwadiFormData({ ...anganwadiFormData, action_required: e.target.value })}
-                        rows={3}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        placeholder="आवश्यक कृती टाका..."
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Navigation Buttons */}
-            <div className="flex items-center justify-between pt-6 border-t border-gray-200">
-              <button
-                onClick={currentStep === 1 ? () => setSelectedCategoryForForm(null) : handlePreviousStep}
-                className="flex items-center space-x-2 px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                <span>{currentStep === 1 ? 'मागे / Back' : 'मागील / Previous'}</span>
-              </button>
-              
-              {currentStep < 3 ? (
-                <button
-                  onClick={handleNextStep}
-                  disabled={
-                    (currentStep === 1 && !newInspection.location_name) ||
-                    (currentStep === 2 && !currentLocation)
-                  }
-                  className="flex items-center space-x-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors duration-200 disabled:opacity-50"
-                >
-                  <span>पुढे / Next</span>
-                  <ArrowRight className="h-4 w-4" />
-                </button>
-              ) : (
-                <button
-                  onClick={handleCreateInspectionWithForm}
-                  disabled={isLoading}
-                  className="flex items-center space-x-2 px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 disabled:opacity-50"
-                >
-                  {isLoading ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  ) : (
-                    <Save className="h-4 w-4" />
-                  )}
-                  <span>{isLoading ? 'जतन करत आहे...' : 'तपासणी जतन करा / Save Inspection'}</span>
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+  const renderNewInspection = () => renderNewInspectionForm();
 
   const renderAnalytics = () => (
     <div className="space-y-6">
