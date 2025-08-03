@@ -26,7 +26,8 @@ import {
   Star,
   Target,
   TrendingUp,
-  ArrowRight
+  ArrowRight,
+  Trash2
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { usePermissions } from '../hooks/usePermissions';
@@ -196,6 +197,13 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
   const [isCreating, setIsCreating] = useState(false);
   const [editingInspection, setEditingInspection] = useState<any>(null);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [viewingInspection, setViewingInspection] = useState<any>(null);
+  const [isViewMode, setIsViewMode] = useState(false);
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [selectedInspectionForCompletion, setSelectedInspectionForCompletion] = useState<any>(null);
+  const [completionAction, setCompletionAction] = useState<'complete' | 'revisit'>('complete');
+  const [revisitAssignee, setRevisitAssignee] = useState('');
+  const [revisitUsers, setRevisitUsers] = useState<any[]>([]);
 
   useEffect(() => {
     // Detect mobile device
@@ -212,6 +220,12 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
 
   useEffect(() => {
     fetchData();
+  }, []);
+
+  useEffect(() => {
+    fetchInspections();
+    fetchCategories();
+    fetchUsers();
   }, []);
 
   // Update supervisor name when user profile changes
@@ -306,6 +320,25 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
       setCategories(data || []);
     } catch (error) {
       console.error('Error fetching categories:', error);
+    }
+  };
+
+  const fetchUsers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select(`
+          user_id,
+          name,
+          roles!inner(name)
+        `)
+        .in('roles.name', ['inspector', 'officer', 'admin'])
+        .not('name', 'is', null);
+      
+      if (error) throw error;
+      setRevisitUsers(data || []);
+    } catch (error) {
+      console.error('Error fetching users:', error);
     }
   };
 
@@ -525,6 +558,108 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
     }
   };
 
+  const handleViewInspection = async (inspection: any) => {
+    await handleEditInspection(inspection);
+    setIsViewMode(true);
+  };
+
+  const handleDeleteInspection = async (inspection: any) => {
+    if (!confirm('Are you sure you want to delete this inspection? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      
+      // Delete related photos first
+      const { error: photosError } = await supabase
+        .from('fims_inspection_photos')
+        .delete()
+        .eq('inspection_id', inspection.id);
+      
+      if (photosError) throw photosError;
+      
+      // Delete anganwadi form if exists
+      const { error: formError } = await supabase
+        .from('fims_anganwadi_forms')
+        .delete()
+        .eq('inspection_id', inspection.id);
+      
+      // Don't throw error if no form exists
+      if (formError && formError.code !== 'PGRST116') {
+        throw formError;
+      }
+      
+      // Delete the inspection
+      const { error: inspectionError } = await supabase
+        .from('fims_inspections')
+        .delete()
+        .eq('id', inspection.id);
+      
+      if (inspectionError) throw inspectionError;
+      
+      await fetchInspections();
+      alert('Inspection deleted successfully');
+      
+    } catch (error) {
+      console.error('Error deleting inspection:', error);
+      alert('Error deleting inspection: ' + error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleInspectionCompletion = (inspection: any, action: 'complete' | 'revisit') => {
+    setSelectedInspectionForCompletion(inspection);
+    setCompletionAction(action);
+    setRevisitAssignee('');
+    setShowCompletionModal(true);
+  };
+
+  const handleSubmitCompletion = async () => {
+    if (!selectedInspectionForCompletion) return;
+    
+    if (completionAction === 'revisit' && !revisitAssignee) {
+      alert('Please select who should revisit this inspection');
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      
+      const updateData: any = {
+        status: completionAction === 'complete' ? 'approved' : 'reassigned',
+        requires_revisit: completionAction === 'revisit'
+      };
+      
+      if (completionAction === 'revisit') {
+        updateData.inspector_id = revisitAssignee;
+      }
+      
+      const { error } = await supabase
+        .from('fims_inspections')
+        .update(updateData)
+        .eq('id', selectedInspectionForCompletion.id);
+      
+      if (error) throw error;
+      
+      await fetchInspections();
+      setShowCompletionModal(false);
+      setSelectedInspectionForCompletion(null);
+      
+      alert(completionAction === 'complete' 
+        ? 'Inspection marked as completed' 
+        : 'Inspection sent for revisit'
+      );
+      
+    } catch (error) {
+      console.error('Error updating inspection:', error);
+      alert('Error updating inspection: ' + error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleCreateInspectionWithForm = async (submitStatus: 'draft' | 'submitted' = 'draft') => {
     if (!selectedCategoryForForm) return;
 
@@ -657,6 +792,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
       resetForm();
       setEditingInspection(null);
       setIsEditMode(false);
+      setIsViewMode(false);
       
       if (submitStatus === 'submitted') {
         alert(t('fims.inspectionSubmittedSuccessfully', isEditMode ? 'Inspection updated and submitted successfully!' : 'Inspection submitted successfully!'));
@@ -836,6 +972,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 placeholder={t('fims.enterLocationName')}
                 required
+                disabled={isViewMode}
               />
             </div>
 
@@ -849,6 +986,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                 rows={3}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 placeholder={t('fims.enterFullAddress')}
+                disabled={isViewMode}
               />
             </div>
 
@@ -861,6 +999,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                 value={newInspection.planned_date}
                 onChange={(e) => setNewInspection({ ...newInspection, planned_date: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                disabled={isViewMode}
               />
             </div>
 
@@ -881,6 +1020,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                     onChange={(e) => setAnganwadiForm({ ...anganwadiForm, anganwadi_name: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     placeholder="अंगणवाडी केंद्राचे नाव टाका"
+                    disabled={isViewMode}
                   />
                 </div>
 
@@ -894,6 +1034,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                     onChange={(e) => setAnganwadiForm({ ...anganwadiForm, anganwadi_number: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     placeholder="अंगणवाडी क्रमांक टाका"
+                    disabled={isViewMode}
                   />
                 </div>
 
@@ -921,6 +1062,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                     onChange={(e) => setAnganwadiForm({ ...anganwadiForm, helper_name: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     placeholder="मदतनीसाचे नाव टाका"
+                    disabled={isViewMode}
                   />
                 </div>
 
@@ -934,6 +1076,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                     onChange={(e) => setAnganwadiForm({ ...anganwadiForm, village_name: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     placeholder="गावाचे नाव टाका"
+                    disabled={isViewMode}
                   />
                 </div>
               </>
@@ -961,7 +1104,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
           <div className="flex items-center justify-center">
             <button
               onClick={getCurrentLocation}
-              disabled={isLoading}
+              disabled={isLoading || isViewMode}
               className="flex items-center space-x-2 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-all duration-200 disabled:opacity-50"
             >
               {isLoading ? (
@@ -1021,6 +1164,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                       value={anganwadiForm.building_condition}
                       onChange={(e) => setAnganwadiForm({...anganwadiForm, building_condition: e.target.value})}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      disabled={isViewMode}
                     >
                       <option value="">निवडा (Select)</option>
                       <option value="excellent">उत्कृष्ट (Excellent)</option>
@@ -1049,6 +1193,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                               checked={anganwadiForm[item.key as keyof typeof anganwadiForm] === true}
                               onChange={() => setAnganwadiForm({...anganwadiForm, [item.key]: true})}
                               className="text-green-600 focus:ring-green-500"
+                              disabled={isViewMode}
                             />
                             <span className="ml-1 text-xs text-green-600">होय</span>
                           </label>
@@ -1060,6 +1205,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                               checked={anganwadiForm[item.key as keyof typeof anganwadiForm] === false}
                               onChange={() => setAnganwadiForm({...anganwadiForm, [item.key]: false})}
                               className="text-red-600 focus:ring-red-500"
+                              disabled={isViewMode}
                             />
                             <span className="ml-1 text-xs text-red-600">नाही</span>
                           </label>
@@ -1092,6 +1238,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                             checked={anganwadiForm[item.key as keyof typeof anganwadiForm] === true}
                             onChange={() => setAnganwadiForm({...anganwadiForm, [item.key]: true})}
                             className="text-green-600 focus:ring-green-500"
+                            disabled={isViewMode}
                           />
                           <span className="ml-1 text-xs text-green-600">होय</span>
                         </label>
@@ -1103,6 +1250,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                             checked={anganwadiForm[item.key as keyof typeof anganwadiForm] === false}
                             onChange={() => setAnganwadiForm({...anganwadiForm, [item.key]: false})}
                             className="text-red-600 focus:ring-red-500"
+                            disabled={isViewMode}
                           />
                           <span className="ml-1 text-xs text-red-600">नाही</span>
                         </label>
@@ -1133,6 +1281,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                             checked={anganwadiForm[item.key as keyof typeof anganwadiForm] === true}
                             onChange={() => setAnganwadiForm({...anganwadiForm, [item.key]: true})}
                             className="text-green-600 focus:ring-green-500"
+                            disabled={isViewMode}
                           />
                           <span className="ml-1 text-xs text-green-600">होय</span>
                         </label>
@@ -1144,6 +1293,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                             checked={anganwadiForm[item.key as keyof typeof anganwadiForm] === false}
                             onChange={() => setAnganwadiForm({...anganwadiForm, [item.key]: false})}
                             className="text-red-600 focus:ring-red-500"
+                            disabled={isViewMode}
                           />
                           <span className="ml-1 text-xs text-red-600">नाही</span>
                         </label>
@@ -1167,6 +1317,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                       onChange={(e) => setAnganwadiForm({...anganwadiForm, total_registered_children: parseInt(e.target.value) || 0})}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                       min="0"
+                      disabled={isViewMode}
                     />
                   </div>
                   
@@ -1180,6 +1331,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                       onChange={(e) => setAnganwadiForm({...anganwadiForm, children_present_today: parseInt(e.target.value) || 0})}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                       min="0"
+                      disabled={isViewMode}
                     />
                   </div>
                   
@@ -1193,6 +1345,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                       onChange={(e) => setAnganwadiForm({...anganwadiForm, children_0_3_years: parseInt(e.target.value) || 0})}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                       min="0"
+                      disabled={isViewMode}
                     />
                   </div>
                   
@@ -1206,6 +1359,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                       onChange={(e) => setAnganwadiForm({...anganwadiForm, children_3_6_years: parseInt(e.target.value) || 0})}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                       min="0"
+                      disabled={isViewMode}
                     />
                   </div>
                 </div>
@@ -1231,6 +1385,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                               checked={anganwadiForm[item.key as keyof typeof anganwadiForm] === true}
                               onChange={() => setAnganwadiForm({...anganwadiForm, [item.key]: true})}
                               className="text-green-600 focus:ring-green-500"
+                              disabled={isViewMode}
                             />
                             <span className="ml-1 text-xs text-green-600">होय</span>
                           </label>
@@ -1242,6 +1397,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                               checked={anganwadiForm[item.key as keyof typeof anganwadiForm] === false}
                               onChange={() => setAnganwadiForm({...anganwadiForm, [item.key]: false})}
                               className="text-red-600 focus:ring-red-500"
+                              disabled={isViewMode}
                             />
                             <span className="ml-1 text-xs text-red-600">नाही</span>
                           </label>
@@ -1258,6 +1414,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                       value={anganwadiForm.meal_quality}
                       onChange={(e) => setAnganwadiForm({...anganwadiForm, meal_quality: e.target.value})}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      disabled={isViewMode}
                     >
                       <option value="">निवडा (Select)</option>
                       <option value="excellent">उत्कृष्ट (Excellent)</option>
@@ -1290,6 +1447,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                             checked={anganwadiForm[item.key as keyof typeof anganwadiForm] === true}
                             onChange={() => setAnganwadiForm({...anganwadiForm, [item.key]: true})}
                             className="text-green-600 focus:ring-green-500"
+                            disabled={isViewMode}
                           />
                           <span className="ml-1 text-xs text-green-600">होय</span>
                         </label>
@@ -1301,6 +1459,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                             checked={anganwadiForm[item.key as keyof typeof anganwadiForm] === false}
                             onChange={() => setAnganwadiForm({...anganwadiForm, [item.key]: false})}
                             className="text-red-600 focus:ring-red-500"
+                            disabled={isViewMode}
                           />
                           <span className="ml-1 text-xs text-red-600">नाही</span>
                         </label>
@@ -1324,6 +1483,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                       rows={3}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                       placeholder="सामान्य निरीक्षणे टाका..."
+                      disabled={isViewMode}
                     />
                   </div>
                   
@@ -1337,6 +1497,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                       rows={3}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                       placeholder="शिफारसी टाका..."
+                      disabled={isViewMode}
                     />
                   </div>
                   
@@ -1350,6 +1511,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                       rows={3}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                       placeholder="आवश्यक कृती टाका..."
+                      disabled={isViewMode}
                     />
                   </div>
                 </div>
@@ -1372,15 +1534,18 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                 onChange={handlePhotoUpload}
                 className="hidden"
                 id="photo-upload"
+                disabled={isViewMode}
               />
-              <label
-                htmlFor="photo-upload"
-                className="cursor-pointer flex flex-col items-center space-y-2"
-              >
-                <Camera className="h-12 w-12 text-gray-400" />
-                <span className="text-lg font-medium text-gray-700">फोटो निवडा (Select Photos)</span>
-                <span className="text-sm text-gray-500">एकाधिक फोटो निवडू शकता (You can select multiple photos)</span>
-              </label>
+              {!isViewMode && (
+                <label
+                  htmlFor="photo-upload"
+                  className="cursor-pointer flex flex-col items-center space-y-2"
+                >
+                  <Camera className="h-12 w-12 text-gray-400" />
+                  <span className="text-lg font-medium text-gray-700">फोटो निवडा (Select Photos)</span>
+                  <span className="text-sm text-gray-500">एकाधिक फोटो निवडू शकता (You can select multiple photos)</span>
+                </label>
+              )}
             </div>
 
             {/* Selected Photos */}
@@ -1404,17 +1569,20 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                           }}
                           className="mt-2 w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-purple-500 focus:border-transparent"
                           placeholder="फोटोचे वर्णन (Photo description)"
+                          disabled={isViewMode}
                         />
                       </div>
-                      <button
-                        onClick={() => {
-                          const updatedPhotos = selectedPhotos.filter((_, i) => i !== index);
-                          setSelectedPhotos(updatedPhotos);
-                        }}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
+                      {!isViewMode && (
+                        <button
+                          onClick={() => {
+                            const updatedPhotos = selectedPhotos.filter((_, i) => i !== index);
+                            setSelectedPhotos(updatedPhotos);
+                          }}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -1462,7 +1630,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
           <div className="flex items-center justify-between pt-6 border-t border-gray-200">
             <button
               onClick={() => setCurrentStep(Math.max(1, currentStep - 1))}
-              disabled={currentStep === 1}
+              disabled={currentStep === 1 || isViewMode}
               className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <ArrowLeft className="h-4 w-4" />
@@ -1474,7 +1642,8 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                 onClick={() => setCurrentStep(currentStep + 1)}
                 disabled={
                   (currentStep === 1 && (!newInspection.location_name || !newInspection.address)) ||
-                  (currentStep === 2 && (!newInspection.latitude || !newInspection.longitude))
+                  (currentStep === 2 && (!newInspection.latitude || !newInspection.longitude)) ||
+                  isViewMode
                 }
                 className="flex items-center space-x-2 px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -1482,34 +1651,36 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                 <ArrowRight className="h-4 w-4" />
               </button>
             ) : (
-              <div className="flex items-center space-x-3">
-                <button
-                  onClick={() => handleCreateInspectionWithForm('draft')}
-                  disabled={isCreating}
-                  className="flex items-center space-x-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-all duration-200 disabled:opacity-50"
-                >
-                  <Save className="h-4 w-4" />
-                  <span>{isEditMode ? 'अपडेट करा (Update)' : 'जतन करा (Save)'}</span>
-                </button>
-                
-                <button
-                  onClick={() => handleCreateInspectionWithForm('draft')}
-                  disabled={isCreating}
-                  className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-200 disabled:opacity-50"
-                >
-                  <Edit className="h-4 w-4" />
-                  <span>{isEditMode ? 'मसुदा म्हणून जतन करा (Save as Draft)' : 'संपादित करा (Edit)'}</span>
-                </button>
-                
-                <button
-                  onClick={() => setShowSubmitConfirmation(true)}
-                  disabled={isCreating}
-                  className="flex items-center space-x-2 px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all duration-200 disabled:opacity-50"
-                >
-                  <CheckCircle className="h-4 w-4" />
-                  <span>{isEditMode ? 'अपडेट आणि सबमिट करा (Update & Submit)' : 'सबमिट करा (Submit)'}</span>
-                </button>
-              </div>
+              !isViewMode && (
+                <div className="flex items-center space-x-3">
+                  <button
+                    onClick={() => handleCreateInspectionWithForm('draft')}
+                    disabled={isCreating}
+                    className="flex items-center space-x-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-all duration-200 disabled:opacity-50"
+                  >
+                    <Save className="h-4 w-4" />
+                    <span>{isEditMode ? 'अपडेट करा (Update)' : 'जतन करा (Save)'}</span>
+                  </button>
+                  
+                  <button
+                    onClick={() => handleCreateInspectionWithForm('draft')}
+                    disabled={isCreating}
+                    className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-200 disabled:opacity-50"
+                  >
+                    <Edit className="h-4 w-4" />
+                    <span>{isEditMode ? 'मसुदा म्हणून जतन करा (Save as Draft)' : 'संपादित करा (Edit)'}</span>
+                  </button>
+                  
+                  <button
+                    onClick={() => setShowSubmitConfirmation(true)}
+                    disabled={isCreating}
+                    className="flex items-center space-x-2 px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all duration-200 disabled:opacity-50"
+                  >
+                    <CheckCircle className="h-4 w-4" />
+                    <span>{isEditMode ? 'अपडेट आणि सबमिट करा (Update & Submit)' : 'सबमिट करा (Submit)'}</span>
+                  </button>
+                </div>
+              )
             )}
           </div>
         </div>
@@ -1775,12 +1946,13 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">तारीख</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">स्थान अचूकता</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">क्रिया</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredInspections.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-8 text-center text-gray-500">
+                  <td colSpan={9} className="px-6 py-8 text-center text-gray-500">
                     कोणतीही तपासणी सापडली नाही / No inspections found
                   </td>
                 </tr>
@@ -1827,23 +1999,39 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex items-center space-x-2">
-                        <button 
+                        <button
                           onClick={() => handleViewInspection(inspection)}
                           className="text-blue-600 hover:text-blue-900 p-1 rounded"
                         >
                           <Eye className="h-4 w-4" />
                         </button>
-                        <button 
+                        <button
                           onClick={() => handleEditInspection(inspection)}
                           className="text-green-600 hover:text-green-900 p-1 rounded"
                         >
                           <Edit className="h-4 w-4" />
                         </button>
-                        <button 
-                          onClick={() => handlePhotoInspection(inspection)}
-                          className="text-purple-600 hover:text-purple-900 p-1 rounded"
+                        <button
+                          onClick={() => handleDeleteInspection(inspection)}
+                          className="text-red-600 hover:text-red-900 p-1 rounded"
                         >
-                          <Camera className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => handleInspectionCompletion(inspection, 'complete')}
+                          className="px-3 py-1 bg-green-100 text-green-700 hover:bg-green-200 rounded text-xs font-medium"
+                        >
+                          Complete
+                        </button>
+                        <button
+                          onClick={() => handleInspectionCompletion(inspection, 'revisit')}
+                          className="px-3 py-1 bg-orange-100 text-orange-700 hover:bg-orange-200 rounded text-xs font-medium"
+                        >
+                          Revisit
                         </button>
                       </div>
                     </td>
@@ -2049,6 +2237,85 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
           {activeTab === 'analytics' && renderAnalytics()}
         </div>
       </div>
+
+      {/* Completion Modal */}
+      {showCompletionModal && selectedInspectionForCompletion && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">
+                {completionAction === 'complete' ? 'Complete Inspection' : 'Send for Revisit'}
+              </h3>
+              <button
+                onClick={() => setShowCompletionModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            
+            <div className="p-6">
+              <div className="mb-4">
+                <p className="text-sm text-gray-600 mb-2">
+                  Inspection: <span className="font-medium">{selectedInspectionForCompletion.inspection_number}</span>
+                </p>
+                <p className="text-sm text-gray-600">
+                  Location: <span className="font-medium">{selectedInspectionForCompletion.location_name}</span>
+                </p>
+              </div>
+              
+              {completionAction === 'revisit' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Assign to:
+                  </label>
+                  <select
+                    value={revisitAssignee}
+                    onChange={(e) => setRevisitAssignee(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  >
+                    <option value="">Select user for revisit</option>
+                    {revisitUsers.map(user => (
+                      <option key={user.user_id} value={user.user_id}>
+                        {user.name} ({user.roles?.name})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              
+              <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                <p className="text-sm text-gray-700">
+                  {completionAction === 'complete' 
+                    ? 'This will mark the inspection as completed and approved.'
+                    : 'This will send the inspection back for revisit to the selected user.'
+                  }
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200">
+              <button
+                onClick={() => setShowCompletionModal(false)}
+                className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSubmitCompletion}
+                disabled={isLoading || (completionAction === 'revisit' && !revisitAssignee)}
+                className={`px-4 py-2 text-white rounded-lg transition-colors duration-200 disabled:opacity-50 ${
+                  completionAction === 'complete' 
+                    ? 'bg-green-600 hover:bg-green-700' 
+                    : 'bg-orange-600 hover:bg-orange-700'
+                }`}
+              >
+                {isLoading ? 'Processing...' : (completionAction === 'complete' ? 'Complete' : 'Send for Revisit')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
