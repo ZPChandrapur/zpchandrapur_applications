@@ -24,7 +24,6 @@ import {
   X
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { supabase } from '../lib/supabase';
 import { usePermissions } from '../hooks/usePermissions';
 import { FIMSNewInspection } from './FIMSNewInspection';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
