@@ -33,11 +33,10 @@ import {
   UserCheck,
   Home,
   Utensils,
-  Baby
+  Baby,
+  TrendingUp
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-  Eye,
-  TrendingUp
 
 interface FIMSNewInspectionProps {
   user: SupabaseUser;
