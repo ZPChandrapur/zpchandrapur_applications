@@ -308,7 +308,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 mb-1">{t('fims.pendingInspections')}</p>
+              <p className="text-sm text-gray-600 mb-1">{t('fims.pending')}</p>
               <p className="text-3xl font-bold text-orange-600">{getStatusCounts().pending}</p>
             </div>
             <div className="bg-orange-100 p-3 rounded-lg">
@@ -320,7 +320,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 mb-1">{t('fims.completedInspections')}</p>
+              <p className="text-sm text-gray-600 mb-1">{t('fims.completed')}</p>
               <p className="text-3xl font-bold text-green-600">{getStatusCounts().completed}</p>
             </div>
             <div className="bg-green-100 p-3 rounded-lg">
@@ -332,7 +332,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 mb-1">{t('fims.completionRate')}</p>
+              <p className="text-sm text-gray-600 mb-1">{t('fims.successRate')}</p>
               <p className="text-3xl font-bold text-purple-600">{getCompletionRate()}%</p>
             </div>
             <div className="bg-purple-100 p-3 rounded-lg">
@@ -635,7 +635,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
             </div>
             <div>
               <h1 className="text-lg font-semibold text-gray-900">FIMS</h1>
-              <p className="text-sm text-gray-500">{t('fims.fieldInspectionManagement')}</p>
+              <p className="text-sm text-gray-500">Field Inspection Management</p>
             </div>
           </div>
         </div>
@@ -664,7 +664,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                   <p className={`text-sm ${
                     activeTab === 'dashboard' ? 'text-purple-700' : 'text-gray-500'
                   }`}>
-                    {t('fims.overviewAndStats')}
+                    Overview and Statistics
                   </p>
                 </div>
               </div>
@@ -691,7 +691,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                   <p className={`text-sm ${
                     activeTab === 'inspections' ? 'text-purple-700' : 'text-gray-500'
                   }`}>
-                    {t('fims.viewAndManageInspections')}
+                    View and manage inspections
                   </p>
                 </div>
               </div>
@@ -718,7 +718,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                   <p className={`text-sm ${
                     activeTab === 'newInspection' ? 'text-purple-700' : 'text-gray-500'
                   }`}>
-                    {t('fims.createNewInspection')}
+                    Create new inspection
                   </p>
                 </div>
               </div>
@@ -745,7 +745,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                   <p className={`text-sm ${
                     activeTab === 'analytics' ? 'text-purple-700' : 'text-gray-500'
                   }`}>
-                    {t('fims.viewAnalyticsAndReports')}
+                    View analytics and reports
                   </p>
                 </div>
               </div>
@@ -762,6 +762,8 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
           <FIMSNewInspection 
             user={user} 
             onBack={() => setActiveTab('dashboard')}
+            categories={categories}
+            onInspectionCreated={fetchInspections}
           />
         )}
         {activeTab === 'analytics' && renderAnalytics()}

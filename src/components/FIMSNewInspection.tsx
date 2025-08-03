@@ -39,6 +39,8 @@ import type { User as SupabaseUser } from '@supabase/supabase-js';
 interface FIMSNewInspectionProps {
   user: SupabaseUser;
   onBack: () => void;
+  categories: Category[];
+  onInspectionCreated: () => void;
 }
 
 interface Category {
@@ -123,7 +125,7 @@ interface InspectionPhoto {
   uploaded_at: string;
 }
 
-export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({ user, onBack }) => {
+export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({ user, onBack, categories, onInspectionCreated }) => {
   const { t } = useTranslation();
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
@@ -132,7 +134,6 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({ user, onBa
   const [locationName, setLocationName] = useState('');
   const [address, setAddress] = useState('');
   const [plannedDate, setPlannedDate] = useState('');
-  const [currentLocation, setCurrentLocation] = useState<{
     latitude: number;
     longitude: number;
     accuracy: number;
@@ -186,24 +187,9 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({ user, onBa
   });
 
   useEffect(() => {
-    fetchCategories();
   }, []);
 
   const fetchCategories = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('fims_categories')
-        .select('*')
-        .eq('is_active', true)
-        .order('name');
-      
-      if (error) throw error;
-      setCategories(data || []);
-    } catch (error) {
-      console.error('Error fetching categories:', error);
-    }
-  };
-
   const resetForm = () => {
     setCurrentStep(1);
     setSelectedCategory('');
@@ -266,6 +252,9 @@ export const FIMSNewInspection: React.FC<FIMSNewInspectionProps> = ({ user, onBa
       });
 
       const { latitude, longitude, accuracy } = position.coords;
+      
+      // Call the callback to refresh inspections in parent component
+      onInspectionCreated();
       
       // Get place name using reverse geocoding
       try {
