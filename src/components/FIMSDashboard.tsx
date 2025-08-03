@@ -28,7 +28,6 @@ import {
   TrendingUp
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { fimsClient, uploadInspectionPhoto, savePhotoRecord } from '../lib/fimsClient';
 import { usePermissions } from '../hooks/usePermissions';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
@@ -81,10 +80,6 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [showNewInspectionModal, setShowNewInspectionModal] = useState(false);
-  const [showPhotoUploadModal, setShowPhotoUploadModal] = useState(false);
-  const [selectedInspectionForPhotos, setSelectedInspectionForPhotos] = useState<string | null>(null);
-  const [uploadingPhotos, setUploadingPhotos] = useState(false);
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [currentLocation, setCurrentLocation] = useState<{lat: number, lng: number, accuracy: number} | null>(null);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -108,39 +103,6 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
     };
 
     checkMobile();
-  const handlePhotoUpload = (inspectionId: string) => {
-    setSelectedInspectionForPhotos(inspectionId);
-    setShowPhotoUploadModal(true);
-    setSelectedFiles([]);
-  };
-
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files || []);
-    setSelectedFiles(files);
-  };
-
-  const handleUploadPhotos = async () => {
-    if (!selectedInspectionForPhotos || selectedFiles.length === 0) return;
-
-    setUploadingPhotos(true);
-    try {
-      for (const file of selectedFiles) {
-        const photoUrl = await uploadInspectionPhoto(file, selectedInspectionForPhotos);
-        await savePhotoRecord(selectedInspectionForPhotos, photoUrl, file.name);
-      }
-      
-      setShowPhotoUploadModal(false);
-      setSelectedFiles([]);
-      setSelectedInspectionForPhotos(null);
-      alert('Photos uploaded successfully!');
-    } catch (error) {
-      console.error('Error uploading photos:', error);
-      alert('Error uploading photos: ' + error.message);
-    } finally {
-      setUploadingPhotos(false);
-    }
-  };
-
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
@@ -165,11 +127,11 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
 
   const fetchInspections = async () => {
     try {
-      let query = fimsClient
-        .from('inspections')
+      let query = supabase
+        .from('fims_inspections')
         .select(`
           *,
-          category:categories(name, name_marathi, form_type)
+          category:fims_categories(name, name_marathi, form_type)
         `)
         .order('created_at', { ascending: false });
 
@@ -189,8 +151,8 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
 
   const fetchCategories = async () => {
     try {
-      const { data, error } = await fimsClient
-        .from('categories')
+      const { data, error } = await supabase
+        .from('fims_categories')
         .select('*')
         .eq('is_active', true)
         .order('name');
@@ -259,8 +221,8 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
         status: 'planned'
       };
 
-      const { error } = await fimsClient
-        .from('inspections')
+      const { error } = await supabase
+        .from('fims_inspections')
         .insert([inspectionData]);
 
       if (error) throw error;
@@ -605,16 +567,7 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                         <button className="text-green-600 hover:text-green-900 p-1 rounded">
                           <Edit className="h-4 w-4" />
                         </button>
-                        <button 
-                          onClick={() => handlePhotoUpload(inspection.id)}
-                          className="text-purple-600 hover:text-purple-900 p-1 rounded"
-                        >
-                          <Camera className="h-4 w-4" />
-                        </button>
-                        <button 
-                          onClick={() => handlePhotoUpload(inspection.id)}
-                          className="text-purple-600 hover:text-purple-900 p-1 rounded"
-                        >
+                        <button className="text-purple-600 hover:text-purple-900 p-1 rounded">
                           <Camera className="h-4 w-4" />
                         </button>
                       </div>
@@ -855,71 +808,6 @@ export const FIMSDashboard: React.FC<FIMSDashboardProps> = ({ user, onBack }) =>
                 className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 disabled:opacity-50"
               >
                 {isLoading ? 'तयार करत आहे...' : 'तपासणी तयार करा / Create Inspection'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Photo Upload Modal */}
-      {showPhotoUploadModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">फोटो अपलोड / Upload Photos</h3>
-              <button
-                onClick={() => setShowPhotoUploadModal(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            
-            <div className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  फोटो निवडा / Select Photos
-                </label>
-                <input
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  onChange={handleFileSelect}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  एकाधिक फोटो निवडू शकता / You can select multiple photos
-                </p>
-              </div>
-
-              {selectedFiles.length > 0 && (
-                <div>
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">निवडलेले फोटो / Selected Photos:</h4>
-                  <div className="space-y-2">
-                    {selectedFiles.map((file, index) => (
-                      <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                        <span className="text-sm text-gray-700">{file.name}</span>
-                        <span className="text-xs text-gray-500">{(file.size / 1024 / 1024).toFixed(2)} MB</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-            
-            <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200">
-              <button
-                onClick={() => setShowPhotoUploadModal(false)}
-                className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200"
-              >
-                रद्द करा / Cancel
-              </button>
-              <button
-                onClick={handleUploadPhotos}
-                disabled={uploadingPhotos || selectedFiles.length === 0}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 disabled:opacity-50"
-              >
-                {uploadingPhotos ? 'अपलोड करत आहे...' : 'फोटो अपलोड करा / Upload Photos'}
               </button>
             </div>
           </div>
