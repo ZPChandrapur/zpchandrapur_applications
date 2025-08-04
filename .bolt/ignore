@@ -1,0 +1,47 @@
+# Node.js dependencies
+node_modules/
+
+# Build output directories
+.next/
+dist/
+build/
+
+# Log files
+*.log
+
+# Environment variables (sensitive data)
+.env
+.env.local
+.env.development.local
+.env.production.local
+
+# IDE and OS generated files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Test coverage reports
+coverage/
+
+# Other common temporary or generated files
+tmp/
+*.tmp
+*.bak
+
+# Specific to NestJS/TypeScript compilation
+tsconfig.tsbuildinfo
+
+# Specific to Next.js caching
+.next/cache/
+
+# Yarn specific files (if present, even if not primary package manager)
+yarn.lock
+.yarn/
+
+# pnpm specific files (if present, even if not primary package manager)
+pnpm-lock.yaml
+.pnpm-store/
+
+# Turborepo specific files (if present)
+.turbo/
