@@ -100,11 +100,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
       color: 'bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-700',
       hoverColor: 'hover:from-blue-600 hover:via-blue-700 hover:to-indigo-800',
       headerColor: 'bg-gradient-to-r from-blue-600 to-indigo-700',
-      actions: [
-        { label: t('systems.erms.viewEmployees'), icon: Eye, color: 'bg-blue-100 text-blue-700 hover:bg-blue-200' },
-        { label: t('systems.erms.addEmployee'), icon: UserCheck, color: 'bg-green-100 text-green-700 hover:bg-green-200' },
-        { label: t('systems.erms.generateReport'), icon: FileText, color: 'bg-purple-100 text-purple-700 hover:bg-purple-200' }
-      ],
       type: t('systems.erms.webApplication'),
       mobileOnly: false
     },
@@ -117,11 +112,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
       color: 'bg-gradient-to-br from-emerald-500 via-green-600 to-teal-700',
       hoverColor: 'hover:from-emerald-600 hover:via-green-700 hover:to-teal-800',
       headerColor: 'bg-gradient-to-r from-emerald-600 to-teal-700',
-      actions: [
-        { label: t('systems.estimate.createEstimate'), icon: Edit, color: 'bg-green-100 text-green-700 hover:bg-green-200' },
-        { label: t('systems.estimate.viewEstimates'), icon: Eye, color: 'bg-blue-100 text-blue-700 hover:bg-blue-200' },
-        { label: t('systems.estimate.templates'), icon: FileText, color: 'bg-purple-100 text-purple-700 hover:bg-purple-200' }
-      ],
       type: t('systems.estimate.mobileApplication'),
       mobileOnly: true
     },
@@ -134,11 +124,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
       color: 'bg-gradient-to-br from-purple-500 via-violet-600 to-indigo-700',
       hoverColor: 'hover:from-purple-600 hover:via-violet-700 hover:to-indigo-800',
       headerColor: 'bg-gradient-to-r from-purple-600 to-indigo-700',
-      actions: [
-        { label: t('systems.fims.newInspection'), icon: Camera, color: 'bg-purple-100 text-purple-700 hover:bg-purple-200' },
-        { label: t('systems.fims.viewInspections'), icon: Eye, color: 'bg-blue-100 text-blue-700 hover:bg-blue-200' },
-        { label: t('systems.fims.reports'), icon: FileText, color: 'bg-green-100 text-green-700 hover:bg-green-200' }
-      ],
       type: t('systems.fims.mobileApplication'),
       mobileOnly: true
     },
@@ -151,11 +136,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
       color: 'bg-gradient-to-br from-orange-500 via-red-500 to-pink-600',
       hoverColor: 'hover:from-orange-600 hover:via-red-600 hover:to-pink-700',
       headerColor: 'bg-gradient-to-r from-orange-600 to-pink-600',
-      actions: [
-        { label: t('systems.pesa.addTransaction'), icon: Edit, color: 'bg-orange-100 text-orange-700 hover:bg-orange-200' },
-        { label: t('systems.pesa.viewFunds'), icon: Eye, color: 'bg-blue-100 text-blue-700 hover:bg-blue-200' },
-        { label: t('systems.pesa.compliance'), icon: Shield, color: 'bg-green-100 text-green-700 hover:bg-green-200' }
-      ],
       type: t('systems.pesa.webApplication'),
       mobileOnly: false
     }
@@ -302,16 +282,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
           {/* Actions Grid */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <h3 className="text-xl font-semibold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent mb-6">Quick Actions</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {app.actions.map((action, index) => (
-                <button
-                  key={index}
-                  className={`${action.color} p-4 rounded-lg transition-all duration-200 flex items-center space-x-3 font-medium`}
-                >
-                  <action.icon className="h-5 w-5" />
-                  <span>{action.label}</span>
-                </button>
-              ))}
+            <div className="text-center py-8">
+              <div className="text-gray-500">
+                Quick actions will be available soon...
+              </div>
             </div>
           </div>
         </main>
@@ -468,20 +442,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
                 </div>
 
                 {/* System Actions */}
-                <div className={`${isMobile ? 'p-4' : 'p-6'}`}>
-                  <div className={`flex flex-wrap ${isMobile ? 'gap-2' : 'gap-3'}`}>
-                    {system.actions.map((action, index) => (
-                      <button
-                        key={index}
-                        className={`inline-flex items-center space-x-2 ${isMobile ? 'px-3 py-2 text-xs' : 'px-4 py-2 text-sm'} font-medium rounded-lg transition-all duration-200 ${action.color}`}
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <action.icon className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
-                        <span>{action.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
               </div>
           ))}
         </div>
