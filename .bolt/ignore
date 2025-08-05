@@ -45,12 +45,3 @@ pnpm-lock.yaml
 
 # Turborepo specific files (if present)
 .turbo/
-
-src/components/EmployeeDashboard.tsx
-src/components/GroupInsurance.tsx
-src/components/InstructionsDashboard.tsx
-src/components/OrganizationSetup.tsx
-src/components/PayCommission.tsx
-src/components/RetirementDashboard.tsx
-src/components/RetirementTracker.tsx
-src/components/RetirementDashboard.tsx
