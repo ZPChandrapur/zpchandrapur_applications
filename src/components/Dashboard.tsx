@@ -100,12 +100,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
       color: 'bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-700',
       hoverColor: 'hover:from-blue-600 hover:via-blue-700 hover:to-indigo-800',
       headerColor: 'bg-gradient-to-r from-blue-600 to-indigo-700',
-      stats: [
-        { label: t('systems.erms.totalEmployees'), value: '1,247', icon: Users, color: 'text-blue-600' },
-        { label: t('systems.erms.upcomingRetirements'), value: '23', icon: Calendar, color: 'text-orange-600' },
-        { label: t('systems.erms.processedCases'), value: '156', icon: CheckCircle, color: 'text-green-600' },
-        { label: t('systems.erms.pendingActions'), value: '8', icon: AlertCircle, color: 'text-red-600' }
-      ],
       actions: [
         { label: t('systems.erms.viewEmployees'), icon: Eye, color: 'bg-blue-100 text-blue-700 hover:bg-blue-200' },
         { label: t('systems.erms.addEmployee'), icon: UserCheck, color: 'bg-green-100 text-green-700 hover:bg-green-200' },
@@ -123,12 +117,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
       color: 'bg-gradient-to-br from-emerald-500 via-green-600 to-teal-700',
       hoverColor: 'hover:from-emerald-600 hover:via-green-700 hover:to-teal-800',
       headerColor: 'bg-gradient-to-r from-emerald-600 to-teal-700',
-      stats: [
-        { label: t('systems.estimate.activeEstimates'), value: '45', icon: FileText, color: 'text-green-600' },
-        { label: t('systems.estimate.pendingApprovals'), value: '12', icon: Clock, color: 'text-orange-600' },
-        { label: t('systems.estimate.completedProjects'), value: '234', icon: CheckCircle, color: 'text-blue-600' },
-        { label: t('systems.estimate.totalValue'), value: '₹2.4Cr', icon: DollarSign, color: 'text-purple-600' }
-      ],
       actions: [
         { label: t('systems.estimate.createEstimate'), icon: Edit, color: 'bg-green-100 text-green-700 hover:bg-green-200' },
         { label: t('systems.estimate.viewEstimates'), icon: Eye, color: 'bg-blue-100 text-blue-700 hover:bg-blue-200' },
@@ -146,12 +134,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
       color: 'bg-gradient-to-br from-purple-500 via-violet-600 to-indigo-700',
       hoverColor: 'hover:from-purple-600 hover:via-violet-700 hover:to-indigo-800',
       headerColor: 'bg-gradient-to-r from-purple-600 to-indigo-700',
-      stats: [
-        { label: t('systems.fims.monthlyTarget'), value: '150', icon: BarChart3, color: 'text-purple-600' },
-        { label: t('systems.fims.completed'), value: '127', icon: CheckCircle, color: 'text-green-600' },
-        { label: t('systems.fims.pending'), value: '23', icon: Clock, color: 'text-orange-600' },
-        { label: t('systems.fims.inspectionRate'), value: '84.7%', icon: TrendingUp, color: 'text-blue-600' }
-      ],
       actions: [
         { label: t('systems.fims.newInspection'), icon: Camera, color: 'bg-purple-100 text-purple-700 hover:bg-purple-200' },
         { label: t('systems.fims.viewInspections'), icon: Eye, color: 'bg-blue-100 text-blue-700 hover:bg-blue-200' },
@@ -169,12 +151,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
       color: 'bg-gradient-to-br from-orange-500 via-red-500 to-pink-600',
       hoverColor: 'hover:from-orange-600 hover:via-red-600 hover:to-pink-700',
       headerColor: 'bg-gradient-to-r from-orange-600 to-pink-600',
-      stats: [
-        { label: t('systems.pesa.totalFund'), value: '₹1.2Cr', icon: DollarSign, color: 'text-orange-600' },
-        { label: t('systems.pesa.utilized'), value: '₹85L', icon: TrendingUp, color: 'text-green-600' },
-        { label: t('systems.pesa.remaining'), value: '₹35L', icon: AlertCircle, color: 'text-blue-600' },
-        { label: t('systems.pesa.villages'), value: '42', icon: MapPin, color: 'text-purple-600' }
-      ],
       actions: [
         { label: t('systems.pesa.addTransaction'), icon: Edit, color: 'bg-orange-100 text-orange-700 hover:bg-orange-200' },
         { label: t('systems.pesa.viewFunds'), icon: Eye, color: 'bg-blue-100 text-blue-700 hover:bg-blue-200' },
@@ -323,22 +299,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
           </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            {app.stats.map((stat, index) => (
-              <div key={index} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow duration-200">
-                <div className="flex items-center justify-between mb-2">
-                  <div className={`p-2 rounded-lg bg-gray-50`}>
-                    <stat.icon className={`h-6 w-6 ${stat.color}`} />
-                  </div>
-                  <div className="text-right">
-                    <div className="text-xl font-bold text-gray-900">{stat.value}</div>
-                  </div>
-                </div>
-                <div className="text-sm text-gray-600">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-
           {/* Actions Grid */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <h3 className="text-xl font-semibold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent mb-6">Quick Actions</h3>
@@ -504,21 +464,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
                       </span>
                       <ArrowRight className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-gray-400`} />
                     </div>
-                  </div>
-                </div>
-
-                {/* System Stats */}
-                <div className={`${isMobile ? 'p-4' : 'p-6'} bg-gradient-to-r from-gray-50 to-gray-100`}>
-                  <div className={`grid grid-cols-2 ${isMobile ? 'gap-2' : 'gap-4'}`}>
-                    {system.stats.map((stat, index) => (
-                      <div key={index} className={`text-center bg-white rounded-lg ${isMobile ? 'p-2' : 'p-3'} shadow-sm`}>
-                        <div className="flex items-center justify-center mb-2">
-                          <stat.icon className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} ${stat.color}`} />
-                        </div>
-                        <div className={`${isMobile ? 'text-base' : 'text-lg'} font-bold text-gray-900 mb-1`}>{stat.value}</div>
-                        <div className={`${isMobile ? 'text-xs' : 'text-xs'} text-gray-600 font-medium line-clamp-2`}>{stat.label}</div>
-                      </div>
-                    ))}
                   </div>
                 </div>
 
