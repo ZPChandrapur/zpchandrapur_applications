@@ -116,6 +116,89 @@ const EEstimateFrame: React.FC<{ user: SupabaseUser; onBack: () => void }> = ({ 
   );
 };
 
+// FIMS iframe component
+const FIMSFrame: React.FC<{ user: SupabaseUser; onBack: () => void }> = ({ user, onBack }) => {
+  const { t } = useTranslation();
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // FIMS application URL - replace with actual URL when available
+  const fimsUrl = 'https://your-fims-app.bolt.new';
+  
+  const handleIframeLoad = () => {
+    setIsLoading(false);
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Navigation Header */}
+      <nav className="bg-gradient-to-r from-purple-600 to-indigo-700 shadow-lg border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            {/* Logo and Title */}
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={onBack}
+                className="bg-white/20 hover:bg-white/30 p-2 rounded-lg transition-colors duration-200"
+              >
+                <ArrowRight className="h-5 w-5 text-white rotate-180" />
+              </button>
+              <div className="bg-white/20 p-2 rounded-lg">
+                <Camera className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-lg font-semibold text-white">
+                  {t('systems.fims.name')} - {t('systems.fims.fullName')}
+                </h1>
+                <p className="text-xs text-white/80">
+                  {t('systems.fims.description')}
+                </p>
+              </div>
+            </div>
+
+            {/* Right side navigation */}
+            <div className="flex items-center space-x-6">
+              <LanguageSwitcher />
+              
+              <div className="flex items-center space-x-3 px-3 py-2 text-white">
+                <div className="bg-white/20 p-1.5 rounded-full">
+                  <User className="h-4 w-4 text-white" />
+                </div>
+                <div className="text-left">
+                  <div className="text-sm font-medium text-white">
+                    {user.email?.split('@')[0]}
+                  </div>
+                  <div className="text-xs text-white/80">
+                    FIMS User
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* Loading indicator */}
+      {isLoading && (
+        <div className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+          <span className="ml-3 text-gray-600">Loading FIMS application...</span>
+        </div>
+      )}
+
+      {/* FIMS iframe */}
+      <div className="relative" style={{ height: 'calc(100vh - 64px)' }}>
+        <iframe
+          src={fimsUrl}
+          className="w-full h-full border-0"
+          onLoad={handleIframeLoad}
+          title="FIMS Application"
+          sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-top-navigation"
+        />
+      </div>
+    </div>
+  );
+};
+
 interface DashboardProps {
   user: SupabaseUser;
   onSignOut: () => void;
@@ -254,6 +337,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
     // Special handling for E-estimate (iframe)
     if (selectedApp === 'estimate') {
       return <EEstimateFrame user={user} onBack={handleBackToDashboard} />;
+    }
+    
+    // Special handling for FIMS (iframe)
+    if (selectedApp === 'fims') {
+      return <FIMSFrame user={user} onBack={handleBackToDashboard} />;
     }
     
     const app = systems.find(s => s.id === selectedApp);
