@@ -122,7 +122,7 @@ const FIMSFrame: React.FC<{ user: SupabaseUser; onBack: () => void }> = ({ user,
   const [isLoading, setIsLoading] = useState(true);
   
   // FIMS application URL - replace with actual URL when available
-  const fimsUrl = 'https://your-fims-app.bolt.new';
+  const fimsUrl = 'https://keen-cactus-aafab0.netlify.app/';
   
   const handleIframeLoad = () => {
     setIsLoading(false);
