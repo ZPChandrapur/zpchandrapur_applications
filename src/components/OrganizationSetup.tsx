@@ -662,6 +662,7 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
                   activeTab === 'designations' ? t('erms.designation') :
                   activeTab === 'talukas' ? t('erms.taluka') :
                   activeTab === 'offices' ? t('erms.office') : ''
+                  activeTab === 'villages' ? 'Village' :
                 }
               </h3>
               <button
