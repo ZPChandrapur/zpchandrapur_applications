@@ -290,13 +290,13 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
         if (editingItem) {
           const { error } = await ermsClient
             .from('villages')
-            .update({ name: formData.name })
+            .update({ village_name: formData.name })
             .eq('village_id', editingItem.village_id);
           if (error) throw error;
         } else {
           const { error } = await ermsClient
             .from('villages')
-            .insert({ village_id: formData.id, name: formData.name });
+            .insert({ village_id: formData.id, village_name: formData.name });
           if (error) throw error;
         }
         await fetchVillages();
@@ -366,12 +366,12 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
       console.log('🏘️ Fetching villages...');
       const { data, error } = await ermsClient
         .from('villages')
-        .select('village_id, name, created_at, updated_at')
-        .order('name');
+        .select('village_id, village_name, created_at, updated_at')
+        .order('village_name');
       
       if (error) throw error;
       console.log('✅ Villages fetched:', data?.length || 0);
-      setVillages(data?.map(v => ({ village_id: v.village_id, name: v.name, created_at: v.created_at, updated_at: v.updated_at })) || []);
+      setVillages(data?.map(v => ({ village_id: v.village_id, name: v.village_name, created_at: v.created_at, updated_at: v.updated_at })) || []);
     } catch (error) {
       console.error('❌ Error fetching villages:', error);
     }
