@@ -662,7 +662,6 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
                   activeTab === 'designations' ? t('erms.designation') :
                   activeTab === 'talukas' ? t('erms.taluka') :
                   activeTab === 'offices' ? t('erms.office') : ''
-                  activeTab === 'villages' ? 'Village' :
                 }
               </h3>
               <button
@@ -679,7 +678,9 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
                   {activeTab === 'departments' ? t('erms.departmentId') : 
                    activeTab === 'designations' ? t('erms.designationId') :
                    activeTab === 'talukas' ? t('erms.talukaId') : 
-                   activeTab === 'offices' ? t('erms.officeId') : 'ID'}
+                   activeTab === 'offices' ? t('erms.officeId') : 
+                   activeTab === 'villages' ? 'Village ID' :
+                   'ID'}
                 </label>
                 <input
                   type="text"
