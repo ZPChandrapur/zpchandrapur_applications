@@ -1381,7 +1381,274 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
 
         {/* Tab Content */}
         {renderMainTabContent()}
+
+      {/* View Modal */}
+      {showViewModal && viewingRecord && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">
+                {t('retirementTracker.viewProgressDetails', 'View Progress Details')}
+              </h3>
+              <div className="flex items-center space-x-3">
+                <button
+                  onClick={() => {
+                    setShowViewModal(false);
+                    handleEditRecord(viewingRecord);
+                  }}
+                  className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors duration-200"
+                >
+                  {t('common.edit')}
+                </button>
+                <button
+                  onClick={() => setShowViewModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6 space-y-6">
+              {/* Basic Employee Info */}
+              <div className="bg-blue-50 rounded-lg p-4">
+                <h4 className="text-md font-semibold text-blue-800 mb-3">{t('retirementTracker.basicEmployeeInfo')}</h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('retirementTracker.employeeId')}</label>
+                    <div className="text-sm text-gray-900 bg-white px-3 py-2 rounded border">{viewingRecord.emp_id}</div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('retirementTracker.employeeName')}</label>
+                    <div className="text-sm text-gray-900 bg-white px-3 py-2 rounded border">{viewingRecord.employee_name}</div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('retirementTracker.age')}</label>
+                    <div className="text-sm text-gray-900 bg-white px-3 py-2 rounded border">{viewingRecord.age || '-'}</div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('retirementTracker.department')}</label>
+                    <div className="text-sm text-gray-900 bg-white px-3 py-2 rounded border">{viewingRecord.department || '-'}</div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('retirementTracker.designation')}</label>
+                    <div className="text-sm text-gray-900 bg-white px-3 py-2 rounded border">{viewingRecord.designation || '-'}</div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('retirementTracker.assignedClerk')}</label>
+                    <div className="text-sm text-gray-900 bg-white px-3 py-2 rounded border">{viewingRecord.assigned_clerk || t('erms.unassigned')}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Progress Fields */}
+              <div className="bg-green-50 rounded-lg p-4">
+                <h4 className="text-md font-semibold text-green-800 mb-3">{t('retirementTracker.progressFields')}</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('retirementTracker.birthCertificate')}</label>
+                    <div className="flex items-center space-x-2">
+                      <span className={`text-lg ${viewingRecord.birth_certificate ? 'text-green-600' : 'text-gray-400'}`}>
+                        {viewingRecord.birth_certificate ? '✓' : '○'}
+                      </span>
+                      <span className="text-sm text-gray-900">{viewingRecord.birth_certificate || 'Not completed'}</span>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('retirementTracker.birthDocSubmitted')}</label>
+                    <div className="flex items-center space-x-2">
+                      <span className={`text-lg ${viewingRecord.birth_doc_submitted ? 'text-green-600' : 'text-gray-400'}`}>
+                        {viewingRecord.birth_doc_submitted ? '✓' : '○'}
+                      </span>
+                      <span className="text-sm text-gray-900">{viewingRecord.birth_doc_submitted || 'Not completed'}</span>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('retirementTracker.medicalCertificate')}</label>
+                    <div className="flex items-center space-x-2">
+                      <span className={`text-lg ${viewingRecord.medical_certificate ? 'text-green-600' : 'text-gray-400'}`}>
+                        {viewingRecord.medical_certificate ? '✓' : '○'}
+                      </span>
+                      <span className="text-sm text-gray-900">{viewingRecord.medical_certificate || 'Not completed'}</span>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('retirementTracker.nomination')}</label>
+                    <div className="flex items-center space-x-2">
+                      <span className={`text-lg ${viewingRecord.nomination ? 'text-green-600' : 'text-gray-400'}`}>
+                        {viewingRecord.nomination ? '✓' : '○'}
+                      </span>
+                      <span className="text-sm text-gray-900">{viewingRecord.nomination || 'Not completed'}</span>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('retirementTracker.permanentRegistration')}</label>
+                    <div className="flex items-center space-x-2">
+                      <span className={`text-lg ${viewingRecord.permanent_registration ? 'text-green-600' : 'text-gray-400'}`}>
+                        {viewingRecord.permanent_registration ? '✓' : '○'}
+                      </span>
+                      <span className="text-sm text-gray-900">{viewingRecord.permanent_registration || 'Not completed'}</span>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('retirementTracker.computerExam')}</label>
+                    <div className="flex items-center space-x-2">
+                      <span className={`text-lg ${viewingRecord.computer_exam ? 'text-green-600' : 'text-gray-400'}`}>
+                        {viewingRecord.computer_exam ? '✓' : '○'}
+                      </span>
+                      <span className="text-sm text-gray-900">{viewingRecord.computer_exam || 'Not completed'}</span>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('retirementTracker.languageExam')}</label>
+                    <div className="flex items-center space-x-2">
+                      <span className={`text-lg ${viewingRecord.language_exam ? 'text-green-600' : 'text-gray-400'}`}>
+                        {viewingRecord.language_exam ? '✓' : '○'}
+                      </span>
+                      <span className="text-sm text-gray-900">{viewingRecord.language_exam || 'Not completed'}</span>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('retirementTracker.postServiceExam')}</label>
+                    <div className="flex items-center space-x-2">
+                      <span className={`text-lg ${viewingRecord.post_service_exam ? 'text-green-600' : 'text-gray-400'}`}>
+                        {viewingRecord.post_service_exam ? '✓' : '○'}
+                      </span>
+                      <span className="text-sm text-gray-900">{viewingRecord.post_service_exam || 'Not completed'}</span>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('retirementTracker.verification')}</label>
+                    <div className="flex items-center space-x-2">
+                      <span className={`text-lg ${viewingRecord.verification ? 'text-green-600' : 'text-gray-400'}`}>
+                        {viewingRecord.verification ? '✓' : '○'}
+                      </span>
+                      <span className="text-sm text-gray-900">{viewingRecord.verification || 'Not completed'}</span>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('retirementTracker.dateOfBirthVerification')}</label>
+                    <div className="flex items-center space-x-2">
+                      <span className={`text-lg ${viewingRecord.date_of_birth_verification ? 'text-green-600' : 'text-gray-400'}`}>
+                        {viewingRecord.date_of_birth_verification ? '✓' : '○'}
+                      </span>
+                      <span className="text-sm text-gray-900">{viewingRecord.date_of_birth_verification || 'Not completed'}</span>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('retirementTracker.computerExamPassed')}</label>
+                    <div className="flex items-center space-x-2">
+                      <span className={`text-lg ${viewingRecord.computer_exam_passed ? 'text-green-600' : 'text-gray-400'}`}>
+                        {viewingRecord.computer_exam_passed ? '✓' : '○'}
+                      </span>
+                      <span className="text-sm text-gray-900">{viewingRecord.computer_exam_passed || 'Not completed'}</span>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('retirementTracker.marathiHindiExamExemption')}</label>
+                    <div className="flex items-center space-x-2">
+                      <span className={`text-lg ${viewingRecord.marathi_hindi_exam_exemption ? 'text-green-600' : 'text-gray-400'}`}>
+                        {viewingRecord.marathi_hindi_exam_exemption ? '✓' : '○'}
+                      </span>
+                      <span className="text-sm text-gray-900">{viewingRecord.marathi_hindi_exam_exemption || 'Not completed'}</span>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('retirementTracker.verificationCompleted')}</label>
+                    <div className="flex items-center space-x-2">
+                      <span className={`text-lg ${viewingRecord.verification_completed ? 'text-green-600' : 'text-gray-400'}`}>
+                        {viewingRecord.verification_completed ? '✓' : '○'}
+                      </span>
+                      <span className="text-sm text-gray-900">{viewingRecord.verification_completed || 'Not completed'}</span>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('retirementTracker.undertakingTaken')}</label>
+                    <div className="flex items-center space-x-2">
+                      <span className={`text-lg ${viewingRecord.undertaking_taken ? 'text-green-600' : 'text-gray-400'}`}>
+                        {viewingRecord.undertaking_taken ? '✓' : '○'}
+                      </span>
+                      <span className="text-sm text-gray-900">{viewingRecord.undertaking_taken || 'Not completed'}</span>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('retirementTracker.noObjectionCertificate')}</label>
+                    <div className="flex items-center space-x-2">
+                      <span className={`text-lg ${viewingRecord.no_objection_certificate ? 'text-green-600' : 'text-gray-400'}`}>
+                        {viewingRecord.no_objection_certificate ? '✓' : '○'}
+                      </span>
+                      <span className="text-sm text-gray-900">{viewingRecord.no_objection_certificate || 'Not completed'}</span>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('retirementTracker.retirementOrder')}</label>
+                    <div className="flex items-center space-x-2">
+                      <span className={`text-lg ${viewingRecord.retirement_order ? 'text-green-600' : 'text-gray-400'}`}>
+                        {viewingRecord.retirement_order ? '✓' : '○'}
+                      </span>
+                      <span className="text-sm text-gray-900">{viewingRecord.retirement_order || 'Not completed'}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Overall Comments */}
+              {viewingRecord.overall_comment && (
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h4 className="text-md font-semibold text-gray-800 mb-3">{t('retirementTracker.overallComment')}</h4>
+                  <div className="text-sm text-gray-900 bg-white px-3 py-2 rounded border">
+                    {viewingRecord.overall_comment}
+                  </div>
+                </div>
+              )}
       </div>
+              {/* Progress Summary */}
+              <div className="bg-purple-50 rounded-lg p-4">
+                <h4 className="text-md font-semibold text-purple-800 mb-3">Progress Summary</h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Completion Percentage</label>
+                    <div className="text-lg font-bold text-purple-600">{getProgressPercentage(viewingRecord)}%</div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Current Status</label>
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                      getProgressStatus(viewingRecord) === 'completed' ? 'bg-green-100 text-green-800' :
+                      getProgressStatus(viewingRecord) === 'processing' ? 'bg-orange-100 text-orange-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {getProgressStatus(viewingRecord) === 'completed' ? t('retirementTracker.completed') :
+                       getProgressStatus(viewingRecord) === 'processing' ? t('retirementTracker.inProgress') :
+                       t('retirementTracker.pending')}
+                    </span>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Fields Completed</label>
+                    <div className="text-lg font-bold text-purple-600">
+                      {getCompletedFieldsCount(viewingRecord)} / {getTotalFieldsCount()}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
