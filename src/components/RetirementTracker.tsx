@@ -128,8 +128,6 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
   const [showEditModal, setShowEditModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<RetirementProgress | null>(null);
-  const [showViewModal, setShowViewModal] = useState(false);
-  const [viewingRecord, setViewingRecord] = useState<RetirementProgressRecord | null>(null);
   const [viewingRecord, setViewingRecord] = useState<RetirementProgressRecord | null>(null);
   const [activeTab, setActiveTab] = useState<'inProgress' | 'pending' | 'completed'>('inProgress');
   const [currentPage, setCurrentPage] = useState(1);
@@ -676,7 +674,10 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           <div className="flex items-center space-x-2">
-                            <button className="text-blue-600 hover:text-blue-900 p-1 rounded">
+                            <button 
+                              onClick={() => handleViewRecord(employee)}
+                              className="text-blue-600 hover:text-blue-900 p-1 rounded"
+                            >
                               <Eye className="h-4 w-4" />
                             </button>
                             <button 
@@ -1222,10 +1223,6 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
     setShowEditModal(true);
   };
 
-  const handleViewRecord = (record: RetirementProgressRecord) => {
-    setViewingRecord(record);
-    setShowViewModal(true);
-  };
   const handleViewRecord = (record: RetirementProgressRecord) => {
     setViewingRecord(record);
     setShowViewModal(true);
