@@ -126,8 +126,10 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
   const [selectedStatus, setSelectedStatus] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showViewModal, setShowViewModal] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<RetirementProgress | null>(null);
   const [showViewModal, setShowViewModal] = useState(false);
+  const [viewingRecord, setViewingRecord] = useState<RetirementProgressRecord | null>(null);
   const [viewingRecord, setViewingRecord] = useState<RetirementProgressRecord | null>(null);
   const [activeTab, setActiveTab] = useState<'inProgress' | 'pending' | 'completed'>('inProgress');
   const [currentPage, setCurrentPage] = useState(1);
@@ -1220,6 +1222,10 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
     setShowEditModal(true);
   };
 
+  const handleViewRecord = (record: RetirementProgressRecord) => {
+    setViewingRecord(record);
+    setShowViewModal(true);
+  };
   const handleViewRecord = (record: RetirementProgressRecord) => {
     setViewingRecord(record);
     setShowViewModal(true);
