@@ -507,7 +507,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
               <div>
                 <p className="text-sm text-gray-600 mb-1">Analytics</p>
                 <p className="text-2xl font-bold text-gray-900">{departments.length}</p>
-                <p className="text-xs text-gray-500">Departments</p>
+                <p className="text-xs text-gray-500">{t('erms.departments')}</p>
               </div>
               <div className="bg-purple-500 p-3 rounded-lg">
                 <BarChart3 className="h-6 w-6 text-white" />
