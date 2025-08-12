@@ -32,6 +32,7 @@ interface Employee {
   employee_name: string;
   date_of_birth: string | null;
   dept_id: string;
+  designation_id: string;
   office_id: string;
   retirement_date: string | null;
   reason: string;
