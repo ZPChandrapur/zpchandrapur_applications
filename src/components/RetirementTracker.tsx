@@ -273,6 +273,7 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
         String(emp.emp_id || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         String(emp.employee_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         String(emp.department || '').toLowerCase().includes(searchTerm.toLowerCase())
+      );
     }
 
     // Clerk filter (for non-clerk users)
