@@ -413,7 +413,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
     try {
       const tabRecords = getTabFilteredRecords();
       
-      // Define CSV headers
+      // Prepare Excel data with proper headers
       const headers = [
         'Employee ID',
         'Employee Name',
@@ -447,7 +447,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
         'Leave Encashment Benefit',
         'Medical Allowance Benefit',
         'Hometown Travel Allowance',
-        'Pending Travel Allowance',
+      const excelData = tabRecords.map(record => [
         'Government Decision March 2023',
         'Overall Comment',
         'Completion Percentage',
@@ -501,27 +501,60 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
       });
       
       // Create CSV content
-      const csvContent = [
-        headers.join(','),
-        ...csvData.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
-      ].join('\n');
+      // Create workbook and worksheet
+      const workbook = XLSX.utils.book_new();
+      const worksheet = XLSX.utils.aoa_to_sheet([headers, ...excelData]);
       
-      // Create and download file
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      // Set column widths for better readability
+      const columnWidths = [
+        { wch: 15 }, // Employee ID
+        { wch: 25 }, // Employee Name
+        { wch: 20 }, // Department
+        { wch: 8 },  // Age
+        { wch: 15 }, // Retirement Date
+        { wch: 20 }, // Assigned Clerk
+        { wch: 15 }, // Birth Certificate
+        { wch: 15 }, // Medical Certificate
+        { wch: 15 }, // Nomination
+        { wch: 20 }, // Permanent Registration
+        { wch: 15 }, // Computer Exam
+        { wch: 15 }, // Language Exam
+        { wch: 18 }, // Post Service Exam
+        { wch: 15 }, // Verification
+        { wch: 20 }, // Date of Birth Verification
+        { wch: 18 }, // Computer Exam Passed
+        { wch: 25 }, // Marathi Hindi Exam Exemption
+        { wch: 20 }, // Verification Completed
+        { wch: 18 }, // Undertaking Taken
+        { wch: 25 }, // No Objection Certificate
+        { wch: 18 }, // Retirement Order
+        { wch: 20 }, // Group Insurance Benefit
+        { wch: 15 }, // Gratuity Benefit
+        { wch: 20 }, // Leave Encashment Benefit
+        { wch: 20 }, // Medical Allowance Benefit
+        { wch: 20 }, // Hometown Travel Allowance
+        { wch: 20 }, // Pending Travel Allowance
+        { wch: 25 }, // Government Decision March 2023
+        { wch: 15 }, // Completion Percentage
+        { wch: 12 }  // Status
+      ];
+      
+      worksheet['!cols'] = columnWidths;
+      
+      // Add worksheet to workbook
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Retirement Progress');
+      
+      // Generate Excel file and download
       const link = document.createElement('a');
       const url = URL.createObjectURL(blob);
       link.setAttribute('href', url);
       
       // Generate filename with current date and tab
       const currentDate = new Date().toISOString().split('T')[0];
-      const tabName = activeTab === 'inProgress' ? 'InProgress' : 
+      const filename = `retirement_progress_${activeTab}_${currentDate}.xlsx`;
                      activeTab === 'pending' ? 'Pending' : 'Completed';
-      link.setAttribute('download', `retirement_progress_${tabName}_${currentDate}.csv`);
-      
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      // Write and download the Excel file
+      XLSX.writeFile(workbook, filename);
       
     } catch (error) {
       console.error('Error downloading data:', error);
