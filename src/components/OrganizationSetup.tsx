@@ -665,7 +665,7 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <h3 className="text-lg font-semibold text-gray-900">
-                {editingItem ? t('erms.edit') : t('erms.add')} {
+                {editingItem ? t('common.edit') : t('common.add')} {
                   activeTab === 'departments' ? t('erms.department') :
                   activeTab === 'designations' ? t('erms.designation') :
                   activeTab === 'talukas' ? t('erms.taluka') :
