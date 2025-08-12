@@ -22,7 +22,6 @@ function App() {
         // Clear stale session data if JWT is invalid
         await supabase.auth.signOut();
         setUser(null);
-        window.location.reload();
       } finally {
         setIsLoading(false);
       }
