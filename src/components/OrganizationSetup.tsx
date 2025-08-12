@@ -109,7 +109,7 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
     },
     {
       id: 'villages',
-      name: 'Villages',
+      name: t('erms.villages'),
       icon: MapPin,
       color: 'bg-indigo-500'
     }
@@ -434,6 +434,14 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
       icon: Building2,
       color: 'bg-teal-100 text-teal-600',
       iconBg: 'bg-teal-500'
+    },
+    {
+      title: t('erms.totalVillages'),
+      value: villages.length.toString(),
+      subtitle: t('erms.ruralAreas'),
+      icon: MapPin,
+      color: 'bg-indigo-100 text-indigo-600',
+      iconBg: 'bg-indigo-500'
     }
   ];
 
@@ -465,10 +473,10 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
         columns: [t('erms.officeId'), t('erms.officeName'), t('erms.createdDate'), t('erms.actions')]
       },
       villages: { 
-        title: 'Villages', 
-        addText: 'Add Village',
+        title: t('erms.villages'), 
+        addText: t('erms.addVillage'),
         color: 'bg-indigo-600 hover:bg-indigo-700',
-        columns: ['Village ID', 'Village Name', t('erms.createdDate'), t('erms.actions')]
+        columns: [t('erms.villageId'), t('erms.villageName'), t('erms.createdDate'), t('erms.actions')]
       }
     };
 
@@ -661,7 +669,8 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
                   activeTab === 'departments' ? t('erms.department') :
                   activeTab === 'designations' ? t('erms.designation') :
                   activeTab === 'talukas' ? t('erms.taluka') :
-                  activeTab === 'offices' ? t('erms.office') : ''
+                  activeTab === 'offices' ? t('erms.office') :
+                  activeTab === 'villages' ? t('erms.village') : ''
                 }
               </h3>
               <button
@@ -678,7 +687,8 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
                   {activeTab === 'departments' ? t('erms.departmentId') : 
                    activeTab === 'designations' ? t('erms.designationId') :
                    activeTab === 'talukas' ? t('erms.talukaId') : 
-                   activeTab === 'offices' ? t('erms.officeId') : 'ID'}
+                   activeTab === 'offices' ? t('erms.officeId') :
+                   activeTab === 'villages' ? t('erms.villageId') : 'ID'}
                 </label>
                 <input
                   type="text"
@@ -689,7 +699,8 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
                     activeTab === 'departments' ? t('erms.enterDepartmentId') : 
                     activeTab === 'designations' ? t('erms.enterDesignationId') :
                     activeTab === 'talukas' ? t('erms.enterTalukaId') : 
-                    activeTab === 'offices' ? t('erms.enterOfficeId') : ''
+                    activeTab === 'offices' ? t('erms.enterOfficeId') :
+                    activeTab === 'villages' ? t('erms.enterVillageId') : ''
                   }
                   required
                 />
@@ -701,7 +712,7 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
                    activeTab === 'designations' ? t('erms.designationName') :
                    activeTab === 'talukas' ? t('erms.talukaName') : 
                    activeTab === 'offices' ? t('erms.officeName') : 
-                   activeTab === 'villages' ? 'Village Name' :
+                   activeTab === 'villages' ? t('erms.villageName') :
                    'Name'}
                 </label>
                 <input
@@ -713,7 +724,8 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
                     activeTab === 'departments' ? t('erms.enterDepartmentName') : 
                     activeTab === 'designations' ? t('erms.enterDesignationName') :
                     activeTab === 'talukas' ? t('erms.enterTalukaName') : 
-                    activeTab === 'offices' ? t('erms.enterOfficeName') : ''
+                    activeTab === 'offices' ? t('erms.enterOfficeName') :
+                    activeTab === 'villages' ? t('erms.enterVillageName') : ''
                   }
                 />
               </div>
