@@ -387,6 +387,126 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
     }
   };
 
+  const handleDownload = () => {
+    try {
+      const tabRecords = getTabFilteredRecords();
+      
+      // Define CSV headers
+      const headers = [
+        'Employee ID',
+        'Employee Name',
+        'Department',
+        'Designation',
+        'Age',
+        'Retirement Date',
+        'Assigned Clerk',
+        'Retirement Reason',
+        'Birth Certificate',
+        'Medical Certificate',
+        'Nomination',
+        'Permanent Registration',
+        'Computer Exam',
+        'Language Exam',
+        'Post Service Exam',
+        'Verification',
+        'Date of Birth Verification',
+        'Computer Exam Passed',
+        'Marathi Hindi Exam Exemption',
+        'Verification Completed',
+        'Undertaking Taken',
+        'No Objection Certificate',
+        'Retirement Order',
+        'Submission Date',
+        'Department Submitted',
+        'Type of Pension',
+        'Pension Case Approval Date',
+        'Group Insurance Benefit',
+        'Gratuity Benefit',
+        'Leave Encashment Benefit',
+        'Medical Allowance Benefit',
+        'Hometown Travel Allowance',
+        'Pending Travel Allowance',
+        'Government Decision March 2023',
+        'Overall Comment',
+        'Completion Percentage',
+        'Status'
+      ];
+      
+      // Convert data to CSV format
+      const csvData = tabRecords.map(record => {
+        const completionPercentage = getCompletionPercentage(record);
+        const status = getProgressStatus(record);
+        
+        return [
+          record.emp_id || '',
+          record.employee_name || '',
+          record.department || '',
+          record.designation || '',
+          record.age || '',
+          record.retirement_date ? new Date(record.retirement_date).toLocaleDateString() : '',
+          record.assigned_clerk || '',
+          record.reason || '',
+          record.birth_certificate || '',
+          record.medical_certificate || '',
+          record.nomination || '',
+          record.permanent_registration || '',
+          record.computer_exam || '',
+          record.language_exam || '',
+          record.post_service_exam || '',
+          record.verification || '',
+          record.date_of_birth_verification || '',
+          record.computer_exam_passed || '',
+          record.marathi_hindi_exam_exemption || '',
+          record.verification_completed || '',
+          record.undertaking_taken || '',
+          record.no_objection_certificate || '',
+          record.retirement_order || '',
+          record.date_of_submission ? new Date(record.date_of_submission).toLocaleDateString() : '',
+          record.department_submitted || '',
+          record.type_of_pension || '',
+          record.date_of_pension_case_approval ? new Date(record.date_of_pension_case_approval).toLocaleDateString() : '',
+          record.group_insurance_benefit ? new Date(record.group_insurance_benefit).toLocaleDateString() : '',
+          record.gratuity_benefit ? new Date(record.gratuity_benefit).toLocaleDateString() : '',
+          record.leave_encashment_benefit ? new Date(record.leave_encashment_benefit).toLocaleDateString() : '',
+          record.medical_allowance_benefit ? new Date(record.medical_allowance_benefit).toLocaleDateString() : '',
+          record.hometown_travel_allowance ? new Date(record.hometown_travel_allowance).toLocaleDateString() : '',
+          record.pending_travel_allowance ? new Date(record.pending_travel_allowance).toLocaleDateString() : '',
+          record.government_decision_march_2023 || '',
+          record.overall_comment || '',
+          `${completionPercentage}%`,
+          status
+        ];
+      });
+      
+      // Create CSV content
+      const csvContent = [
+        headers.join(','),
+        ...csvData.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+      ].join('\n');
+      
+      // Create and download file
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      
+      // Generate filename with current date and tab
+      const currentDate = new Date().toISOString().split('T')[0];
+      const tabName = activeTab === 'inProgress' ? 'InProgress' : 
+                     activeTab === 'pending' ? 'Pending' : 'Completed';
+      link.setAttribute('download', `retirement_progress_${tabName}_${currentDate}.csv`);
+      
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+    } catch (error) {
+      console.error('Error downloading data:', error);
+      alert(t('common.error') + ': Failed to download data');
+    }
+  };
+
   const statusCounts = getStatusCounts();
   const monthWiseData = getMonthWiseData();
   const departmentWiseData = getDepartmentWiseData();
@@ -430,7 +550,10 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
                 <RefreshCw className="h-4 w-4" />
                 <span className="text-sm font-medium">{t('erms.refresh')}</span>
               </button>
-            </div>
+              <button 
+                onClick={handleDownload}
+                className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
+              >
           </div>
         </div>
       </div>
