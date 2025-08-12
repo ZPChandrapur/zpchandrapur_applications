@@ -259,7 +259,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
       monthData.push({
         month: `${monthName} ${year.toString().slice(-2)}`,
         fullDate: targetDate,
-      count: 0
+        count: 0
       });
     }
 
@@ -385,6 +385,28 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const getTabFilteredRecords = () => {
+    return getTabFilteredEmployees();
+  };
+
+  const getCompletionPercentage = (employee: RetirementEmployee) => {
+    const progressFields = [
+      employee.date_of_submission,
+      employee.department_submitted,
+      employee.type_of_pension,
+      employee.date_of_pension_case_approval,
+      employee.date_of_actual_benefit_provided_for_group_insurance,
+      employee.date_of_benefit_provided_for_gratuity,
+      employee.date_of_actual_benefit_provided_for_leave_encashment,
+      employee.date_of_actual_benefit_provided_for_medical_allowance_if_applic,
+      employee.date_of_benefit_provided_for_hometown_travel_allowance_if_appli,
+      employee.date_of_actual_benefit_provided_for_pending_travel_allowance_if,
+      employee.government_decision_march_31_2023
+    ];
+    const filledFields = progressFields.filter(field => field && field.trim() !== '').length;
+    return Math.round((filledFields / progressFields.length) * 100);
   };
 
   const handleDownload = () => {
@@ -554,6 +576,10 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
                 onClick={handleDownload}
                 className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
               >
+                <Download className="h-4 w-4" />
+                <span className="text-sm">{t('common.export')}</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -1142,8 +1168,8 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
                         {t('erms.employeesHiredAfterNov2005')}
                       </p>
                       <select
-                      value={editingEmployee.government_decision_march_31_2023 || ''}
-                      onChange={(e) => setEditingEmployee({ ...editingEmployee, government_decision_march_31_2023: e.target.value })}
+                        value={editingEmployee.government_decision_march_31_2023 || ''}
+                        onChange={(e) => setEditingEmployee({ ...editingEmployee, government_decision_march_31_2023: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       >
                         <option value="">{t('erms.selectStatus')}</option>
