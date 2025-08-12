@@ -358,14 +358,6 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
       return <PayCommission user={user} />;
     } else if (activeMainTab === 'groupInsurance') {
       return <GroupInsurance user={user} />;
-    } else if (activeMainTab === 'groupInsurance') {
-      return (
-        <div className="p-8 text-center">
-          <FileText className="h-16 w-16 text-blue-500 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('retirementTracker.groupInsurance')}</h3>
-          <p className="text-gray-600">Group Insurance features coming soon...</p>
-        </div>
-      );
     }
     
     // Default: Retirement Progress content
@@ -674,10 +666,7 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           <div className="flex items-center space-x-2">
-                            <button 
-                              onClick={() => handleViewRecord(employee)}
-                              className="text-blue-600 hover:text-blue-900 p-1 rounded"
-                            >
+                            <button className="text-blue-600 hover:text-blue-900 p-1 rounded">
                               <Eye className="h-4 w-4" />
                             </button>
                             <button 
@@ -1175,6 +1164,243 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
                   className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 disabled:opacity-50"
                 >
                   {isLoading ? t('common.saving') : t('common.update')}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* View Modal */}
+        {showViewModal && viewingRecord && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900">View Retirement Progress Details</h3>
+                <button
+                  onClick={() => setShowViewModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              
+              <div className="p-6 space-y-6">
+                {/* Basic Employee Info */}
+                <div className="bg-blue-50 rounded-lg p-4">
+                  <h4 className="text-md font-semibold text-blue-800 mb-3">{t('retirementTracker.basicEmployeeInfo')}</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-blue-700 mb-1">{t('retirementTracker.employeeId')}</label>
+                      <div className="text-sm text-gray-900">{viewingRecord.emp_id}</div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-blue-700 mb-1">{t('retirementTracker.employeeName')}</label>
+                      <div className="text-sm text-gray-900">{viewingRecord.employee_name}</div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-blue-700 mb-1">{t('retirementTracker.age')}</label>
+                      <div className="text-sm text-gray-900">{viewingRecord.age || '-'}</div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-blue-700 mb-1">{t('retirementTracker.department')}</label>
+                      <div className="text-sm text-gray-900">{viewingRecord.department || '-'}</div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-blue-700 mb-1">{t('retirementTracker.designation')}</label>
+                      <div className="text-sm text-gray-900">{viewingRecord.designation || '-'}</div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-blue-700 mb-1">{t('retirementTracker.assignedClerk')}</label>
+                      <div className="text-sm text-gray-900">{viewingRecord.assigned_clerk || t('erms.unassigned')}</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Progress Fields */}
+                <div className="bg-green-50 rounded-lg p-4">
+                  <h4 className="text-md font-semibold text-green-800 mb-3">{t('retirementTracker.progressFields')}</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="flex items-center space-x-2">
+                      <span className={`text-lg ${viewingRecord.birth_certificate_submitted ? 'text-green-600' : 'text-gray-400'}`}>
+                        {viewingRecord.birth_certificate_submitted ? '✓' : '○'}
+                      </span>
+                      <span className="text-sm text-gray-700">{t('retirementTracker.birthCertificateSubmitted')}</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className={`text-lg ${viewingRecord.birth_doc_submitted ? 'text-green-600' : 'text-gray-400'}`}>
+                        {viewingRecord.birth_doc_submitted ? '✓' : '○'}
+                      </span>
+                      <span className="text-sm text-gray-700">{t('retirementTracker.birthDocumentSubmitted')}</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className={`text-lg ${viewingRecord.medical_certificate ? 'text-green-600' : 'text-gray-400'}`}>
+                        {viewingRecord.medical_certificate ? '✓' : '○'}
+                      </span>
+                      <span className="text-sm text-gray-700">{t('retirementTracker.medicalCertificate')}</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className={`text-lg ${viewingRecord.nomination ? 'text-green-600' : 'text-gray-400'}`}>
+                        {viewingRecord.nomination ? '✓' : '○'}
+                      </span>
+                      <span className="text-sm text-gray-700">{t('retirementTracker.nomination')}</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className={`text-lg ${viewingRecord.permanent_registration ? 'text-green-600' : 'text-gray-400'}`}>
+                        {viewingRecord.permanent_registration ? '✓' : '○'}
+                      </span>
+                      <span className="text-sm text-gray-700">{t('retirementTracker.permanentRegistration')}</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className={`text-lg ${viewingRecord.computer_exam_passed ? 'text-green-600' : 'text-gray-400'}`}>
+                        {viewingRecord.computer_exam_passed ? '✓' : '○'}
+                      </span>
+                      <span className="text-sm text-gray-700">{t('retirementTracker.computerExamPassed')}</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className={`text-lg ${viewingRecord.marathi_hindi_exam_exemption ? 'text-green-600' : 'text-gray-400'}`}>
+                        {viewingRecord.marathi_hindi_exam_exemption ? '✓' : '○'}
+                      </span>
+                      <span className="text-sm text-gray-700">{t('retirementTracker.marathiHindiExamExemption')}</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className={`text-lg ${viewingRecord.date_of_birth_verification ? 'text-green-600' : 'text-gray-400'}`}>
+                        {viewingRecord.date_of_birth_verification ? '✓' : '○'}
+                      </span>
+                      <span className="text-sm text-gray-700">{t('retirementTracker.dateOfBirthVerification')}</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className={`text-lg ${viewingRecord.verification_completed ? 'text-green-600' : 'text-gray-400'}`}>
+                        {viewingRecord.verification_completed ? '✓' : '○'}
+                      </span>
+                      <span className="text-sm text-gray-700">{t('retirementTracker.verificationCompleted')}</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className={`text-lg ${viewingRecord.undertaking_taken ? 'text-green-600' : 'text-gray-400'}`}>
+                        {viewingRecord.undertaking_taken ? '✓' : '○'}
+                      </span>
+                      <span className="text-sm text-gray-700">{t('retirementTracker.undertakingTaken')}</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className={`text-lg ${viewingRecord.no_objection_certificate ? 'text-green-600' : 'text-gray-400'}`}>
+                        {viewingRecord.no_objection_certificate ? '✓' : '○'}
+                      </span>
+                      <span className="text-sm text-gray-700">{t('retirementTracker.noObjectionCertificate')}</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className={`text-lg ${viewingRecord.retirement_order ? 'text-green-600' : 'text-gray-400'}`}>
+                        {viewingRecord.retirement_order ? '✓' : '○'}
+                      </span>
+                      <span className="text-sm text-gray-700">{t('retirementTracker.retirementOrder')}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Overall Comments */}
+                {viewingRecord.overall_comment && (
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h4 className="text-md font-semibold text-gray-800 mb-3">{t('retirementTracker.overallComment')}</h4>
+                    <div className="text-sm text-gray-700 whitespace-pre-wrap">
+                      {viewingRecord.overall_comment}
+                    </div>
+                  </div>
+                )}
+
+                {/* Progress Summary */}
+                <div className="bg-purple-50 rounded-lg p-4">
+                  <h4 className="text-md font-semibold text-purple-800 mb-3">Progress Summary</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-purple-700 mb-1">Completion Percentage</label>
+                      <div className="text-lg font-semibold text-purple-900">
+                        {(() => {
+                          const fields = [
+                            viewingRecord.birth_certificate_submitted,
+                            viewingRecord.birth_doc_submitted,
+                            viewingRecord.medical_certificate,
+                            viewingRecord.nomination,
+                            viewingRecord.permanent_registration,
+                            viewingRecord.computer_exam_passed,
+                            viewingRecord.marathi_hindi_exam_exemption,
+                            viewingRecord.date_of_birth_verification,
+                            viewingRecord.verification_completed,
+                            viewingRecord.undertaking_taken,
+                            viewingRecord.no_objection_certificate,
+                            viewingRecord.retirement_order
+                          ];
+                          const completed = fields.filter(field => field === 'आहे' || field === 'होय' || field === 'Yes').length;
+                          return Math.round((completed / fields.length) * 100);
+                        })()}%
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-purple-700 mb-1">Current Status</label>
+                      <div className="text-sm text-purple-900">
+                        {(() => {
+                          const fields = [
+                            viewingRecord.birth_certificate_submitted,
+                            viewingRecord.birth_doc_submitted,
+                            viewingRecord.medical_certificate,
+                            viewingRecord.nomination,
+                            viewingRecord.permanent_registration,
+                            viewingRecord.computer_exam_passed,
+                            viewingRecord.marathi_hindi_exam_exemption,
+                            viewingRecord.date_of_birth_verification,
+                            viewingRecord.verification_completed,
+                            viewingRecord.undertaking_taken,
+                            viewingRecord.no_objection_certificate,
+                            viewingRecord.retirement_order
+                          ];
+                          const completed = fields.filter(field => field === 'आहे' || field === 'होय' || field === 'Yes').length;
+                          if (completed === 0) return t('retirementTracker.pending');
+                          if (completed === fields.length) return t('retirementTracker.completed');
+                          return t('retirementTracker.inProgress');
+                        })()}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-purple-700 mb-1">Fields Completed</label>
+                      <div className="text-sm text-purple-900">
+                        {(() => {
+                          const fields = [
+                            viewingRecord.birth_certificate_submitted,
+                            viewingRecord.birth_doc_submitted,
+                            viewingRecord.medical_certificate,
+                            viewingRecord.nomination,
+                            viewingRecord.permanent_registration,
+                            viewingRecord.computer_exam_passed,
+                            viewingRecord.marathi_hindi_exam_exemption,
+                            viewingRecord.date_of_birth_verification,
+                            viewingRecord.verification_completed,
+                            viewingRecord.undertaking_taken,
+                            viewingRecord.no_objection_certificate,
+                            viewingRecord.retirement_order
+                          ];
+                          const completed = fields.filter(field => field === 'आहे' || field === 'होय' || field === 'Yes').length;
+                          return `${completed} / ${fields.length}`;
+                        })()}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200">
+                <button
+                  onClick={() => {
+                    setShowViewModal(false);
+                    setEditingRecord(viewingRecord);
+                    setShowEditModal(true);
+                  }}
+                  className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200"
+                >
+                  <Edit className="h-4 w-4 inline mr-2" />
+                  Edit Record
+                </button>
+                <button
+                  onClick={() => setShowViewModal(false)}
+                  className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200"
+                >
+                  {t('common.close')}
                 </button>
               </div>
             </div>
