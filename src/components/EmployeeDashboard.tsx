@@ -278,6 +278,17 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       return;
     }
 
+   // Validate date of birth if provided
+   if (newEmployee.date_of_birth) {
+     const birthDate = new Date(newEmployee.date_of_birth);
+     const minDate = new Date('1900-01-01');
+     const maxDate = new Date();
+     
+     if (birthDate < minDate || birthDate > maxDate) {
+       alert('Please enter a valid date of birth between 1900 and today.');
+       return;
+     }
+   }
     setIsLoading(true);
     try {
       // Transform empty strings to null for date fields
