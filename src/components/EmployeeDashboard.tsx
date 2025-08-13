@@ -746,7 +746,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredEmployees.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                    <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
                       No employees found matching your criteria.
                     </td>
                   </tr>
@@ -870,16 +870,16 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.designation')} (Optional)
+                    {t('erms.designation')}
                   </label>
                   <select
-                    value={newEmployee.designation_id}
-                    onChange={(e) => setNewEmployee({ ...newEmployee, designation_id: e.target.value })}
+                    value={newEmployee.designation}
+                    onChange={(e) => setNewEmployee({ ...newEmployee, designation: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="">{t('erms.selectDesignation')}</option>
                     {designations.map(designation => (
-                      <option key={designation.designation_id} value={designation.designation_id}>
+                      <option key={designation.designation_id} value={designation.designation}>
                         {designation.designation}
                       </option>
                     ))}
@@ -1033,16 +1033,16 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.designation')} (Optional)
+                    {t('erms.designation')}
                   </label>
                   <select
-                    value={newEmployee.designation_id}
-                    onChange={(e) => setNewEmployee({ ...newEmployee, designation_id: e.target.value })}
+                    value={newEmployee.designation}
+                    onChange={(e) => setNewEmployee({ ...newEmployee, designation: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="">{t('erms.selectDesignation')}</option>
                     {designations.map(designation => (
-                      <option key={designation.designation_id} value={designation.designation_id}>
+                      <option key={designation.designation_id} value={designation.designation}>
                         {designation.designation}
                       </option>
                     ))}
