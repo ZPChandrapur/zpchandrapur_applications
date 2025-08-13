@@ -838,12 +838,33 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     {t('erms.dateOfBirth')}
                   </label>
-                  <input
-                    type="date"
-                    value={newEmployee.date_of_birth}
-                    onChange={(e) => setNewEmployee({ ...newEmployee, date_of_birth: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
+                  <div className="space-y-2">
+                    <input
+                      type="date"
+                      value={newEmployee.date_of_birth}
+                      onChange={(e) => setNewEmployee({ ...newEmployee, date_of_birth: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      min="1900-01-01"
+                      max={new Date().toISOString().split('T')[0]}
+                    />
+                    <div className="text-xs text-gray-500">
+                      Or type manually: DD-MM-YYYY (e.g., 06-02-1962)
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="DD-MM-YYYY (e.g., 06-02-1962)"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        // Convert DD-MM-YYYY to YYYY-MM-DD for date input
+                        if (value.match(/^\d{2}-\d{2}-\d{4}$/)) {
+                          const [day, month, year] = value.split('-');
+                          const isoDate = `${year}-${month}-${day}`;
+                          setNewEmployee({ ...newEmployee, date_of_birth: isoDate });
+                        }
+                      }}
+                    />
+                  </div>
                 </div>
                 
                 <div>
