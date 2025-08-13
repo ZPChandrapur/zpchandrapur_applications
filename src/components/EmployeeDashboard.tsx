@@ -873,13 +873,13 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     {t('erms.designation')}
                   </label>
                   <select
-                    value={newEmployee.designation_id}
-                    onChange={(e) => setNewEmployee({ ...newEmployee, designation_id: e.target.value })}
+                    value={newEmployee.designation}
+                    onChange={(e) => setNewEmployee({ ...newEmployee, designation: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="">{t('erms.selectDesignation')}</option>
                     {designations.map(designation => (
-                      <option key={designation.designation_id} value={designation.designation_id}>
+                      <option key={designation.designation_id} value={designation.designation}>
                         {designation.designation}
                       </option>
                     ))}
@@ -1036,13 +1036,13 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     {t('erms.designation')}
                   </label>
                   <select
-                    value={newEmployee.designation_id}
-                    onChange={(e) => setNewEmployee({ ...newEmployee, designation_id: e.target.value })}
+                    value={newEmployee.designation}
+                    onChange={(e) => setNewEmployee({ ...newEmployee, designation: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="">{t('erms.selectDesignation')}</option>
                     {designations.map(designation => (
-                      <option key={designation.designation_id} value={designation.designation_id}>
+                      <option key={designation.designation_id} value={designation.designation}>
                         {designation.designation}
                       </option>
                     ))}
