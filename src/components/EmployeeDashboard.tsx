@@ -32,7 +32,7 @@ interface Employee {
   employee_name: string;
   date_of_birth: string | null;
   dept_id: string;
-  designation: string;
+  designation_id: string;
   office_id: string;
   retirement_date: string | null;
   reason: string;
@@ -92,7 +92,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     employee_name: '',
     date_of_birth: '',
     dept_id: '',
-    designation: '',
+    designation_id: '',
     office_id: '',
     retirement_date: '',
     reason: '',
@@ -252,7 +252,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         employee_name: '',
         date_of_birth: '',
         dept_id: '',
-        designation: '',
+        designation_id: '',
         office_id: '',
         retirement_date: '',
         reason: '',
