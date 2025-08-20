@@ -71,11 +71,6 @@ function App() {
                 className="h-16 w-16 object-contain"
               />
             </div>
-            <div className="flex justify-center mb-4">
-              <div className="bg-blue-100 p-3 rounded-full">
-                <Building2 className="h-8 w-8 text-blue-600" />
-              </div>
-            </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
               {t('dashboard.title')}
             </h1>
