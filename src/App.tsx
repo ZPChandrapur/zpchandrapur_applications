@@ -65,6 +65,13 @@ function App() {
           {/* Header */}
           <div className="text-center mb-8">
             <div className="flex justify-center mb-4">
+              <img 
+                src="/image.png" 
+                alt="ZP Chandrapur Logo" 
+                className="h-16 w-16 object-contain"
+              />
+            </div>
+            <div className="flex justify-center mb-4">
               <div className="bg-blue-100 p-3 rounded-full">
                 <Building2 className="h-8 w-8 text-blue-600" />
               </div>
