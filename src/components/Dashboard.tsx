@@ -481,7 +481,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
               <img 
                 src="/image.png" 
                 alt="ZP Chandrapur Logo" 
-                className="h-8 w-8 object-contain"
+                className="h-12 w-12 object-contain"
               />
               <div>
                 <h1 className="text-lg font-semibold text-white">
@@ -508,7 +508,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
                     <User className="h-4 w-4 text-white" />
                   </div>
                   <div className="text-left">
-                    <div className="text-sm font-medium text-white">{user.email}</div>
+                    <div className="text-sm font-medium text-white">
+                      {userProfile?.name || user.email?.split('@')[0]}
+                    </div>
                     <div className="text-xs text-white/80">{t(`roles.${userRole}`)}</div>
                   </div>
                   <ChevronDown className={`h-4 w-4 text-white transition-transform duration-200 ${isProfileOpen ? 'rotate-180' : ''}`} />
@@ -574,7 +576,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
         {/* Welcome Section */}
         <div className="mb-8">
           <h2 className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2`}>
-            {t('dashboard.welcome')}, {userProfile?.name || user.email?.split('@')[0]}
+            Welcome, {userProfile?.name || user.email?.split('@')[0]}
           </h2>
           <p className={`text-gray-600 ${isMobile ? 'text-base' : 'text-lg'}`}>
             {isMobile ? 'मोबाइल अनुप्रयोग प्रणाली' : t('dashboard.overview')}
