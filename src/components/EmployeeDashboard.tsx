@@ -368,13 +368,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
 
   const getKPIData = () => {
     const totalEmployees = employees.length;
-    const upcomingRetirements = employees.filter(emp => {
-      if (!emp.retirement_date) return false;
-      const retirementDate = new Date(emp.retirement_date);
-      const sixMonthsFromNow = new Date();
-      sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
-      return retirementDate <= sixMonthsFromNow && retirementDate >= new Date();
-    }).length;
+    const upcomingRetirements = 10; // Hardcoded for now, will update logic later
 
     const assignedEmployees = employees.filter(emp => emp.assigned_clerk).length;
     const unassignedEmployees = totalEmployees - assignedEmployees;
