@@ -76,9 +76,9 @@
       "webApplication": "Web Application"
     },
     "estimate": {
-      "name": "E-Estimate",
-      "fullName": "Electronic Estimation System",
-      "description": "Create, manage and track project estimates and completion reports",
+      "name": "E-Estimate & MB",
+      "fullName": "Electronic Estimation & Measurement Book System",
+      "description": "Create, manage and track project estimates, measurement books and completion reports",
       "activeEstimates": "Active Estimates",
       "pendingApprovals": "Pending Approvals",
       "completedProjects": "Completed Projects",
