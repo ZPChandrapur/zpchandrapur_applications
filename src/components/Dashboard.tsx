@@ -479,7 +479,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
             {/* Logo and Title */}
             <div className="flex items-center space-x-3">
               <div className="bg-white/20 p-2 rounded-lg">
-                <Building2 className="h-6 w-6 text-white" />
+                <img 
+                  src="/image.png" 
+                  alt="ZP Chandrapur Logo" 
+                  className="h-6 w-6 object-contain"
+                />
               </div>
               <div>
                 <h1 className="text-lg font-semibold text-white">
