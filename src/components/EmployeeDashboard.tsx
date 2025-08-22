@@ -204,38 +204,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
   };
 
   useEffect(() => {
-    // Load persisted modal state on component mount
-    loadModalState();
-    setIsInitialized(true);
-    
     fetchAllData();
-    
-    // Add event listeners for cross-tab synchronization
-    const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === 'erms-employee-modal-state') {
-        loadModalState();
-      }
-    };
-    
-    const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        loadModalState();
-      }
-    };
-    
-    const handleBeforeUnload = () => {
-      saveModalState();
-    };
-    
-    window.addEventListener('storage', handleStorageChange);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
   }, []);
 
   useEffect(() => {
@@ -880,7 +849,8 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
               <h3 className="text-lg font-semibold text-gray-900">{t('erms.addEmployee')}</h3>
               <button
                 onClick={() => setShowAddModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-400 hover:text-gray-600 transition-colors duration-200"
+                disabled={isLoading}
               >
                 <X className="h-5 w-5" />
               </button>
@@ -1121,7 +1091,8 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
               <h3 className="text-lg font-semibold text-gray-900">{t('erms.editEmployee')}</h3>
               <button
                 onClick={() => setShowEditModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-400 hover:text-gray-600 transition-colors duration-200"
+                disabled={isLoading}
               >
                 <X className="h-5 w-5" />
               </button>
@@ -1144,130 +1115,4 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     {t('erms.employeeIdInternal')}
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.emp_id || ''}
-                    onChange={(e) => setFormData({ ...formData, emp_id: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.employeeName')} <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.employee_name || ''}
-                    onChange={(e) => setFormData({ ...formData, employee_name: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.dateOfBirth')}
-                  </label>
-                  <input
-                    type="date"
-                    value={formData.date_of_birth || ''}
-                    onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    max={new Date().toISOString().split('T')[0]}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.ddoCode')}
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.ddo_code || ''}
-                    onChange={(e) => setFormData({ ...formData, ddo_code: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.cadre')} <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.cadre || ''}
-                    onChange={(e) => setFormData({ ...formData, cadre: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.dateOfJoining')}
-                  </label>
-                  <input
-                    type="date"
-                    value={formData.date_of_joining || ''}
-                    onChange={(e) => setFormData({ ...formData, date_of_joining: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.dateOfServiceExpiry')} (Auto-calculated)
-                  </label>
-                  <input
-                    type="date"
-                    value={formData.date_of_service_expiry || ''}
-                    onChange={(e) => setFormData({ ...formData, date_of_service_expiry: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
-                    disabled
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.retirementReason')}
-                  </label>
-                  <select
-                    value={formData.reason || ''}
-                    onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="">{t('erms.selectReason')}</option>
-                    <option value="मृत्यू झाल्याने">मृत्यू झाल्याने</option>
-                    <option value="नियत वयोमान">नियत वयोमान</option>
-                    <option value="स्वेच्छा सेवा निवृत्ती">स्वेच्छा सेवा निवृत्ती</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-            
-            <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200">
-              <button
-                onClick={() => {
-                  setShowEditModal(false);
-                  clearModalState();
-                }}
-                className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200"
-              >
-                {t('common.cancel')}
-              </button>
-              <button
-                onClick={handleSaveEmployee}
-                disabled={isLoading}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 disabled:opacity-50"
-              >
-                {isLoading ? t('erms.updating') : t('erms.updateEmployee')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
+                  </label
