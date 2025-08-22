@@ -153,7 +153,8 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     if (!dateOfBirth || !cadre) return '';
     
     const birthDate = new Date(dateOfBirth);
-    const retirementAge = cadre.toLowerCase().includes('c') ? 58 : 60;
+    const retirementAge = cadre.toLowerCase().includes('c') ? 58 : 
+                         cadre.toLowerCase().includes('d') ? 60 : 60; // Default to 60 for D cadre or others
     
     // Calculate retirement date: birth year + retirement age
     const retirementYear = birthDate.getFullYear() + retirementAge;
