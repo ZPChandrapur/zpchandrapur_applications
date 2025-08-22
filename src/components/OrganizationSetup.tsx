@@ -71,7 +71,6 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
   const [talukas, setTalukas] = useState<Taluka[]>([]);
   const [officeLocations, setOfficeLocations] = useState<OfficeLocation[]>([]);
   const [designations, setDesignations] = useState<Designation[]>([]);
-  const [villages, setVillages] = useState<Village[]>([]);
   const [clerks, setClerks] = useState([]);
 
   // Form states
@@ -106,12 +105,6 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
       name: t('erms.offices'),
       icon: Building2,
       color: 'bg-teal-500'
-    },
-    {
-      id: 'villages',
-      name: t('erms.villages'),
-      icon: MapPin,
-      color: 'bg-indigo-500'
     }
   ];
 
@@ -126,8 +119,7 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
         fetchDepartments(),
         fetchTalukas(),
         fetchOfficeLocations(),
-        fetchDesignations(),
-        fetchVillages()
+        fetchDesignations()
       ]);
     } catch (error) {
       console.error('Error fetching organization data:', error);
@@ -216,8 +208,6 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
       setFormData({ id: item.id, name: item.name, address: '', taluka_id: '' });
     } else if (activeTab === 'offices') {
       setFormData({ id: item.office_id, name: item.name, address: item.address || '', taluka_id: item.taluka_id || '' });
-    } else if (activeTab === 'villages') {
-      setFormData({ id: item.village_id, name: item.name, address: '', taluka_id: '' });
     }
     setShowAddModal(true);
   };
@@ -286,20 +276,6 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
           if (error) throw error;
         }
         await fetchOfficeLocations();
-      } else if (activeTab === 'villages') {
-        if (editingItem) {
-          const { error } = await ermsClient
-            .from('villages')
-            .update({ village_name: formData.name })
-            .eq('village_id', editingItem.village_id);
-          if (error) throw error;
-        } else {
-          const { error } = await ermsClient
-            .from('villages')
-            .insert({ village_id: formData.id, village_name: formData.name });
-          if (error) throw error;
-        }
-        await fetchVillages();
       }
       
       setShowAddModal(false);
@@ -345,13 +321,6 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
           .eq('office_id', item.office_id);
         if (error) throw error;
         await fetchOfficeLocations();
-      } else if (activeTab === 'villages') {
-        const { error } = await ermsClient
-          .from('villages')
-          .delete()
-          .eq('village_id', item.village_id);
-        if (error) throw error;
-        await fetchVillages();
       }
     } catch (error) {
       console.error('Error deleting:', error);
@@ -361,21 +330,6 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
     }
   };
 
-  const fetchVillages = async () => {
-    try {
-      console.log('🏘️ Fetching villages...');
-      const { data, error } = await ermsClient
-        .from('villages')
-        .select('village_id, village_name, created_at, updated_at')
-        .order('village_name');
-      
-      if (error) throw error;
-      console.log('✅ Villages fetched:', data?.length || 0);
-      setVillages(data?.map(v => ({ village_id: v.village_id, name: v.village_name, created_at: v.created_at, updated_at: v.updated_at })) || []);
-    } catch (error) {
-      console.error('❌ Error fetching villages:', error);
-    }
-  };
 
   const getFilteredData = () => {
     let data: any[] = [];
@@ -383,7 +337,6 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
     else if (activeTab === 'designations') data = designations;
     else if (activeTab === 'talukas') data = talukas;
     else if (activeTab === 'offices') data = officeLocations;
-    else if (activeTab === 'villages') data = villages;
 
     return data.filter(item => {
       const searchFields = activeTab === 'departments' 
@@ -394,7 +347,7 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
         ? [item.id, item.name]
         : activeTab === 'offices'
         ? [item.office_id, item.name]
-        : [item.village_id, item.name];
+        : [];
       
       return searchFields.some(field => 
         String(field || '').toLowerCase().includes(searchTerm.toLowerCase())
@@ -434,14 +387,6 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
       icon: Building2,
       color: 'bg-teal-100 text-teal-600',
       iconBg: 'bg-teal-500'
-    },
-    {
-      title: t('erms.totalVillages'),
-      value: villages.length.toString(),
-      subtitle: t('erms.ruralAreas'),
-      icon: MapPin,
-      color: 'bg-indigo-100 text-indigo-600',
-      iconBg: 'bg-indigo-500'
     }
   ];
 
@@ -471,12 +416,6 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
         addText: t('erms.addOffice'),
         color: 'bg-teal-600 hover:bg-teal-700',
         columns: [t('erms.officeId'), t('erms.officeName'), t('erms.createdDate'), t('erms.actions')]
-      },
-      villages: { 
-        title: t('erms.villages'), 
-        addText: t('erms.addVillage'),
-        color: 'bg-indigo-600 hover:bg-indigo-700',
-        columns: [t('erms.villageId'), t('erms.villageName'), t('erms.createdDate'), t('erms.actions')]
       }
     };
 
@@ -548,14 +487,12 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
                       activeTab === 'designations' ? item.designation_id : 
                       activeTab === 'offices' ? item.office_id : 
                       activeTab === 'talukas' ? item.id : 
-                      activeTab === 'villages' ? item.village_id :
                       item.id
                     } className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         {activeTab === 'designations' ? item.designation_id : 
                          activeTab === 'offices' ? item.office_id : 
                          activeTab === 'talukas' ? item.id : 
-                         activeTab === 'villages' ? item.village_id :
                          item.id}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -670,7 +607,7 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
                   activeTab === 'designations' ? t('erms.designation') :
                   activeTab === 'talukas' ? t('erms.taluka') :
                   activeTab === 'offices' ? t('erms.office') :
-                  activeTab === 'villages' ? t('erms.village') : ''
+                  ''
                 }
               </h3>
               <button
@@ -688,7 +625,7 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
                    activeTab === 'designations' ? t('erms.designationId') :
                    activeTab === 'talukas' ? t('erms.talukaId') : 
                    activeTab === 'offices' ? t('erms.officeId') :
-                   activeTab === 'villages' ? t('erms.villageId') : 'ID'}
+                   'ID'}
                 </label>
                 <input
                   type="text"
@@ -700,7 +637,7 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
                     activeTab === 'designations' ? t('erms.enterDesignationId') :
                     activeTab === 'talukas' ? t('erms.enterTalukaId') : 
                     activeTab === 'offices' ? t('erms.enterOfficeId') :
-                    activeTab === 'villages' ? t('erms.enterVillageId') : ''
+                    ''
                   }
                   required
                 />
@@ -712,7 +649,6 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
                    activeTab === 'designations' ? t('erms.designationName') :
                    activeTab === 'talukas' ? t('erms.talukaName') : 
                    activeTab === 'offices' ? t('erms.officeName') : 
-                   activeTab === 'villages' ? t('erms.villageName') :
                    'Name'}
                 </label>
                 <input
@@ -725,7 +661,7 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
                     activeTab === 'designations' ? t('erms.enterDesignationName') :
                     activeTab === 'talukas' ? t('erms.enterTalukaName') : 
                     activeTab === 'offices' ? t('erms.enterOfficeName') :
-                    activeTab === 'villages' ? t('erms.enterVillageName') : ''
+                    ''
                   }
                 />
               </div>
