@@ -38,6 +38,9 @@ interface Employee {
   reason: string;
   assigned_clerk: string;
   date_of_assignment: string | null;
+  panchayatraj_sevarth_id: string | null;
+  ddo_code: string | null;
+  cadre: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -97,7 +100,10 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     retirement_date: '',
     reason: '',
     assigned_clerk: '',
-    date_of_assignment: ''
+    date_of_assignment: '',
+    panchayatraj_sevarth_id: '',
+    ddo_code: '',
+    cadre: ''
   });
 
   useEffect(() => {
@@ -224,8 +230,8 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
   };
 
   const handleAddEmployee = async () => {
-    if (!newEmployee.emp_id || !newEmployee.employee_name) {
-      alert(t('common.fillAllFields'));
+    if (!newEmployee.emp_id || !newEmployee.employee_name || !newEmployee.cadre) {
+      alert('Please fill in Employee ID, Employee Name, and Cadre (required fields)');
       return;
     }
 
@@ -257,7 +263,10 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         retirement_date: '',
         reason: '',
         assigned_clerk: '',
-        date_of_assignment: ''
+        date_of_assignment: '',
+        panchayatraj_sevarth_id: '',
+        ddo_code: '',
+        cadre: ''
       });
     } catch (error) {
       console.error('Error adding employee:', error);
@@ -273,8 +282,8 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
   };
 
   const handleUpdateEmployee = async () => {
-    if (!newEmployee.emp_id || !newEmployee.employee_name) {
-      alert(t('common.fillAllFields'));
+    if (!newEmployee.emp_id || !newEmployee.employee_name || !newEmployee.cadre) {
+      alert('Please fill in Employee ID, Employee Name, and Cadre (required fields)');
       return;
     }
 
@@ -368,7 +377,13 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
 
   const getKPIData = () => {
     const totalEmployees = employees.length;
-    const upcomingRetirements = 10; // Hardcoded for now, will update logic later
+    const upcomingRetirements = employees.filter(emp => {
+      if (!emp.retirement_date) return false;
+      const retirementDate = new Date(emp.retirement_date);
+      const sixMonthsFromNow = new Date();
+      sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
+      return retirementDate <= sixMonthsFromNow && retirementDate >= new Date();
+    }).length;
 
     const assignedEmployees = employees.filter(emp => emp.assigned_clerk).length;
     const unassignedEmployees = totalEmployees - assignedEmployees;
@@ -731,6 +746,9 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.employeeId')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.employeeName')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cadre</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Panchayatraj Sevarth ID</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">DDO Code</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.retirementDate')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.assignedClerk')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.actions')}</th>
@@ -739,7 +757,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredEmployees.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                    <td colSpan={8} className="px-6 py-8 text-center text-gray-500">
                       No employees found matching your criteria.
                     </td>
                   </tr>
@@ -751,6 +769,15 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {employee.employee_name}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {employee.cadre || '-'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {employee.panchayatraj_sevarth_id || '-'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {employee.ddo_code || '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {employee.retirement_date ? new Date(employee.retirement_date).toLocaleDateString() : '-'}
