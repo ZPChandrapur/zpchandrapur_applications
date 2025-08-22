@@ -386,7 +386,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
           emp_id,
           employee_name,
           date_of_birth,
-          age,
           retirement_date,
           reason,
           assigned_clerk,

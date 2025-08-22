@@ -98,7 +98,6 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
         { column_name: 'emp_id', display_name: t('erms.employeeId'), data_type: 'text' },
         { column_name: 'employee_name', display_name: t('erms.employeeName'), data_type: 'text' },
         { column_name: 'date_of_birth', display_name: t('erms.dateOfBirth'), data_type: 'date' },
-        { column_name: 'age', display_name: t('erms.age'), data_type: 'number' },
         { column_name: 'retirement_date', display_name: t('erms.retirementDate'), data_type: 'date' },
         { column_name: 'reason', display_name: t('erms.retirementReason'), data_type: 'text' },
         { column_name: 'assigned_clerk', display_name: t('erms.assignedClerk'), data_type: 'text' },
