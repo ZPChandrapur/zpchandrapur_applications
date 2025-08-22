@@ -154,7 +154,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
           panchayatrajsevarth_id,
           ddo_code,
           "Cadre",
-          date_of_joining,
+          "date_of_joining",
           created_at,
           updated_at,
           department!inner(department),
@@ -169,6 +169,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       const mappedData = (data || []).map(employee => ({
         ...employee,
         cadre: employee["Cadre"],
+        date_of_joining: employee["date_of_joining"],
         department_name: employee.department?.department || '',
         designation_name: employee.designations?.designation || '',
         office_name: employee.office_locations?.name || ''
@@ -370,7 +371,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         panchayatrajsevarth_id: formData.panchayatrajsevarth_id,
         ddo_code: formData.ddo_code,
         "Cadre": formData.cadre,
-        date_of_joining: formData.date_of_joining
+        "date_of_joining": formData.date_of_joining
       };
 
       if (editingEmployee) {
