@@ -31,7 +31,8 @@ interface Employee {
   assigned_clerk: string | null;
   dept_id: string;
   department: string;
-  designation: string;
+  designation_id: string;
+  designation_name: string;
   tal_id: string;
   office_id: string;
   date_of_assignment: string | null;
@@ -102,7 +103,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     reason: '',
     assigned_clerk: '',
     dept_id: '',
-    designation: '',
+    designation_id: '',
     tal_id: '',
     office_id: '',
     panchayatrajsevarth_id: '',
@@ -153,7 +154,8 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
           reason,
           assigned_clerk,
           dept_id,
-          designation,
+          designation_id,
+          designations!inner(designation),
           tal_id,
           date_of_assignment,
           panchayatrajsevarth_id,
@@ -175,7 +177,8 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       const mappedData = (data || []).map(employee => ({
         ...employee,
         department: employee.appointing_department || '',
-        office_id: employee.working_office_name || ''
+        office_id: employee.working_office_name || '',
+        designation_name: employee.designations?.designation || ''
       }));
       
       setEmployees(mappedData);
@@ -317,7 +320,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       reason: '',
       assigned_clerk: '',
       dept_id: '',
-      designation: '',
+      designation_id: '',
       tal_id: '',
       office_id: '',
       panchayatrajsevarth_id: '',
@@ -342,7 +345,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       reason: employee.reason,
       assigned_clerk: employee.assigned_clerk || '',
       dept_id: employee.dept_id,
-      designation: employee.designation,
+      designation_id: employee.designation_id,
       tal_id: employee.tal_id,
       office_id: employee.office_id,
       panchayatrajsevarth_id: employee.panchayatrajsevarth_id || '',
@@ -373,7 +376,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         reason: formData.reason,
         assigned_clerk: formData.assigned_clerk,
         dept_id: formData.dept_id,
-        designation: formData.designation,
+        designation_id: formData.designation_id,
         tal_id: formData.tal_id,
         office_id: formData.office_id,
         panchayatrajsevarth_id: formData.panchayatrajsevarth_id,
@@ -648,7 +651,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                         {employee.cadre || '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {employee.post_name || '-'}
+                        {employee.post_name || employee.designation_name || '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {employee.appointing_department || '-'}
@@ -845,6 +848,22 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     <option value="">{t('erms.selectDepartment')}</option>
                     {departments.map(dept => (
                       <option key={dept.dept_id} value={dept.dept_id}>{dept.department}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('erms.designation')}
+                  </label>
+                  <select
+                    value={formData.designation_id || ''}
+                    onChange={(e) => setFormData({ ...formData, designation_id: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">{t('erms.selectDesignation')}</option>
+                    {designations.map(designation => (
+                      <option key={designation.designation_id} value={designation.designation_id}>{designation.designation}</option>
                     ))}
                   </select>
                 </div>
