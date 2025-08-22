@@ -41,7 +41,7 @@ interface RetirementRecord {
   status: string | null;
   date_of_submission: string | null;
   type_of_pension: string | null;
-  designation_at_retirement: string | null;
+  designation: string | null;
   department_submitted: string | null;
   date_of_pension_case_approval: string | null;
   group_insurance_benefit: string | null;
@@ -120,7 +120,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
           status,
           date_of_submission,
           type_of_pension,
-          designation_at_retirement,
+          designation,
           department_submitted,
           date_of_pension_case_approval,
           group_insurance_benefit,
@@ -257,7 +257,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
 
   const getDesignationWiseData = () => {
     const designationCounts = retirementRecords.reduce((acc, record) => {
-      const designation = record.designation_at_retirement || 'Unknown';
+      const designation = record.designation || 'Unknown';
       acc[designation] = (acc[designation] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
@@ -284,7 +284,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
           status: editingRecord.status,
           date_of_submission: editingRecord.date_of_submission,
           type_of_pension: editingRecord.type_of_pension,
-          designation_at_retirement: editingRecord.designation_at_retirement,
+          designation: editingRecord.designation,
           department_submitted: editingRecord.department_submitted,
           date_of_pension_case_approval: editingRecord.date_of_pension_case_approval,
           group_insurance_benefit: editingRecord.group_insurance_benefit,
