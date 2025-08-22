@@ -379,13 +379,14 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
 
   const fetchEmployees = async () => {
     try {
+      console.log('🔍 Fetching employees from erms.employee table...');
       const { data, error } = await ermsClient
-        .schema('erms')
         .from('employee')
         .select(`
           emp_id,
           employee_name,
           date_of_birth,
+          age,
           retirement_date,
           reason,
           assigned_clerk,
@@ -393,34 +394,25 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
           designation_id,
           tal_id,
           office_id,
-          date_of_assignment,
-          panchayatrajsevarth_id,
-          ddo_code,
-          "Cadre",
-          "date_of_joining",
           created_at,
-          updated_at,
-          department!inner(department),
-          designations!inner(designation),
-          office_locations!inner(name)
+          updated_at
         `)
         .order('employee_name');
       
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Error fetching employees:', error);
+        throw error;
+      }
       
-      // Map the data to include derived fields
-      const mappedData = (data || []).map(employee => ({
-        ...employee,
-        cadre: employee["Cadre"],
-        date_of_joining: employee["date_of_joining"],
-        department_name: employee.department?.department || '',
-        designation_name: employee.designations?.designation || '',
-        office_name: employee.office_locations?.name || ''
-      }));
+      console.log('✅ Raw employee data from database:', data);
+      console.log('📊 Number of employees fetched:', data?.length || 0);
       
-      setEmployees(mappedData);
+      setEmployees(data || []);
+      console.log('📋 Employees state updated with:', data?.length || 0, 'records');
     } catch (error) {
       console.error('Error fetching employees:', error);
+      // Set empty array on error to prevent undefined state
+      setEmployees([]);
     }
   };
 
