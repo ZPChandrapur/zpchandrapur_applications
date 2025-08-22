@@ -40,9 +40,6 @@ interface Employee {
   panchayatrajsevarth_id: string | null;
   ddo_code: string | null;
   cadre: string;
-  post_name: string;
-  appointing_department: string;
-  working_office_name: string;
   date_of_joining: string | null;
   created_at?: string;
   updated_at?: string;
@@ -109,9 +106,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     panchayatrajsevarth_id: '',
     ddo_code: '',
     cadre: '',
-    post_name: '',
-    appointing_department: '',
-    working_office_name: '',
     date_of_joining: ''
   });
 
@@ -160,7 +154,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
           panchayatrajsevarth_id,
           ddo_code,
           "Cadre",
-          working_office_name,
           date_of_joining,
           created_at,
           updated_at,
@@ -350,9 +343,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       panchayatrajsevarth_id: employee.panchayatrajsevarth_id || '',
       ddo_code: employee.ddo_code || '',
       cadre: employee.cadre,
-      post_name: employee.post_name || '',
-      appointing_department: employee.appointing_department || '',
-      working_office_name: employee.working_office_name || '',
       date_of_joining: employee.date_of_joining?.split('T')[0] || ''
     });
     setShowEditModal(true);
@@ -380,7 +370,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         panchayatrajsevarth_id: formData.panchayatrajsevarth_id,
         ddo_code: formData.ddo_code,
         "Cadre": formData.cadre,
-        working_office_name: formData.working_office_name,
         date_of_joining: formData.date_of_joining
       };
 
@@ -645,13 +634,13 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                         {employee.cadre || '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {employee.post_name || employee.designation_name || '-'}
+                        {employee.designation_name || '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {employee.appointing_department || employee.department_name || '-'}
+                        {employee.department_name || '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {employee.working_office_name || employee.office_name || '-'}
+                        {employee.office_name || '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {employee.date_of_joining ? new Date(employee.date_of_joining).toLocaleDateString() : '-'}
@@ -777,45 +766,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     onChange={(e) => setFormData({ ...formData, cadre: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.postName')}
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.post_name || ''}
-                    onChange={(e) => setFormData({ ...formData, post_name: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder={t('erms.enterPostName')}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.appointingDepartment')}
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.appointing_department || ''}
-                    onChange={(e) => setFormData({ ...formData, appointing_department: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder={t('erms.enterAppointingDepartment')}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.workingOfficeName')}
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.working_office_name || ''}
-                    onChange={(e) => setFormData({ ...formData, working_office_name: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder={t('erms.enterWorkingOfficeName')}
                   />
                 </div>
 
@@ -1031,42 +981,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     onChange={(e) => setFormData({ ...formData, cadre: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.postName')}
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.post_name || ''}
-                    onChange={(e) => setFormData({ ...formData, post_name: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.appointingDepartment')}
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.appointing_department || ''}
-                    onChange={(e) => setFormData({ ...formData, appointing_department: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.workingOfficeName')}
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.working_office_name || ''}
-                    onChange={(e) => setFormData({ ...formData, working_office_name: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
 
