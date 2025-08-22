@@ -802,13 +802,14 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.dateOfServiceExpiry')}
+                    {t('erms.dateOfServiceExpiry')} (Auto-calculated)
                   </label>
                   <input
                     type="date"
                     value={formData.date_of_service_expiry || ''}
                     onChange={(e) => setFormData({ ...formData, date_of_service_expiry: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
+                    disabled
                   />
                 </div>
 
@@ -1033,13 +1034,14 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.dateOfServiceExpiry')}
+                    {t('erms.dateOfServiceExpiry')} (Auto-calculated)
                   </label>
                   <input
                     type="date"
                     value={formData.date_of_service_expiry || ''}
                     onChange={(e) => setFormData({ ...formData, date_of_service_expiry: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
+                    disabled
                   />
                 </div>
 
