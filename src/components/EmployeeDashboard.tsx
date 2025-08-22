@@ -91,6 +91,23 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
   const [clerks, setClerks] = useState<ClerkData[]>([]);
   const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
 
+  // Function to calculate retirement date based on date of birth and cadre
+  const calculateRetirementDate = (dateOfBirth: string, cadre: string): string => {
+    if (!dateOfBirth || !cadre) return '';
+    
+    const birthDate = new Date(dateOfBirth);
+    const retirementAge = cadre.toLowerCase().includes('c') ? 58 : 60;
+    
+    // Calculate retirement date: birth year + retirement age
+    const retirementYear = birthDate.getFullYear() + retirementAge;
+    const retirementMonth = birthDate.getMonth(); // Same month as birth
+    
+    // Get the last day of the retirement month
+    const retirementDate = new Date(retirementYear, retirementMonth + 1, 0);
+    
+    return retirementDate.toISOString().split('T')[0];
+  };
+
   // Form state
   const [formData, setFormData] = useState<Partial<Employee>>({
     emp_id: '',
@@ -740,14 +757,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   <input
                     type="date"
                     value={formData.date_of_birth || ''}
-                    onChange={(e) => {
-                      const newFormData = { ...formData, date_of_birth: e.target.value };
-                      // Calculate retirement date when date of birth changes
-                      if (e.target.value && newFormData.cadre) {
-                        newFormData.retirement_date = calculateRetirementDate(e.target.value, newFormData.cadre);
-                      }
-                      setFormData(newFormData);
-                    }}
+                    onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
