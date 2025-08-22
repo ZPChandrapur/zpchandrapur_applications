@@ -30,7 +30,7 @@ interface ERMSDashboardProps {
 
 export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, onBack }) => {
   const { t } = useTranslation();
-  const [activeModule, setActiveModule] = useState<string | null>('employee-dashboard');
+  const [activeModule, setActiveModule] = useState<string | null>(null);
 
   const modules = [
     {
@@ -100,12 +100,47 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, onBack }) =>
   };
 
   const renderModuleContent = () => {
+    // Show main dashboard if no module is selected
+    if (!activeModule) {
+      return (
+        <div className="p-8">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              Employee Retirement Management System
+            </h2>
+            <p className="text-lg text-gray-600">
+              Select a module from the sidebar to get started
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {modules.map((module) => (
+              <button
+                key={module.id}
+                onClick={() => setActiveModule(module.id)}
+                className="p-6 bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 text-left"
+              >
+                <div className={`${module.color} ${module.hoverColor} p-3 rounded-lg w-fit mb-4`}>
+                  <module.icon className="h-6 w-6 text-white" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  {module.name}
+                </h3>
+                <p className="text-sm text-gray-600">
+                  {module.description}
+                </p>
+              </button>
+            ))}
+          </div>
+        </div>
+      );
+    }
 
     switch (activeModule) {
-      case 'employee-dashboard':
-        return <EmployeeDashboard onBack={handleBackToMain} />;
       case 'organization-setup':
         return <OrganizationSetup onBack={handleBackToMain} />;
+      case 'employee-dashboard':
+        return <EmployeeDashboard onBack={handleBackToMain} />;
       case 'retirement-dashboard':
         return <RetirementDashboard user={user} onBack={handleBackToMain} />;
       case 'retirement-tracker':
@@ -123,7 +158,7 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, onBack }) =>
       case 'instructions':
         return <InstructionsDashboard user={user} onBack={handleBackToMain} />;
       default:
-        return <EmployeeDashboard onBack={handleBackToMain} />;
+        return null;
     }
   };
 
