@@ -28,32 +28,9 @@ interface ERMSDashboardProps {
   onBack: () => void;
 }
 
-// Session storage key for active module persistence
-const ACTIVE_MODULE_KEY = 'erms_active_module';
-
-// Get persisted active module from session storage
-const getPersistedActiveModule = (): string => {
-  try {
-    const stored = sessionStorage.getItem(ACTIVE_MODULE_KEY);
-    return stored || 'employee-dashboard';
-  } catch (error) {
-    console.warn('Failed to read from sessionStorage:', error);
-    return 'employee-dashboard';
-  }
-};
-
-// Persist active module to session storage
-const persistActiveModule = (moduleId: string): void => {
-  try {
-    sessionStorage.setItem(ACTIVE_MODULE_KEY, moduleId);
-  } catch (error) {
-    console.warn('Failed to write to sessionStorage:', error);
-  }
-};
-
 export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, onBack }) => {
   const { t } = useTranslation();
-  const [activeModule, setActiveModule] = useState<string>(getPersistedActiveModule());
+  const [activeModule, setActiveModule] = useState<string | null>('employee-dashboard');
 
   const modules = [
     {
@@ -103,99 +80,32 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, onBack }) =>
       icon: BarChart3,
       color: 'bg-teal-500',
       hoverColor: 'hover:bg-teal-600'
-    },
-    {
-      id: 'instructions',
-      name: t('erms.instructions'),
-      description: t('erms.instructionsDesc'),
-      icon: BookOpen,
-      color: 'bg-amber-500',
-      hoverColor: 'hover:bg-amber-600'
     }
   ];
 
   const handleModuleClick = (moduleId: string) => {
-    // Persist the selected module to session storage
-    persistActiveModule(moduleId);
     setActiveModule(moduleId);
   };
 
   const handleBackToMain = () => {
-    // When going back, return to employee dashboard and persist it
-    const defaultModule = 'employee-dashboard';
-    persistActiveModule(defaultModule);
-    setActiveModule(defaultModule);
+    setActiveModule('employee-dashboard');
   };
-
-  // Handle browser tab visibility changes to maintain state
-  React.useEffect(() => {
-    const handleVisibilityChange = () => {
-      // When tab becomes visible again, ensure we're on the correct module
-      if (!document.hidden) {
-        const persistedModule = getPersistedActiveModule();
-        if (persistedModule !== activeModule) {
-          setActiveModule(persistedModule);
-        }
-      }
-    };
-
-    const handleFocus = () => {
-      // When window regains focus, sync with persisted state
-      const persistedModule = getPersistedActiveModule();
-      if (persistedModule !== activeModule) {
-        setActiveModule(persistedModule);
-      }
-    };
-
-    // Add event listeners for tab/window focus changes
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('focus', handleFocus);
-
-    // Cleanup event listeners
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('focus', handleFocus);
-    };
-  }, [activeModule]);
-
-  // Handle browser back/forward navigation
-  React.useEffect(() => {
-    const handlePopState = () => {
-      // Maintain current module state on browser navigation
-      const persistedModule = getPersistedActiveModule();
-      setActiveModule(persistedModule);
-    };
-
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, []);
-
-  // Clean up session storage when component unmounts (user leaves ERMS)
-  React.useEffect(() => {
-    return () => {
-      // Optional: Clear session storage when leaving ERMS entirely
-      // Uncomment if you want to reset to employee dashboard when user leaves ERMS
-      // sessionStorage.removeItem(ACTIVE_MODULE_KEY);
-    };
-  }, []);
 
   const renderModuleContent = () => {
     switch (activeModule) {
-      case 'employee-dashboard':
-        return <EmployeeDashboard onBack={handleBackToMain} />;
       case 'organization-setup':
-        return <OrganizationSetup onBack={handleBackToMain} />;
+        return <OrganizationSetup user={user} onBack={handleBackToMain} />;
       case 'retirement-dashboard':
         return <RetirementDashboard user={user} onBack={handleBackToMain} />;
       case 'retirement-tracker':
         return <RetirementTracker user={user} onBack={handleBackToMain} />;
+      case 'employee-dashboard':
+        return <EmployeeDashboard onBack={handleBackToMain} />;
       case 'custom-reports':
         return <CustomReports user={user} onBack={handleBackToMain} />;
       case 'instructions':
         return <InstructionsDashboard user={user} onBack={handleBackToMain} />;
       default:
-        // Fallback to employee dashboard if invalid module
-        persistActiveModule('employee-dashboard');
         return <EmployeeDashboard onBack={handleBackToMain} />;
     }
   };

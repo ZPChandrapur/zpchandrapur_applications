@@ -249,14 +249,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
   };
 
   const handleAppClick = (appId: string) => {
-    // Clear any existing ERMS session state when switching to a different app
-    if (appId !== 'erms') {
-      try {
-        sessionStorage.removeItem('erms_active_module');
-      } catch (error) {
-        console.warn('Failed to clear ERMS session state:', error);
-      }
-    }
     setSelectedApp(appId);
   };
 
