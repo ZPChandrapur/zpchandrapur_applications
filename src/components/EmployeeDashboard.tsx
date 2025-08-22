@@ -165,6 +165,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     return retirementDate.toISOString().split('T')[0];
   };
   const [persistenceEnabled, setPersistenceEnabled] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState<Partial<Employee>>(initialModalState.formData);
@@ -248,6 +249,48 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     }
   };
 
+  // Save form data to localStorage
+  const saveFormData = () => {
+    if (persistenceEnabled && isInitialized) {
+      try {
+        const formState = {
+          data: formData,
+          timestamp: Date.now()
+        };
+        localStorage.setItem(FORM_DATA_KEY, JSON.stringify(formState));
+      } catch (error) {
+        console.warn('Failed to save form data:', error);
+      }
+    }
+  };
+
+  // Clear persisted state
+  const clearPersistedState = () => {
+    try {
+      localStorage.removeItem(MODAL_STATE_KEY);
+      localStorage.removeItem(FORM_DATA_KEY);
+    } catch (error) {
+      console.warn('Failed to clear persisted state:', error);
+    }
+  };
+
+  // Auto-save form data when it changes
+  useEffect(() => {
+    if (persistenceEnabled && isInitialized) {
+      saveFormData();
+    }
+  }, [formData, persistenceEnabled, isInitialized]);
+
+  // Handle page visibility and beforeunload events
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden' && persistenceEnabled) {
+        saveFormData();
+      }
+    };
+
+    const handleBeforeUnload = () => {
+      if (persistenceEnabled) {
         saveFormData();
       }
     };
@@ -482,7 +525,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       reason: employee.reason || '',
       assigned_clerk: employee.assigned_clerk || '',
       dept_id: employee.dept_id || '',
-    clearPersistedState();
       designation_id: employee.designation_id || '',
       tal_id: employee.tal_id || '',
       office_id: employee.office_id || '',
@@ -865,6 +907,9 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                           clerks.find(c => c.user_id === employee.assigned_clerk)?.name || t('erms.unassigned')
                           : t('erms.unassigned')
                         }
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {employee.date_of_joining ? new Date(employee.date_of_joining).toLocaleDateString() : '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {employee.retirement_date ? new Date(employee.retirement_date).toLocaleDateString() : '-'}
