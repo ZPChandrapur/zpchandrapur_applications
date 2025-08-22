@@ -211,10 +211,104 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
 
   useEffect(() => {
     fetchAllData();
-    loadPersistedState();
-    setIsInitialized(true);
-    setPersistenceEnabled(true);
+    // Enable persistence after initial load
+    setTimeout(() => {
+      loadPersistedState();
+      setPersistenceEnabled(true);
+    }, 100);
+    
+    // Add event listeners for persistence
+    const handleVisibilityChange = () => {
+      if (!document.hidden && persistenceEnabled) {
+        loadPersistedState();
+      }
+    };
+    
+    const handleBeforeUnload = () => {
+      if (persistenceEnabled && (showAddModal || editingEmployee)) {
+        saveCurrentState();
+      }
+    };
+    
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'erms-employee-modal-state' && persistenceEnabled) {
+        loadPersistedState();
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('storage', handleStorageChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, []);
+
+  // Save current state to localStorage
+  const saveCurrentState = () => {
+    if (!persistenceEnabled) return;
+    
+    try {
+      const state = {
+        showAddModal,
+        editingEmployee,
+        formData,
+        timestamp: Date.now()
+      };
+      localStorage.setItem('erms-employee-modal-state', JSON.stringify(state));
+    } catch (error) {
+      console.warn('Failed to save modal state:', error);
+    }
+  };
+  
+  // Load persisted state from localStorage
+  const loadPersistedState = () => {
+    try {
+      const saved = localStorage.getItem('erms-employee-modal-state');
+      if (!saved) return;
+      
+      const state = JSON.parse(saved);
+      const isRecent = Date.now() - state.timestamp < 24 * 60 * 60 * 1000; // 24 hours
+      
+      if (isRecent && (state.showAddModal || state.editingEmployee)) {
+        setShowAddModal(state.showAddModal);
+        setEditingEmployee(state.editingEmployee);
+        setFormData(state.formData || getInitialFormData());
+      }
+    } catch (error) {
+      console.warn('Failed to load modal state:', error);
+    }
+  };
+  
+  // Clear persisted state
+  const clearPersistedState = () => {
+    try {
+      localStorage.removeItem('erms-employee-modal-state');
+    } catch (error) {
+      console.warn('Failed to clear modal state:', error);
+    }
+  };
+  
+  // Auto-save state when modal or form data changes
+  useEffect(() => {
+    if (persistenceEnabled && (showAddModal || editingEmployee)) {
+      saveCurrentState();
+    }
+  }, [showAddModal, editingEmployee, formData, persistenceEnabled]);
+  
+  // Auto-save form data on input changes
+  useEffect(() => {
+    if (persistenceEnabled && (showAddModal || editingEmployee)) {
+      const timeoutId = setTimeout(() => {
+        saveCurrentState();
+      }, 500); // Debounce saves
+      
+      return () => clearTimeout(timeoutId);
+    }
+  }, [formData]);
 
   // Load persisted state on component mount
   const loadPersistedState = () => {
@@ -659,6 +753,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       // Show success message
       alert(t('common.success') + ': Employee deleted successfully');
       await fetchEmployees();
+      clearPersistedState();
     } catch (error) {
       console.error('Error deleting employee:', error);
       
