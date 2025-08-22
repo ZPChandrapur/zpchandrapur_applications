@@ -857,6 +857,46 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Cadre <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={newEmployee.cadre}
+                    onChange={(e) => setNewEmployee({ ...newEmployee, cadre: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Enter cadre"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Panchayatraj Sevarth ID
+                  </label>
+                  <input
+                    type="text"
+                    value={newEmployee.panchayatraj_sevarth_id}
+                    onChange={(e) => setNewEmployee({ ...newEmployee, panchayatraj_sevarth_id: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Enter Panchayatraj Sevarth ID"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    DDO Code
+                  </label>
+                  <input
+                    type="text"
+                    value={newEmployee.ddo_code}
+                    onChange={(e) => setNewEmployee({ ...newEmployee, ddo_code: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Enter DDO Code"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     {t('erms.dateOfBirth')}
                   </label>
                   <div className="space-y-2">
@@ -1093,73 +1133,3 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   </label>
                   <select
                     value={newEmployee.office_id}
-                    onChange={(e) => setNewEmployee({ ...newEmployee, office_id: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="">{t('erms.selectOffice')}</option>
-                    {officeLocations.map(office => (
-                      <option key={office.office_id} value={office.office_id}>
-                        {office.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.assignedClerk')}
-                  </label>
-                  <select
-                    value={newEmployee.assigned_clerk}
-                    onChange={(e) => setNewEmployee({ ...newEmployee, assigned_clerk: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="">{t('erms.selectClerk')}</option>
-                    <option value="">अनियुक्त (Unassigned)</option>
-                    {clerks.map(clerk => (
-                      <option key={clerk.user_id} value={clerk.user_id}>
-                        {clerk.name} ({clerk.role_name})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.retirementReason')}
-                  </label>
-                  <select
-                    value={newEmployee.reason}
-                    onChange={(e) => setNewEmployee({ ...newEmployee, reason: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="">{t('erms.selectReason')}</option>
-                    <option value="नियत वयोमान">नियत वयोमान</option>
-                    <option value="मृत्यू झाल्याने">मृत्यू झाल्याने</option>
-                    <option value="स्वेच्छा सेवा निवृत्ती">स्वेच्छा सेवा निवृत्ती</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-            
-            <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200">
-              <button
-                onClick={() => setShowEditModal(false)}
-                className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200"
-              >
-                {t('common.cancel')}
-              </button>
-              <button
-                onClick={handleUpdateEmployee}
-                disabled={isLoading}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 disabled:opacity-50"
-              >
-                {isLoading ? t('erms.updating') : t('erms.updateEmployee')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
