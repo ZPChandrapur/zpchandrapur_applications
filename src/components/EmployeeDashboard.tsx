@@ -142,28 +142,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     try {
       const { data, error } = await ermsClient
         .from('employee')
-        .select(`
-          emp_id,
-          employee_name,
-          date_of_birth,
-          age,
-          department,
-          designation,
-          taluka,
-          office,
-          retirement_date,
-          reason,
-          assigned_clerk,
-          date_of_assignment,
-          panchayatrajsevarth_id,
-          ddo_code,
-          cadre,
-          post_name,
-          appointing_department,
-          working_office_name,
-          date_of_joining,
-          date_of_service_expiry
-        `)
+        .select('*')
         .order('employee_name');
       
       if (error) throw error;
@@ -297,7 +276,12 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         date_of_assignment: '',
         panchayatraj_sevarth_id: '',
         ddo_code: '',
-        cadre: ''
+        cadre: '',
+        post_name: '',
+        appointing_department: '',
+        working_office_name: '',
+        date_of_joining: '',
+        date_of_service_expiry: ''
       });
     } catch (error) {
       console.error('Error adding employee:', error);
