@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useFormPersistence } from '../hooks/useFormPersistence';
+import { useNavigationWarning } from '../hooks/useNavigationWarning';
+import { AutoSaveIndicator } from './AutoSaveIndicator';
 import { 
   Users,
   Calendar,
@@ -13,7 +16,8 @@ import {
   RefreshCw,
   X,
   Filter,
-  Download
+  Download,
+  AlertCircle
 } from 'lucide-react';
 import { ermsClient, supabase } from '../lib/supabase';
 import { usePermissions } from '../hooks/usePermissions';
@@ -83,6 +87,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   const [error, setError] = useState('');
+  const [showUnsavedWarning, setShowUnsavedWarning] = useState(false);
   
   // Data states
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -110,8 +115,8 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     return retirementDate.toISOString().split('T')[0];
   };
 
-  // Form state
-  const [formData, setFormData] = useState<Partial<Employee>>({
+  // Initial form data
+  const initialFormData = {
     emp_id: '',
     employee_name: '',
     date_of_birth: '',
@@ -126,6 +131,33 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     ddo_code: '',
     cadre: '',
     date_of_joining: ''
+  };
+
+  // Form persistence hook
+  const {
+    formData,
+    isDirty,
+    isAutoSaving,
+    lastSaved,
+    updateFormData,
+    saveForm,
+    resetForm,
+    clearPersistedData
+  } = useFormPersistence(initialFormData, {
+    key: showAddModal ? 'add-employee' : showEditModal ? `edit-employee-${editingEmployee?.emp_id}` : 'employee-form',
+    autoSaveInterval: 3000, // Auto-save every 3 seconds
+    enableBeforeUnload: showAddModal || showEditModal
+  });
+
+  // Navigation warning hook
+  const { confirmNavigation } = useNavigationWarning({
+    when: (showAddModal || showEditModal) && isDirty,
+    message: t('common.unsavedChangesWarning', 'You have unsaved changes. Are you sure you want to leave?'),
+    onNavigate: () => {
+      setShowAddModal(false);
+      setShowEditModal(false);
+      clearPersistedData();
+    }
   });
 
   useEffect(() => {
@@ -323,32 +355,14 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
   const handleAddEmployee = () => {
     setEditingEmployee(null);
     setError(''); // Clear any previous errors
-    setFormData({
-      emp_id: '',
-      employee_name: '',
-      date_of_birth: '',
-      retirement_date: '',
-      reason: '',
-      assigned_clerk: '',
-      dept_id: '',
-      designation_id: '',
-      tal_id: '',
-      office_id: '',
-      panchayatrajsevarth_id: '',
-      ddo_code: '',
-      cadre: '',
-      post_name: '',
-      appointing_department: '',
-      working_office_name: '',
-      date_of_joining: ''
-    });
+    resetForm();
     setShowAddModal(true);
   };
 
   const handleEditEmployee = (employee: Employee) => {
     setEditingEmployee(employee);
     setError(''); // Clear any previous errors
-    setFormData({
+    const editData = {
       emp_id: employee.emp_id,
       employee_name: employee.employee_name,
       date_of_birth: employee.date_of_birth?.split('T')[0] || '',
@@ -363,7 +377,9 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       ddo_code: employee.ddo_code || '',
       cadre: employee.cadre,
       date_of_joining: employee.date_of_joining?.split('T')[0] || ''
-    });
+    };
+    resetForm();
+    updateFormData(editData);
     setShowEditModal(true);
   };
 
@@ -407,9 +423,10 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       }
       
       await fetchEmployees();
-      setShowAddModal(false);
-      setShowEditModal(false);
-      setFormData({});
+      clearPersistedData();
+      resetForm();
+      if (showAddModal) setShowAddModal(false);
+      if (showEditModal) setShowEditModal(false);
       setError(''); // Clear errors on success
     } catch (error) {
       console.error('Error saving employee:', error);
@@ -445,6 +462,29 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     setSelectedDepartment('');
     setSelectedClerk('');
     setSelectedReason('');
+  };
+
+  const handleCloseModal = () => {
+    if (isDirty) {
+      setShowUnsavedWarning(true);
+    } else {
+      setShowAddModal(false);
+      setShowEditModal(false);
+      clearPersistedData();
+      resetForm();
+    }
+  };
+
+  const handleConfirmClose = () => {
+    setShowUnsavedWarning(false);
+    setShowAddModal(false);
+    setShowEditModal(false);
+    clearPersistedData();
+    resetForm();
+  };
+
+  const handleCancelClose = () => {
+    setShowUnsavedWarning(false);
   };
 
   const assignedCount = employees.filter(emp => emp.assigned_clerk).length;
@@ -674,6 +714,9 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                         }
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {employee.date_of_joining ? new Date(employee.date_of_joining).toLocaleDateString() : '-'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {employee.retirement_date ? new Date(employee.retirement_date).toLocaleDateString() : '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -718,12 +761,19 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
           <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <h3 className="text-lg font-semibold text-gray-900">{t('erms.addEmployee')}</h3>
-              <button
-                onClick={() => setShowAddModal(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X className="h-5 w-5" />
-              </button>
+              <div className="flex items-center space-x-3">
+                <AutoSaveIndicator
+                  isDirty={isDirty}
+                  isAutoSaving={isAutoSaving}
+                  lastSaved={lastSaved}
+                />
+                <button
+                  onClick={handleCloseModal}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
             </div>
             
             <div className="p-6">
@@ -745,7 +795,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   <input
                     type="text"
                     value={formData.panchayatrajsevarth_id || ''}
-                    onChange={(e) => setFormData({ ...formData, panchayatrajsevarth_id: e.target.value })}
+                    onChange={(e) => updateFormData({ panchayatrajsevarth_id: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder={t('erms.enterEmployeeId')}
                   />
@@ -758,7 +808,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   <input
                     type="text"
                     value={formData.emp_id || ''}
-                    onChange={(e) => setFormData({ ...formData, emp_id: e.target.value })}
+                    onChange={(e) => updateFormData({ emp_id: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder={t('erms.enterEmployeeId')}
                   />
@@ -771,7 +821,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   <input
                     type="text"
                     value={formData.employee_name || ''}
-                    onChange={(e) => setFormData({ ...formData, employee_name: e.target.value })}
+                    onChange={(e) => updateFormData({ employee_name: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder={t('erms.enterEmployeeName')}
                     required
@@ -785,7 +835,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   <input
                     type="date"
                     value={formData.date_of_birth || ''}
-                    onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
+                    onChange={(e) => updateFormData({ date_of_birth: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
@@ -797,7 +847,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   <input
                     type="text"
                     value={formData.ddo_code || ''}
-                    onChange={(e) => setFormData({ ...formData, ddo_code: e.target.value })}
+                    onChange={(e) => updateFormData({ ddo_code: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
@@ -809,7 +859,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   <input
                     type="text"
                     value={formData.cadre || ''}
-                    onChange={(e) => setFormData({ ...formData, cadre: e.target.value })}
+                    onChange={(e) => updateFormData({ cadre: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                   />
@@ -822,7 +872,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   <input
                     type="date"
                     value={formData.date_of_joining || ''}
-                    onChange={(e) => setFormData({ ...formData, date_of_joining: e.target.value })}
+                    onChange={(e) => updateFormData({ date_of_joining: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
@@ -834,7 +884,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   <input
                     type="date"
                     value={formData.date_of_service_expiry || ''}
-                    onChange={(e) => setFormData({ ...formData, date_of_service_expiry: e.target.value })}
+                    onChange={(e) => updateFormData({ date_of_service_expiry: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
                     disabled
                   />
@@ -846,7 +896,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   </label>
                   <select
                     value={formData.reason || ''}
-                    onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
+                    onChange={(e) => updateFormData({ reason: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="">{t('erms.selectReason')}</option>
@@ -862,7 +912,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   </label>
                   <select
                     value={formData.dept_id || ''}
-                    onChange={(e) => setFormData({ ...formData, dept_id: e.target.value })}
+                    onChange={(e) => updateFormData({ dept_id: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="">{t('erms.selectDepartment')}</option>
@@ -878,7 +928,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   </label>
                   <select
                     value={formData.designation_id || ''}
-                    onChange={(e) => setFormData({ ...formData, designation_id: e.target.value })}
+                    onChange={(e) => updateFormData({ designation_id: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="">{t('erms.selectDesignation')}</option>
@@ -894,7 +944,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   </label>
                   <select
                     value={formData.tal_id || ''}
-                    onChange={(e) => setFormData({ ...formData, tal_id: e.target.value })}
+                    onChange={(e) => updateFormData({ tal_id: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="">{t('erms.selectTaluka')}</option>
@@ -910,7 +960,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   </label>
                   <select
                     value={formData.office_id || ''}
-                    onChange={(e) => setFormData({ ...formData, office_id: e.target.value })}
+                    onChange={(e) => updateFormData({ office_id: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="">{t('erms.selectOffice')}</option>
@@ -926,7 +976,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   </label>
                   <select
                     value={formData.assigned_clerk || ''}
-                    onChange={(e) => setFormData({ ...formData, assigned_clerk: e.target.value })}
+                    onChange={(e) => updateFormData({ assigned_clerk: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="">{t('erms.selectClerk')}</option>
@@ -940,7 +990,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
             
             <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200">
               <button
-                onClick={() => setShowAddModal(false)}
+                onClick={handleCloseModal}
                 className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200"
               >
                 {t('common.cancel')}
@@ -963,12 +1013,19 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
           <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <h3 className="text-lg font-semibold text-gray-900">{t('erms.editEmployee')}</h3>
-              <button
-                onClick={() => setShowEditModal(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X className="h-5 w-5" />
-              </button>
+              <div className="flex items-center space-x-3">
+                <AutoSaveIndicator
+                  isDirty={isDirty}
+                  isAutoSaving={isAutoSaving}
+                  lastSaved={lastSaved}
+                />
+                <button
+                  onClick={handleCloseModal}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
             </div>
             
             <div className="p-6">
@@ -980,7 +1037,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   <input
                     type="text"
                     value={formData.panchayatrajsevarth_id || ''}
-                    onChange={(e) => setFormData({ ...formData, panchayatrajsevarth_id: e.target.value })}
+                    onChange={(e) => updateFormData({ panchayatrajsevarth_id: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
@@ -992,7 +1049,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   <input
                     type="text"
                     value={formData.emp_id || ''}
-                    onChange={(e) => setFormData({ ...formData, emp_id: e.target.value })}
+                    onChange={(e) => updateFormData({ emp_id: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
@@ -1004,7 +1061,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   <input
                     type="text"
                     value={formData.employee_name || ''}
-                    onChange={(e) => setFormData({ ...formData, employee_name: e.target.value })}
+                    onChange={(e) => updateFormData({ employee_name: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                   />
@@ -1017,7 +1074,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   <input
                     type="date"
                     value={formData.date_of_birth || ''}
-                    onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
+                    onChange={(e) => updateFormData({ date_of_birth: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
@@ -1029,7 +1086,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   <input
                     type="text"
                     value={formData.ddo_code || ''}
-                    onChange={(e) => setFormData({ ...formData, ddo_code: e.target.value })}
+                    onChange={(e) => updateFormData({ ddo_code: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
@@ -1041,7 +1098,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   <input
                     type="text"
                     value={formData.cadre || ''}
-                    onChange={(e) => setFormData({ ...formData, cadre: e.target.value })}
+                    onChange={(e) => updateFormData({ cadre: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                   />
@@ -1054,7 +1111,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   <input
                     type="date"
                     value={formData.date_of_joining || ''}
-                    onChange={(e) => setFormData({ ...formData, date_of_joining: e.target.value })}
+                    onChange={(e) => updateFormData({ date_of_joining: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
@@ -1066,7 +1123,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   <input
                     type="date"
                     value={formData.date_of_service_expiry || ''}
-                    onChange={(e) => setFormData({ ...formData, date_of_service_expiry: e.target.value })}
+                    onChange={(e) => updateFormData({ date_of_service_expiry: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
                     disabled
                   />
@@ -1078,7 +1135,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   </label>
                   <select
                     value={formData.reason || ''}
-                    onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
+                    onChange={(e) => updateFormData({ reason: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="">{t('erms.selectReason')}</option>
@@ -1092,7 +1149,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
             
             <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200">
               <button
-                onClick={() => setShowEditModal(false)}
+                onClick={handleCloseModal}
                 className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200"
               >
                 {t('common.cancel')}
@@ -1104,6 +1161,41 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
               >
                 {isLoading ? t('erms.updating') : t('erms.updateEmployee')}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Unsaved Changes Warning Modal */}
+      {showUnsavedWarning && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60]">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div className="p-6">
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="bg-orange-100 p-2 rounded-full">
+                  <AlertCircle className="h-6 w-6 text-orange-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  {t('common.unsavedChanges', 'Unsaved Changes')}
+                </h3>
+              </div>
+              <p className="text-gray-600 mb-6">
+                {t('common.unsavedChangesWarning', 'You have unsaved changes. Are you sure you want to leave without saving?')}
+              </p>
+              <div className="flex items-center justify-end space-x-3">
+                <button
+                  onClick={handleCancelClose}
+                  className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200"
+                >
+                  {t('common.cancel')}
+                </button>
+                <button
+                  onClick={handleConfirmClose}
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200"
+                >
+                  {t('common.discardChanges', 'Discard Changes')}
+                </button>
+              </div>
             </div>
           </div>
         </div>
