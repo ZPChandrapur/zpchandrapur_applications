@@ -310,39 +310,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     }
   }, [formData]);
 
-  // Load persisted state on component mount
-  const loadPersistedState = () => {
-    try {
-      const savedModalState = localStorage.getItem(MODAL_STATE_KEY);
-      const savedFormData = localStorage.getItem(FORM_DATA_KEY);
-      
-      if (savedModalState) {
-        const modalState = JSON.parse(savedModalState);
-        const now = Date.now();
-        
-        // Check if state is recent (within 24 hours)
-        if (modalState.timestamp && (now - modalState.timestamp) < 24 * 60 * 60 * 1000) {
-          if (modalState.showAddModal) {
-            setShowAddModal(true);
-          }
-          if (modalState.editingEmployee) {
-            setEditingEmployee(modalState.editingEmployee);
-            setShowAddModal(true);
-          }
-        }
-      }
-      
-      if (savedFormData) {
-        const formState = JSON.parse(savedFormData);
-        if (formState.timestamp && (Date.now() - formState.timestamp) < 24 * 60 * 60 * 1000) {
-          setFormData(formState.data);
-        }
-      }
-    } catch (error) {
-      console.warn('Failed to load persisted state:', error);
-    }
-  };
-
   // Save form data to localStorage
   const saveFormData = () => {
     if (persistenceEnabled && isInitialized) {
@@ -355,16 +322,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       } catch (error) {
         console.warn('Failed to save form data:', error);
       }
-    }
-  };
-
-  // Clear persisted state
-  const clearPersistedState = () => {
-    try {
-      localStorage.removeItem(MODAL_STATE_KEY);
-      localStorage.removeItem(FORM_DATA_KEY);
-    } catch (error) {
-      console.warn('Failed to clear persisted state:', error);
     }
   };
 
