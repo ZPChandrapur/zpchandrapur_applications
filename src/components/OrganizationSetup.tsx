@@ -17,7 +17,6 @@ import {
 } from 'lucide-react';
 import { ermsClient } from '../lib/supabase';
 
-interface OrganizationSetupProps {
   onBack: () => void;
 }
 
