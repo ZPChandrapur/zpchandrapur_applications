@@ -26,7 +26,6 @@ interface Employee {
   emp_id: string;
   employee_name: string;
   date_of_birth: string;
-  age: number;
   retirement_date: string;
   reason: string;
   assigned_clerk: string | null;
@@ -99,7 +98,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     emp_id: '',
     employee_name: '',
     date_of_birth: '',
-    age: 0,
     retirement_date: '',
     reason: '',
     assigned_clerk: '',
@@ -151,7 +149,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
           emp_id,
           employee_name,
           date_of_birth,
-          age,
           retirement_date,
           reason,
           assigned_clerk,
@@ -310,7 +307,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       emp_id: '',
       employee_name: '',
       date_of_birth: '',
-      age: 0,
       retirement_date: '',
       reason: '',
       assigned_clerk: '',
@@ -336,7 +332,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       emp_id: employee.emp_id,
       employee_name: employee.employee_name,
       date_of_birth: employee.date_of_birth?.split('T')[0] || '',
-      age: employee.age,
       retirement_date: employee.retirement_date?.split('T')[0] || '',
       reason: employee.reason,
       assigned_clerk: employee.assigned_clerk || '',
@@ -368,7 +363,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         emp_id: formData.emp_id,
         employee_name: formData.employee_name,
         date_of_birth: formData.date_of_birth,
-        age: formData.age,
         retirement_date: formData.retirement_date,
         reason: formData.reason,
         assigned_clerk: formData.assigned_clerk,
