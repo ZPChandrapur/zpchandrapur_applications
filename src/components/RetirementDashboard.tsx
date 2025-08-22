@@ -44,14 +44,6 @@ interface RetirementRecord {
   designation: string | null;
   department_submitted: string | null;
   date_of_pension_case_approval: string | null;
-  group_insurance_benefit: string | null;
-  gratuity_benefit: string | null;
-  leave_encashment_benefit: string | null;
-  medical_allowance_benefit: string | null;
-  hometown_travel_allowance: string | null;
-  pending_travel_allowance: string | null;
-  government_decision_march_2023: string | null;
-  government_decision_compliance: string | null;
   created_at?: string;
   updated_at?: string;
 }
@@ -123,14 +115,6 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
           designation,
           department_submitted,
           date_of_pension_case_approval,
-          group_insurance_benefit,
-          gratuity_benefit,
-          leave_encashment_benefit,
-          medical_allowance_benefit,
-          hometown_travel_allowance,
-          pending_travel_allowance,
-          government_decision_march_2023,
-          government_decision_compliance,
           created_at,
           updated_at
         `)
@@ -286,15 +270,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
           type_of_pension: editingRecord.type_of_pension,
           designation: editingRecord.designation,
           department_submitted: editingRecord.department_submitted,
-          date_of_pension_case_approval: editingRecord.date_of_pension_case_approval,
-          group_insurance_benefit: editingRecord.group_insurance_benefit,
-          gratuity_benefit: editingRecord.gratuity_benefit,
-          leave_encashment_benefit: editingRecord.leave_encashment_benefit,
-          medical_allowance_benefit: editingRecord.medical_allowance_benefit,
-          hometown_travel_allowance: editingRecord.hometown_travel_allowance,
-          pending_travel_allowance: editingRecord.pending_travel_allowance,
-          government_decision_march_2023: editingRecord.government_decision_march_2023,
-          government_decision_compliance: editingRecord.government_decision_compliance
+          date_of_pension_case_approval: editingRecord.date_of_pension_case_approval
         })
         .eq('id', editingRecord.id);
 
