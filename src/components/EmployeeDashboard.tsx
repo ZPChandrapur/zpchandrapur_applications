@@ -920,79 +920,26 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     />
                     <div className="text-xs text-gray-500">
                       Or type manually: DD-MM-YYYY (e.g., 06-02-1962)
-                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.panchayatrajsevarthId')}</label>
+                    </div>
                     <input
                       type="text"
                       placeholder="DD-MM-YYYY (e.g., 06-02-1962)"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                       onChange={(e) => {
-                      placeholder={t('erms.ddoCode')}
+                        const value = e.target.value;
                         // Convert DD-MM-YYYY to YYYY-MM-DD for date input
                         if (value.match(/^\d{2}-\d{2}-\d{4}$/)) {
                           const [day, month, year] = value.split('-');
                           const isoDate = `${year}-${month}-${day}`;
-                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.cadre')} <span className="text-red-500">*</span></label>
+                          setNewEmployee({ ...newEmployee, date_of_birth: isoDate });
                         }
-                      placeholder={t('erms.panchayatrajsevarthId')}
+                      }}
                     />
                   </div>
                 </div>
-                      placeholder={t('erms.cadre')}
-                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.ddoCode')}</label>
+                
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.postName')}</label>
-                    <input
-                      type="text"
-                      value={formData.post_name}
-                      onChange={(e) => setFormData({ ...formData, post_name: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder={t('erms.postName')}
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.appointingDepartment')}</label>
-                    <input
-                      type="text"
-                      value={formData.appointing_department}
-                      onChange={(e) => setFormData({ ...formData, appointing_department: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder={t('erms.appointingDepartment')}
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.workingOfficeName')}</label>
-                    <input
-                      type="text"
-                      value={formData.working_office_name}
-                      onChange={(e) => setFormData({ ...formData, working_office_name: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder={t('erms.workingOfficeName')}
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.dateOfJoining')}</label>
-                    <input
-                      type="date"
-                      value={formData.date_of_joining ? formData.date_of_joining.split('T')[0] : ''}
-                      onChange={(e) => setFormData({ ...formData, date_of_joining: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.dateOfServiceExpiry')}</label>
-                    <input
-                      type="date"
-                      value={formData.date_of_service_expiry ? formData.date_of_service_expiry.split('T')[0] : ''}
-                      onChange={(e) => setFormData({ ...formData, date_of_service_expiry: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
                     {t('erms.department')}
                   </label>
                   <select
