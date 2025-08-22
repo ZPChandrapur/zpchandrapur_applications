@@ -153,10 +153,8 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
           reason,
           assigned_clerk,
           dept_id,
-          department,
           designation,
           tal_id,
-          office_id,
           date_of_assignment,
           panchayatrajsevarth_id,
           ddo_code,
@@ -172,7 +170,15 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         .order('employee_name');
       
       if (error) throw error;
-      setEmployees(data || []);
+      
+      // Map the data to include derived fields
+      const mappedData = (data || []).map(employee => ({
+        ...employee,
+        department: employee.appointing_department || '',
+        office_id: employee.working_office_name || ''
+      }));
+      
+      setEmployees(mappedData);
     } catch (error) {
       console.error('Error fetching employees:', error);
     }
@@ -378,7 +384,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         working_office_name: formData.working_office_name,
         date_of_joining: formData.date_of_joining,
         date_of_service_expiry: formData.date_of_service_expiry,
-        department: departments.find(d => d.dept_id === formData.dept_id)?.department || ''
+        // Remove department as it's a derived field, not a database column
       };
 
       if (editingEmployee) {
