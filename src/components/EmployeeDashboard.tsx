@@ -610,11 +610,12 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.dateOfBirth')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.ddoCode')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.cadre')}</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.postName')}</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.appointingDepartment')}</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.workingOfficeName')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">पदाचे नाव</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">नियुक्ती करणारा विभाग</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">कार्यरत कार्यालयाचे नाव</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">सेवेत रुजू होण्याची तारीख</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.dateOfJoining')}</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.retirementDate')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">सेवानिवृत्ती तारीख</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.actions')}</th>
                 </tr>
               </thead>
@@ -628,9 +629,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                 ) : (
                   filteredEmployees.map((employee) => (
                     <tr key={employee.emp_id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {employee.panchayatrajsevarth_id || '-'}
-                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {employee.emp_id || '-'}
                       </td>
