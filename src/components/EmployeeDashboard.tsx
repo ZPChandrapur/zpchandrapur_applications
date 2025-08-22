@@ -276,12 +276,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         date_of_assignment: '',
         panchayatraj_sevarth_id: '',
         ddo_code: '',
-        cadre: '',
-        post_name: '',
-        appointing_department: '',
-        working_office_name: '',
-        date_of_joining: '',
-        date_of_service_expiry: ''
+        cadre: ''
       });
     } catch (error) {
       console.error('Error adding employee:', error);
@@ -759,7 +754,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.employeeId')}</th>
+                  <td colSpan={11} className="px-6 py-8 text-center text-gray-500">
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.employeeName')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cadre</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Panchayatraj Sevarth ID</th>
