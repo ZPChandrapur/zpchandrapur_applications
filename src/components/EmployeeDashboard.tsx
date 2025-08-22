@@ -1218,7 +1218,10 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
             
             <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200">
               <button
-                onClick={() => setShowEditModal(false)}
+                onClick={() => {
+                  setShowEditModal(false);
+                  clearModalState();
+                }}
                 className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200"
               >
                 {t('common.cancel')}
