@@ -297,10 +297,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     }
 
     if (selectedClerk) {
-      const selectedClerkName = clerks.find(c => c.user_id === selectedClerk)?.name;
-      if (selectedClerkName) {
-        filtered = filtered.filter(emp => emp.assigned_clerk === selectedClerkName);
-      }
+      filtered = filtered.filter(emp => emp.assigned_clerk === selectedClerk);
     }
 
     if (selectedReason) {
@@ -640,7 +637,12 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
                           <div className="text-sm font-medium text-gray-900">{employee.employee_name}</div>
-                          <div className="text-sm text-gray-500">{employee.emp_id}</div>
+                          <div className="text-sm text-gray-500">
+                            {employee.assigned_clerk ? 
+                              clerks.find(c => c.user_id === employee.assigned_clerk)?.name || t('erms.unassigned')
+                              : t('erms.unassigned')
+                            }
+                          </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -904,7 +906,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   >
                     <option value="">{t('erms.selectClerk')}</option>
                     {clerks.map(clerk => (
-                      <option key={clerk.user_id} value={clerk.name}>{clerk.name}</option>
+                      <option key={clerk.user_id} value={clerk.user_id}>{clerk.name}</option>
                     ))}
                   </select>
                 </div>
