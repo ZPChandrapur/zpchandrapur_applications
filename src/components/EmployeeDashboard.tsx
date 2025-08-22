@@ -137,7 +137,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
   const initialModalState = getInitialModalState();
   const [showAddModal, setShowAddModal] = useState(initialModalState.showAddModal);
   const [showEditModal, setShowEditModal] = useState(initialModalState.showEditModal);
-  const [editingEmployee, setEditingEmployee] = useState<Employee | null>(initialModalState.editingEmployee);
   
   // Data states
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -562,46 +561,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     setShowAddModal(true);
   };
 
-  const handleEditEmployee = (employee: Employee) => {
-    setEditingEmployee(employee);
-    // Populate form with existing data, handling null values properly
-    setFormData({
-      emp_id: employee.emp_id,
-      employee_name: employee.employee_name,
-      date_of_birth: employee.date_of_birth?.split('T')[0] || '',
-      retirement_date: employee.retirement_date?.split('T')[0] || '',
-      reason: employee.reason || '',
-      assigned_clerk: employee.assigned_clerk || '',
-      dept_id: employee.dept_id || '',
-      designation_id: employee.designation_id || '',
-      tal_id: employee.tal_id || '',
-      office_id: employee.office_id || '',
-      panchayatrajsevarth_id: employee.panchayatrajsevarth_id || '',
-      ddo_code: employee.ddo_code || '',
-      cadre: employee.cadre || '',
-      date_of_joining: employee.date_of_joining?.split('T')[0] || ''
-    });
-    setShowEditModal(true);
-  };
-
-  const handleSaveEmployee = async () => {
-    if (!String(formData.emp_id || '').trim() || !String(formData.employee_name || '').trim()) {
-      alert(t('erms.fillAllFields'));
-      return;
-    }
-
-    if (!formData.cadre?.trim()) {
-      alert(t('erms.fillAllFields'));
-      return;
-    }
-
-    // Validate date fields
-    if (formData.date_of_birth && formData.date_of_joining) {
-      const birthDate = new Date(formData.date_of_birth);
-      const joiningDate = new Date(formData.date_of_joining);
-      if (joiningDate <= birthDate) {
-        alert('Date of joining should be after date of birth');
-        return;
       }
     }
 
@@ -1212,13 +1171,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                 className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200"
               >
                 {t('common.cancel')}
-              </button>
-              <button
-                onClick={handleSaveEmployee}
-                disabled={isLoading}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 disabled:opacity-50"
-              >
-                {isLoading ? t('common.saving') : t('common.save')}
               </button>
             </div>
           </div>
