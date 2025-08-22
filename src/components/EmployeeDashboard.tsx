@@ -321,6 +321,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
 
   const handleAddEmployee = () => {
     setEditingEmployee(null);
+    // Reset form data completely
     setFormData({
       emp_id: '',
       employee_name: '',
@@ -335,9 +336,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       panchayatrajsevarth_id: '',
       ddo_code: '',
       cadre: '',
-      post_name: '',
-      appointing_department: '',
-      working_office_name: '',
       date_of_joining: ''
     });
     setShowAddModal(true);
@@ -345,47 +343,69 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
 
   const handleEditEmployee = (employee: Employee) => {
     setEditingEmployee(employee);
+    // Populate form with existing data, handling null values properly
     setFormData({
       emp_id: employee.emp_id,
       employee_name: employee.employee_name,
       date_of_birth: employee.date_of_birth?.split('T')[0] || '',
       retirement_date: employee.retirement_date?.split('T')[0] || '',
-      reason: employee.reason,
+      reason: employee.reason || '',
       assigned_clerk: employee.assigned_clerk || '',
-      dept_id: employee.dept_id,
-      designation_id: employee.designation_id,
-      tal_id: employee.tal_id,
-      office_id: employee.office_id,
+      dept_id: employee.dept_id || '',
+      designation_id: employee.designation_id || '',
+      tal_id: employee.tal_id || '',
+      office_id: employee.office_id || '',
       panchayatrajsevarth_id: employee.panchayatrajsevarth_id || '',
       ddo_code: employee.ddo_code || '',
-      cadre: employee.cadre,
+      cadre: employee.cadre || '',
       date_of_joining: employee.date_of_joining?.split('T')[0] || ''
     });
     setShowEditModal(true);
   };
 
   const handleSaveEmployee = async () => {
-    if (!formData.employee_name || !formData.cadre) {
+    if (!formData.employee_name?.trim()) {
       alert(t('erms.fillAllFields'));
       return;
+    }
+
+    if (!formData.cadre?.trim()) {
+      alert(t('erms.fillAllFields'));
+      return;
+    }
+
+    // Validate employee ID format if provided
+    if (formData.emp_id && formData.emp_id.trim() && !/^[A-Za-z0-9-_]+$/.test(formData.emp_id.trim())) {
+      alert('Employee ID should contain only letters, numbers, hyphens, and underscores');
+      return;
+    }
+
+    // Validate date fields
+    if (formData.date_of_birth && formData.date_of_joining) {
+      const birthDate = new Date(formData.date_of_birth);
+      const joiningDate = new Date(formData.date_of_joining);
+      if (joiningDate <= birthDate) {
+        alert('Date of joining should be after date of birth');
+        return;
+      }
     }
 
     setIsLoading(true);
     try {
       const employeeData = {
-        emp_id: formData.emp_id,
-        employee_name: formData.employee_name,
+        emp_id: formData.emp_id?.trim() || null,
+        employee_name: formData.employee_name?.trim(),
         date_of_birth: formData.date_of_birth || null,
         retirement_date: formData.retirement_date || null,
-        reason: formData.reason,
-        assigned_clerk: formData.assigned_clerk,
-        dept_id: formData.dept_id,
-        designation_id: formData.designation_id,
-        tal_id: formData.tal_id,
-        office_id: formData.office_id,
-        panchayatrajsevarth_id: formData.panchayatrajsevarth_id,
-        ddo_code: formData.ddo_code,
-        "Cadre": formData.cadre,
+        reason: formData.reason?.trim() || null,
+        assigned_clerk: formData.assigned_clerk || null,
+        dept_id: formData.dept_id || null,
+        designation_id: formData.designation_id || null,
+        tal_id: formData.tal_id || null,
+        office_id: formData.office_id || null,
+        panchayatrajsevarth_id: formData.panchayatrajsevarth_id?.trim() || null,
+        ddo_code: formData.ddo_code?.trim() || null,
+        "Cadre": formData.cadre?.trim(),
         "date_of_joining": formData.date_of_joining || null
       };
 
@@ -395,27 +415,63 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
           .update(employeeData)
           .eq('emp_id', editingEmployee.emp_id);
         if (error) throw error;
+        
+        // Show success message for update
+        alert(t('common.success') + ': Employee updated successfully');
       } else {
         const { error } = await ermsClient
           .from('employee')
           .insert(employeeData);
         if (error) throw error;
+        
+        // Show success message for creation
+        alert(t('common.success') + ': Employee added successfully');
       }
       
       await fetchEmployees();
       setShowAddModal(false);
       setShowEditModal(false);
-      setFormData({});
+      
+      // Reset form data properly
+      setFormData({
+        emp_id: '',
+        employee_name: '',
+        date_of_birth: '',
+        retirement_date: '',
+        reason: '',
+        assigned_clerk: '',
+        dept_id: '',
+        designation_id: '',
+        tal_id: '',
+        office_id: '',
+        panchayatrajsevarth_id: '',
+        ddo_code: '',
+        cadre: '',
+        date_of_joining: ''
+      });
+      setEditingEmployee(null);
     } catch (error) {
       console.error('Error saving employee:', error);
-      alert(t('common.error') + ': ' + error.message);
+      
+      // More user-friendly error messages
+      let errorMessage = t('common.error');
+      if (error.message.includes('duplicate key')) {
+        errorMessage = 'Employee ID already exists. Please use a different ID.';
+      } else if (error.message.includes('foreign key')) {
+        errorMessage = 'Please select valid department, designation, taluka, and office.';
+      } else {
+        errorMessage += ': ' + error.message;
+      }
+      alert(errorMessage);
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleDeleteEmployee = async (employee: Employee) => {
-    if (!confirm(t('common.deleteConfirm'))) return;
+    // More descriptive confirmation message
+    const confirmMessage = `${t('common.deleteConfirm')}\n\nEmployee: ${employee.employee_name}\nID: ${employee.emp_id}`;
+    if (!confirm(confirmMessage)) return;
 
     setIsLoading(true);
     try {
@@ -425,10 +481,21 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         .eq('emp_id', employee.emp_id);
       
       if (error) throw error;
+      
+      // Show success message
+      alert(t('common.success') + ': Employee deleted successfully');
       await fetchEmployees();
     } catch (error) {
       console.error('Error deleting employee:', error);
-      alert(t('common.error') + ': ' + error.message);
+      
+      // More user-friendly error message
+      let errorMessage = t('common.error');
+      if (error.message.includes('foreign key')) {
+        errorMessage = 'Cannot delete employee. This employee has related records in the system.';
+      } else {
+        errorMessage += ': ' + error.message;
+      }
+      alert(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -737,7 +804,11 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     onChange={(e) => setFormData({ ...formData, emp_id: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder={t('erms.enterEmployeeId')}
+                    disabled={editingEmployee ? true : false}
                   />
+                  {editingEmployee && (
+                    <p className="text-xs text-gray-500 mt-1">Employee ID cannot be changed during edit</p>
+                  )}
                 </div>
                 
                 <div>
@@ -751,6 +822,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder={t('erms.enterEmployeeName')}
                     required
+                    maxLength={100}
                   />
                 </div>
 
