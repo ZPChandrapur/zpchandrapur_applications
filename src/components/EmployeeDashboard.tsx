@@ -26,24 +26,25 @@ interface Employee {
   emp_id: string;
   employee_name: string;
   date_of_birth: string;
-  retirement_date: string;
+  date_of_service_expiry: string;
+  retirement_date: string; // calculated field
   reason: string;
   assigned_clerk: string | null;
   dept_id: string;
-  department: string;
+  department_name: string; // from department table
   designation_id: string;
-  designation_name: string;
+  designation_name: string; // from designations table
   tal_id: string;
   office_id: string;
+  office_name: string; // from office_locations table
   date_of_assignment: string | null;
   panchayatrajsevarth_id: string | null;
   ddo_code: string | null;
   cadre: string;
-  post_name: string | null;
-  appointing_department: string | null;
-  working_office_name: string | null;
+  post_name: string;
+  appointing_department: string;
+  working_office_name: string;
   date_of_joining: string | null;
-  date_of_service_expiry: string | null;
   created_at?: string;
   updated_at?: string;
 }
@@ -99,7 +100,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     emp_id: '',
     employee_name: '',
     date_of_birth: '',
-    retirement_date: '',
+    date_of_service_expiry: '',
     reason: '',
     assigned_clerk: '',
     dept_id: '',
@@ -112,8 +113,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     post_name: '',
     appointing_department: '',
     working_office_name: '',
-    date_of_joining: '',
-    date_of_service_expiry: ''
+    date_of_joining: ''
   });
 
   useEffect(() => {
@@ -123,6 +123,14 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
   useEffect(() => {
     filterEmployees();
   }, [employees, searchTerm, selectedDepartment, selectedClerk, selectedReason]);
+
+  // Calculate retirement date based on date_of_service_expiry
+  const calculateRetirementDate = (dateOfServiceExpiry: string): string => {
+    if (!dateOfServiceExpiry) return '';
+    // For now, using date_of_service_expiry as retirement date
+    // You can modify this formula as needed
+    return dateOfServiceExpiry;
+  };
 
   const fetchAllData = async () => {
     setIsLoading(true);
@@ -150,13 +158,13 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
           emp_id,
           employee_name,
           date_of_birth,
-          retirement_date,
+          date_of_service_expiry,
           reason,
           assigned_clerk,
           dept_id,
           designation_id,
-          designations!inner(designation),
           tal_id,
+          office_id,
           date_of_assignment,
           panchayatrajsevarth_id,
           "DDO_CODE",
@@ -165,9 +173,11 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
           appointing_department,
           working_office_name,
           date_of_joining,
-          date_of_service_expiry,
           created_at,
-          updated_at
+          updated_at,
+          department!inner(department),
+          designations!inner(designation),
+          office_locations!inner(name)
         `)
         .order('employee_name');
       
@@ -178,9 +188,10 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         ...employee,
         ddo_code: employee["DDO_CODE"],
         cadre: employee["Cadre"],
-        department: employee.appointing_department || '',
-        office_id: employee.working_office_name || '',
-        designation_name: employee.designations?.designation || ''
+        department_name: employee.department?.department || '',
+        designation_name: employee.designations?.designation || '',
+        office_name: employee.office_locations?.name || '',
+        retirement_date: calculateRetirementDate(employee.date_of_service_expiry)
       }));
       
       setEmployees(mappedData);
@@ -278,7 +289,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       filtered = filtered.filter(emp =>
         emp.emp_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         emp.employee_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        emp.department?.toLowerCase().includes(searchTerm.toLowerCase())
+        emp.department_name?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
@@ -318,7 +329,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       emp_id: '',
       employee_name: '',
       date_of_birth: '',
-      retirement_date: '',
+      date_of_service_expiry: '',
       reason: '',
       assigned_clerk: '',
       dept_id: '',
@@ -331,8 +342,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       post_name: '',
       appointing_department: '',
       working_office_name: '',
-      date_of_joining: '',
-      date_of_service_expiry: ''
+      date_of_joining: ''
     });
     setShowAddModal(true);
   };
@@ -343,7 +353,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       emp_id: employee.emp_id,
       employee_name: employee.employee_name,
       date_of_birth: employee.date_of_birth?.split('T')[0] || '',
-      retirement_date: employee.retirement_date?.split('T')[0] || '',
+      date_of_service_expiry: employee.date_of_service_expiry?.split('T')[0] || '',
       reason: employee.reason,
       assigned_clerk: employee.assigned_clerk || '',
       dept_id: employee.dept_id,
@@ -356,8 +366,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       post_name: employee.post_name || '',
       appointing_department: employee.appointing_department || '',
       working_office_name: employee.working_office_name || '',
-      date_of_joining: employee.date_of_joining?.split('T')[0] || '',
-      date_of_service_expiry: employee.date_of_service_expiry?.split('T')[0] || ''
+      date_of_joining: employee.date_of_joining?.split('T')[0] || ''
     });
     setShowEditModal(true);
   };
@@ -374,7 +383,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         emp_id: formData.emp_id,
         employee_name: formData.employee_name,
         date_of_birth: formData.date_of_birth,
-        retirement_date: formData.retirement_date,
+        date_of_service_expiry: formData.date_of_service_expiry,
         reason: formData.reason,
         assigned_clerk: formData.assigned_clerk,
         dept_id: formData.dept_id,
@@ -387,9 +396,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         post_name: formData.post_name,
         appointing_department: formData.appointing_department,
         working_office_name: formData.working_office_name,
-        date_of_joining: formData.date_of_joining,
-        date_of_service_expiry: formData.date_of_service_expiry,
-        // Remove department as it's a derived field, not a database column
+        date_of_joining: formData.date_of_joining
       };
 
       if (editingEmployee) {
@@ -609,6 +616,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.panchayatrajsevarthId')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.employeeIdInternal')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.employeeName')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.dateOfBirth')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.ddoCode')}</th>
@@ -618,13 +626,14 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.workingOfficeName')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.dateOfJoining')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.dateOfServiceExpiry')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.retirementDate')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.actions')}</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredEmployees.length === 0 ? (
                   <tr>
-                    <td colSpan={11} className="px-6 py-8 text-center text-gray-500">
+                    <td colSpan={13} className="px-6 py-8 text-center text-gray-500">
                       {isLoading ? t('common.loading') : 'No employees found matching your criteria.'}
                     </td>
                   </tr>
@@ -656,16 +665,19 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                         {employee.post_name || employee.designation_name || '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {employee.appointing_department || '-'}
+                        {employee.appointing_department || employee.department_name || '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {employee.working_office_name || '-'}
+                        {employee.working_office_name || employee.office_name || '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {employee.date_of_joining ? new Date(employee.date_of_joining).toLocaleDateString() : '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {employee.date_of_service_expiry ? new Date(employee.date_of_service_expiry).toLocaleDateString() : '-'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {employee.retirement_date ? new Date(employee.retirement_date).toLocaleDateString() : '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex items-center space-x-2">
@@ -719,6 +731,19 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     type="text"
                     value={formData.panchayatrajsevarth_id || ''}
                     onChange={(e) => setFormData({ ...formData, panchayatrajsevarth_id: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder={t('erms.enterEmployeeId')}
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('erms.employeeIdInternal')}
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.emp_id || ''}
+                    onChange={(e) => setFormData({ ...formData, emp_id: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder={t('erms.enterEmployeeId')}
                   />
@@ -828,22 +853,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.designation')}
-                  </label>
-                  <select
-                    value={formData.designation_id || ''}
-                    onChange={(e) => setFormData({ ...formData, designation_id: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="">{t('erms.selectDesignation')}</option>
-                    {designations.map(designation => (
-                      <option key={designation.designation_id} value={designation.designation_id}>{designation.designation}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     {t('erms.dateOfServiceExpiry')}
                   </label>
                   <input
@@ -866,6 +875,54 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     <option value="">{t('erms.selectDepartment')}</option>
                     {departments.map(dept => (
                       <option key={dept.dept_id} value={dept.dept_id}>{dept.department}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('erms.designation')}
+                  </label>
+                  <select
+                    value={formData.designation_id || ''}
+                    onChange={(e) => setFormData({ ...formData, designation_id: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">{t('erms.selectDesignation')}</option>
+                    {designations.map(designation => (
+                      <option key={designation.designation_id} value={designation.designation_id}>{designation.designation}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('erms.taluka')}
+                  </label>
+                  <select
+                    value={formData.tal_id || ''}
+                    onChange={(e) => setFormData({ ...formData, tal_id: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">{t('erms.selectTaluka')}</option>
+                    {talukas.map(taluka => (
+                      <option key={taluka.tal_id} value={taluka.tal_id}>{taluka.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('erms.office')}
+                  </label>
+                  <select
+                    value={formData.office_id || ''}
+                    onChange={(e) => setFormData({ ...formData, office_id: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">{t('erms.selectOffice')}</option>
+                    {offices.map(office => (
+                      <option key={office.office_id} value={office.office_id}>{office.name}</option>
                     ))}
                   </select>
                 </div>
@@ -931,6 +988,18 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     type="text"
                     value={formData.panchayatrajsevarth_id || ''}
                     onChange={(e) => setFormData({ ...formData, panchayatrajsevarth_id: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('erms.employeeIdInternal')}
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.emp_id || ''}
+                    onChange={(e) => setFormData({ ...formData, emp_id: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
