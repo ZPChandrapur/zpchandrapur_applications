@@ -50,6 +50,7 @@ const persistActiveModule = (moduleId: string): void => {
     console.warn('Failed to write to sessionStorage:', error);
   }
 };
+
 export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, onBack }) => {
   const { t } = useTranslation();
   const [activeModule, setActiveModule] = useState<string>(getPersistedActiveModule());
@@ -102,7 +103,7 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, onBack }) =>
       icon: BarChart3,
       color: 'bg-teal-500',
       hoverColor: 'hover:bg-teal-600'
-    }
+    },
     {
       id: 'instructions',
       name: t('erms.instructions'),
@@ -177,7 +178,6 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, onBack }) =>
       // sessionStorage.removeItem(ACTIVE_MODULE_KEY);
     };
   }, []);
-  };
 
   const renderModuleContent = () => {
     switch (activeModule) {
