@@ -595,12 +595,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       return;
     }
 
-    // Validate employee ID format if provided
-    if (formData.emp_id && formData.emp_id.trim() && !/^[A-Za-z0-9-_]+$/.test(formData.emp_id.trim())) {
-      alert('Employee ID should contain only letters, numbers, hyphens, and underscores');
-      return;
-    }
-
     // Validate date fields
     if (formData.date_of_birth && formData.date_of_joining) {
       const birthDate = new Date(formData.date_of_birth);
