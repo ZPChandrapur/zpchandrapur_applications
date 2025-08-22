@@ -79,9 +79,65 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
   const [selectedClerk, setSelectedClerk] = useState('');
   const [selectedReason, setSelectedReason] = useState('');
   const [selectedCadre, setSelectedCadre] = useState('');
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
+  
+  // Modal persistence state management
+  const getInitialModalState = () => {
+    try {
+      const savedModalState = localStorage.getItem('erms-employee-modal-state');
+      if (savedModalState) {
+        const parsed = JSON.parse(savedModalState);
+        return {
+          showAddModal: parsed.showAddModal || false,
+          showEditModal: parsed.showEditModal || false,
+          editingEmployee: parsed.editingEmployee || null,
+          formData: parsed.formData || {
+            emp_id: '',
+            employee_name: '',
+            date_of_birth: '',
+            retirement_date: '',
+            reason: '',
+            assigned_clerk: '',
+            dept_id: '',
+            designation_id: '',
+            tal_id: '',
+            office_id: '',
+            panchayatrajsevarth_id: '',
+            ddo_code: '',
+            cadre: '',
+            date_of_joining: ''
+          }
+        };
+      }
+    } catch (error) {
+      console.warn('Failed to load modal state from localStorage:', error);
+    }
+    return {
+      showAddModal: false,
+      showEditModal: false,
+      editingEmployee: null,
+      formData: {
+        emp_id: '',
+        employee_name: '',
+        date_of_birth: '',
+        retirement_date: '',
+        reason: '',
+        assigned_clerk: '',
+        dept_id: '',
+        designation_id: '',
+        tal_id: '',
+        office_id: '',
+        panchayatrajsevarth_id: '',
+        ddo_code: '',
+        cadre: '',
+        date_of_joining: ''
+      }
+    };
+  };
+
+  const initialModalState = getInitialModalState();
+  const [showAddModal, setShowAddModal] = useState(initialModalState.showAddModal);
+  const [showEditModal, setShowEditModal] = useState(initialModalState.showEditModal);
+  const [editingEmployee, setEditingEmployee] = useState<Employee | null>(initialModalState.editingEmployee);
   
   // Data states
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -110,22 +166,42 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
   };
 
   // Form state
-  const [formData, setFormData] = useState<Partial<Employee>>({
-    emp_id: '',
-    employee_name: '',
-    date_of_birth: '',
-    retirement_date: '',
-    reason: '',
-    assigned_clerk: '',
-    dept_id: '',
-    designation_id: '',
-    tal_id: '',
-    office_id: '',
-    panchayatrajsevarth_id: '',
-    ddo_code: '',
-    cadre: '',
-    date_of_joining: ''
-  });
+  const [formData, setFormData] = useState<Partial<Employee>>(initialModalState.formData);
+
+  // Save modal state to localStorage
+  const saveModalState = (modalState: {
+    showAddModal: boolean;
+    showEditModal: boolean;
+    editingEmployee: Employee | null;
+    formData: Partial<Employee>;
+  }) => {
+    try {
+      localStorage.setItem('erms-employee-modal-state', JSON.stringify(modalState));
+      
+      // Broadcast to other tabs
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: 'erms-employee-modal-state',
+        newValue: JSON.stringify(modalState),
+        storageArea: localStorage
+      }));
+    } catch (error) {
+      console.warn('Failed to save modal state to localStorage:', error);
+    }
+  };
+
+  // Clear modal state
+  const clearModalState = () => {
+    try {
+      localStorage.removeItem('erms-employee-modal-state');
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: 'erms-employee-modal-state',
+        newValue: null,
+        storageArea: localStorage
+      }));
+    } catch (error) {
+      console.warn('Failed to clear modal state from localStorage:', error);
+    }
+  };
 
   useEffect(() => {
     fetchAllData();
