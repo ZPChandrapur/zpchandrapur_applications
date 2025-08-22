@@ -378,8 +378,8 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       const employeeData = {
         emp_id: formData.emp_id,
         employee_name: formData.employee_name,
-        date_of_birth: formData.date_of_birth,
-        retirement_date: formData.retirement_date,
+        date_of_birth: formData.date_of_birth || null,
+        retirement_date: formData.retirement_date || null,
         reason: formData.reason,
         assigned_clerk: formData.assigned_clerk,
         dept_id: formData.dept_id,
@@ -389,7 +389,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         panchayatrajsevarth_id: formData.panchayatrajsevarth_id,
         ddo_code: formData.ddo_code,
         "Cadre": formData.cadre,
-        "date_of_joining": formData.date_of_joining
+        "date_of_joining": formData.date_of_joining || null
       };
 
       if (editingEmployee) {
