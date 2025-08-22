@@ -396,7 +396,8 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
           created_at,
           updated_at
         `)
-        .order('employee_name');
+        .order('employee_name')
+        .limit(1000);
       
       if (error) {
         console.error('❌ Error fetching employees:', error);
@@ -920,7 +921,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
                           <div className="text-sm font-medium text-gray-900">{employee.employee_name}</div>
-                          <div className="text-sm text-gray-500">
                             {employee.assigned_clerk ? 
                               clerks.find(c => c.user_id === employee.assigned_clerk)?.name || t('erms.unassigned')
                               : t('erms.unassigned')
