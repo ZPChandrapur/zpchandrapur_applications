@@ -26,7 +26,6 @@ interface Employee {
   emp_id: string;
   employee_name: string;
   date_of_birth: string;
-  date_of_service_expiry: string;
   retirement_date: string; // calculated field
   reason: string;
   assigned_clerk: string | null;
@@ -100,7 +99,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     emp_id: '',
     employee_name: '',
     date_of_birth: '',
-    date_of_service_expiry: '',
+    retirement_date: '',
     reason: '',
     assigned_clerk: '',
     dept_id: '',
@@ -123,14 +122,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
   useEffect(() => {
     filterEmployees();
   }, [employees, searchTerm, selectedDepartment, selectedClerk, selectedReason]);
-
-  // Calculate retirement date based on date_of_service_expiry
-  const calculateRetirementDate = (dateOfServiceExpiry: string): string => {
-    if (!dateOfServiceExpiry) return '';
-    // For now, using date_of_service_expiry as retirement date
-    // You can modify this formula as needed
-    return dateOfServiceExpiry;
-  };
 
   const fetchAllData = async () => {
     setIsLoading(true);
@@ -158,7 +149,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
           emp_id,
           employee_name,
           date_of_birth,
-          date_of_service_expiry,
+          retirement_date,
           reason,
           assigned_clerk,
           dept_id,
@@ -190,8 +181,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         cadre: employee["Cadre"],
         department_name: employee.department?.department || '',
         designation_name: employee.designations?.designation || '',
-        office_name: employee.office_locations?.name || '',
-        retirement_date: calculateRetirementDate(employee.date_of_service_expiry)
+        office_name: employee.office_locations?.name || ''
       }));
       
       setEmployees(mappedData);
@@ -329,7 +319,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       emp_id: '',
       employee_name: '',
       date_of_birth: '',
-      date_of_service_expiry: '',
+      retirement_date: '',
       reason: '',
       assigned_clerk: '',
       dept_id: '',
@@ -353,7 +343,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       emp_id: employee.emp_id,
       employee_name: employee.employee_name,
       date_of_birth: employee.date_of_birth?.split('T')[0] || '',
-      date_of_service_expiry: employee.date_of_service_expiry?.split('T')[0] || '',
+      retirement_date: employee.retirement_date?.split('T')[0] || '',
       reason: employee.reason,
       assigned_clerk: employee.assigned_clerk || '',
       dept_id: employee.dept_id,
@@ -383,7 +373,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         emp_id: formData.emp_id,
         employee_name: formData.employee_name,
         date_of_birth: formData.date_of_birth,
-        date_of_service_expiry: formData.date_of_service_expiry,
+        retirement_date: formData.retirement_date,
         reason: formData.reason,
         assigned_clerk: formData.assigned_clerk,
         dept_id: formData.dept_id,
@@ -625,7 +615,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.appointingDepartment')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.workingOfficeName')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.dateOfJoining')}</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.dateOfServiceExpiry')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.retirementDate')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.actions')}</th>
                 </tr>
@@ -672,9 +661,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {employee.date_of_joining ? new Date(employee.date_of_joining).toLocaleDateString() : '-'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {employee.date_of_service_expiry ? new Date(employee.date_of_service_expiry).toLocaleDateString() : '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {employee.retirement_date ? new Date(employee.retirement_date).toLocaleDateString() : '-'}
