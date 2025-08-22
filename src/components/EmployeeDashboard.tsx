@@ -137,6 +137,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
   const initialModalState = getInitialModalState();
   const [showAddModal, setShowAddModal] = useState(initialModalState.showAddModal);
   const [showEditModal, setShowEditModal] = useState(initialModalState.showEditModal);
+  const [editingEmployee, setEditingEmployee] = useState<Employee | null>(initialModalState.editingEmployee);
   
   // Data states
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -208,6 +209,25 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
   // Storage keys for persistence
   const MODAL_STATE_KEY = 'employee-dashboard-modal-state';
   const FORM_DATA_KEY = 'employee-dashboard-form-data';
+
+  const getInitialFormData = () => {
+    return {
+      emp_id: '',
+      employee_name: '',
+      date_of_birth: '',
+      retirement_date: '',
+      reason: '',
+      assigned_clerk: '',
+      dept_id: '',
+      designation_id: '',
+      tal_id: '',
+      office_id: '',
+      panchayatrajsevarth_id: '',
+      ddo_code: '',
+      cadre: '',
+      date_of_joining: ''
+    };
+  };
 
   useEffect(() => {
     fetchAllData();
@@ -561,7 +581,32 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     setShowAddModal(true);
   };
 
-      }
+  const handleEditEmployee = (employee: Employee) => {
+    setEditingEmployee(employee);
+    setFormData({
+      emp_id: employee.emp_id,
+      employee_name: employee.employee_name,
+      date_of_birth: employee.date_of_birth,
+      retirement_date: employee.retirement_date,
+      reason: employee.reason,
+      assigned_clerk: employee.assigned_clerk,
+      dept_id: employee.dept_id,
+      designation_id: employee.designation_id,
+      tal_id: employee.tal_id,
+      office_id: employee.office_id,
+      panchayatrajsevarth_id: employee.panchayatrajsevarth_id,
+      ddo_code: employee.ddo_code,
+      cadre: employee.cadre,
+      date_of_joining: employee.date_of_joining
+    });
+    setShowEditModal(true);
+  };
+
+  const handleSaveEmployee = async () => {
+    // Validation
+    if (!formData.employee_name?.trim()) {
+      alert('Employee name is required');
+      return;
     }
 
     setIsLoading(true);
@@ -574,10 +619,9 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         reason: formData.reason?.trim() || null,
         assigned_clerk: formData.assigned_clerk || null,
         dept_id: formData.dept_id || null,
-        designation_id: formData.designation,
-        dept_id: formData.department,
-        tal_id: formData.taluka,
-        office_id: formData.office,
+        designation_id: formData.designation_id,
+        tal_id: formData.tal_id,
+        office_id: formData.office_id,
         ddo_code: formData.ddo_code?.trim() || null,
         "Cadre": formData.cadre?.trim(),
         "date_of_joining": formData.date_of_joining || null
@@ -878,11 +922,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
                           <div className="text-sm font-medium text-gray-900">{employee.employee_name}</div>
-                            {employee.assigned_clerk ? 
-                              clerks.find(c => c.user_id === employee.assigned_clerk)?.name || t('erms.unassigned')
-                              : t('erms.unassigned')
-                            }
-                          </div>
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {employee.date_of_birth ? new Date(employee.date_of_birth).toLocaleDateString() : '-'}
@@ -1171,6 +1211,13 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                 className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200"
               >
                 {t('common.cancel')}
+              </button>
+              <button
+                onClick={handleSaveEmployee}
+                disabled={isLoading}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 disabled:opacity-50"
+              >
+                {isLoading ? t('common.saving') : t('common.save')}
               </button>
             </div>
           </div>
