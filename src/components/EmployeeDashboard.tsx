@@ -159,7 +159,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
           date_of_assignment,
           panchayatrajsevarth_id,
           ddo_code,
-          cadre,
+          "Cadre",
           post_name,
           appointing_department,
           working_office_name,
@@ -177,6 +177,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       // Map the data to include derived fields
       const mappedData = (data || []).map(employee => ({
         ...employee,
+        cadre: employee["Cadre"],
         department_name: employee.department?.department || '',
         designation_name: employee.designations?.designation || '',
         office_name: employee.office_locations?.name || ''
@@ -380,7 +381,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         office_id: formData.office_id,
         panchayatrajsevarth_id: formData.panchayatrajsevarth_id,
         ddo_code: formData.ddo_code,
-        cadre: formData.cadre,
+        "Cadre": formData.cadre,
         post_name: formData.post_name,
         appointing_department: formData.appointing_department,
         working_office_name: formData.working_office_name,
