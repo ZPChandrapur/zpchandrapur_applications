@@ -82,6 +82,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
+  const [error, setError] = useState('');
   
   // Data states
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -321,6 +322,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
 
   const handleAddEmployee = () => {
     setEditingEmployee(null);
+    setError(''); // Clear any previous errors
     setFormData({
       emp_id: '',
       employee_name: '',
@@ -345,6 +347,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
 
   const handleEditEmployee = (employee: Employee) => {
     setEditingEmployee(employee);
+    setError(''); // Clear any previous errors
     setFormData({
       emp_id: employee.emp_id,
       employee_name: employee.employee_name,
@@ -371,6 +374,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     }
 
     setIsLoading(true);
+    setError(''); // Clear previous errors
     try {
       const employeeData = {
         emp_id: formData.emp_id,
@@ -406,9 +410,11 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       setShowAddModal(false);
       setShowEditModal(false);
       setFormData({});
+      setError(''); // Clear errors on success
     } catch (error) {
       console.error('Error saving employee:', error);
-      alert(t('common.error') + ': ' + error.message);
+      setError(error.message || t('common.error'));
+      // Don't close the modal on error
     } finally {
       setIsLoading(false);
     }
@@ -700,7 +706,15 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
 
       {/* Add Employee Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          onMouseDown={(e) => {
+            // Prevent modal from closing when clicking on backdrop
+            if (e.target === e.currentTarget) {
+              e.preventDefault();
+            }
+          }}
+        >
           <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <h3 className="text-lg font-semibold text-gray-900">{t('erms.addEmployee')}</h3>
@@ -713,6 +727,16 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
             </div>
             
             <div className="p-6">
+              {/* Error Display */}
+              {error && (
+                <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+                  <div className="flex items-center space-x-2">
+                    <span className="font-medium">{t('common.error')}:</span>
+                    <span>{error}</span>
+                  </div>
+                </div>
+              )}
+              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
