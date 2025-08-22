@@ -80,8 +80,26 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, onBack }) =>
       icon: BarChart3,
       color: 'bg-teal-500',
       hoverColor: 'hover:bg-teal-600'
-    },
-    {
+    }
+  ];
+
+  const handleModuleClick = (moduleId: string) => {
+    setActiveModule(moduleId);
+  };
+
+  const handleBackToMain = () => {
+    setActiveModule('employee-dashboard');
+  };
+
+  const renderModuleContent = () => {
+    switch (activeModule) {
+      case 'organization-setup':
+        return <OrganizationSetup user={user} onBack={handleBackToMain} />;
+      case 'retirement-dashboard':
+        return <RetirementDashboard user={user} onBack={handleBackToMain} />;
+      case 'retirement-tracker':
+        return <RetirementTracker user={user} onBack={handleBackToMain} />;
+      case 'employee-dashboard':
         return <EmployeeDashboard onBack={handleBackToMain} />;
       case 'custom-reports':
         return <CustomReports user={user} onBack={handleBackToMain} />;
