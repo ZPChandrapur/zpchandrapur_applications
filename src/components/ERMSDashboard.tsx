@@ -82,42 +82,7 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, onBack }) =>
       hoverColor: 'hover:bg-teal-600'
     },
     {
-      id: 'instructions',
-      name: t('erms.instructions'),
-      description: t('erms.instructionsDesc'),
-      icon: BookOpen,
-      color: 'bg-gray-500',
-      hoverColor: 'hover:bg-gray-600'
-    }
-  ];
-
-  const handleModuleClick = (moduleId: string) => {
-    setActiveModule(moduleId);
-  };
-
-  const handleBackToMain = () => {
-    setActiveModule(null);
-  };
-
-  const renderModuleContent = () => {
-
-    switch (activeModule) {
-      case 'employee-dashboard':
         return <EmployeeDashboard onBack={handleBackToMain} />;
-      case 'organization-setup':
-        return <OrganizationSetup onBack={handleBackToMain} />;
-      case 'retirement-dashboard':
-        return <RetirementDashboard user={user} onBack={handleBackToMain} />;
-      case 'retirement-tracker':
-        return <RetirementTracker user={user} onBack={handleBackToMain} />;
-      case 'retirement-file-tracker':
-        return (
-          <div className="p-8 text-center">
-            <FolderOpen className="h-16 w-16 text-indigo-500 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Retirement File Tracker</h3>
-            <p className="text-gray-600">File tracking features coming soon...</p>
-          </div>
-        );
       case 'custom-reports':
         return <CustomReports user={user} onBack={handleBackToMain} />;
       case 'instructions':
