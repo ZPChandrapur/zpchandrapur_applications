@@ -920,7 +920,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
                           <div className="text-sm font-medium text-gray-900">{employee.employee_name}</div>
-                          <div className="text-sm text-gray-500">
                             {employee.assigned_clerk ? 
                               clerks.find(c => c.user_id === employee.assigned_clerk)?.name || t('erms.unassigned')
                               : t('erms.unassigned')
