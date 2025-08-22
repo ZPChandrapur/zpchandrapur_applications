@@ -907,13 +907,13 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                      {departments.find(d => d.dept_id === employee.dept_id)?.department || '-'}
+                {filteredEmployees.length === 0 ? (
                   <tr>
                     <td colSpan={12} className="px-6 py-8 text-center text-gray-500">
-                      {offices.find(o => o.office_id === employee.office_id)?.name || '-'}
+                      {t('erms.noEmployeesFound')}
                     </td>
                   </tr>
-                      {designations.find(d => d.designation_id === employee.designation_id)?.designation || '-'}
+                ) : (
                   filteredEmployees.map((employee) => (
                     <tr key={employee.emp_id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -934,13 +934,13 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                         {employee.cadre || '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {employee.designation_name || '-'}
+                        {designations.find(d => d.designation_id === employee.designation_id)?.designation || '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {employee.department_name || '-'}
+                        {departments.find(d => d.dept_id === employee.dept_id)?.department || '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {employee.office_name || '-'}
+                        {offices.find(o => o.office_id === employee.office_id)?.name || '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {employee.assigned_clerk ? 
