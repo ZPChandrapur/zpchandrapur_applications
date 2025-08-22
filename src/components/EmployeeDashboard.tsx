@@ -764,14 +764,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   <input
                     type="text"
                     value={formData.cadre || ''}
-                    onChange={(e) => {
-                      const newFormData = { ...formData, cadre: e.target.value };
-                      // Calculate retirement date when cadre changes
-                      if (newFormData.date_of_birth && e.target.value) {
-                        newFormData.retirement_date = calculateRetirementDate(newFormData.date_of_birth, e.target.value);
-                      }
-                      setFormData(newFormData);
-                    }}
+                    onChange={(e) => setFormData({ ...formData, cadre: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                   />
@@ -932,7 +925,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.employeeIdInternal')}
+                    कर्मचारी आयडी
                   </label>
                   <input
                     type="text"
@@ -986,14 +979,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   <input
                     type="text"
                     value={formData.cadre || ''}
-                    onChange={(e) => {
-                      const newFormData = { ...formData, cadre: e.target.value };
-                      // Calculate retirement date when cadre changes
-                      if (newFormData.date_of_birth && e.target.value) {
-                        newFormData.retirement_date = calculateRetirementDate(newFormData.date_of_birth, e.target.value);
-                      }
-                      setFormData(newFormData);
-                    }}
+                    onChange={(e) => setFormData({ ...formData, cadre: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                   />
