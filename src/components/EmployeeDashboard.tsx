@@ -681,9 +681,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       // More user-friendly error messages
       let errorMessage = t('common.error');
       if (error.message.includes('duplicate key')) {
-
-    // Refresh employee list after successful save
-    await fetchEmployees();
         errorMessage = 'Employee ID already exists. Please use a different ID.';
       } else if (error.message.includes('foreign key')) {
         errorMessage = 'Please select valid department, designation, taluka, and office.';
