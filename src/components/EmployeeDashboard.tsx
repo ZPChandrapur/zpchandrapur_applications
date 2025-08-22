@@ -379,7 +379,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
 
   const fetchEmployees = async () => {
     try {
-      const { data, error } = await ermsClient
       console.log('🔍 Fetching employees from database...');
       const { data, error } = await ermsClient
         .select(`
