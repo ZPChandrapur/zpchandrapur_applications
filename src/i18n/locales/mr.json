@@ -282,4 +282,6 @@
     "assignedVsUnassignedEmployees": "नियुक्त विरुद्ध अनियुक्त कर्मचारी",
     "assigned": "नियुक्त",
     "employeeRetirementCountByReason": "कारणानुसार कर्मचारी सेवानिवृत्ती संख्या",
-    "showingTopResults": "शी
+    "showingTopResults": "शीर्ष {{count}} निकाल दाखवत आहे"
+  }
+}
