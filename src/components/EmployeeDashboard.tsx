@@ -380,6 +380,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
   const fetchEmployees = async () => {
     try {
       const { data, error } = await ermsClient
+        .schema(erms)
         .from('employee')
         .select(`
           emp_id,
