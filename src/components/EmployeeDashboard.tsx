@@ -160,8 +160,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
           panchayatrajsevarth_id,
           ddo_code,
           "Cadre",
-          post_name,
-          appointing_department,
           working_office_name,
           date_of_joining,
           created_at,
@@ -382,8 +380,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         panchayatrajsevarth_id: formData.panchayatrajsevarth_id,
         ddo_code: formData.ddo_code,
         "Cadre": formData.cadre,
-        post_name: formData.post_name,
-        appointing_department: formData.appointing_department,
         working_office_name: formData.working_office_name,
         date_of_joining: formData.date_of_joining
       };
