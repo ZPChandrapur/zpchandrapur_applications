@@ -164,6 +164,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     
     return retirementDate.toISOString().split('T')[0];
   };
+  const [persistenceEnabled, setPersistenceEnabled] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState<Partial<Employee>>(initialModalState.formData);
@@ -203,9 +204,128 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     }
   };
 
+  // Storage keys for persistence
+  const MODAL_STATE_KEY = 'employee-dashboard-modal-state';
+  const FORM_DATA_KEY = 'employee-dashboard-form-data';
+
   useEffect(() => {
     fetchAllData();
+    loadPersistedState();
+    setIsInitialized(true);
+    setPersistenceEnabled(true);
   }, []);
+
+  // Load persisted state on component mount
+  const loadPersistedState = () => {
+    try {
+      const savedModalState = localStorage.getItem(MODAL_STATE_KEY);
+      const savedFormData = localStorage.getItem(FORM_DATA_KEY);
+      
+      if (savedModalState) {
+        const modalState = JSON.parse(savedModalState);
+        const now = Date.now();
+        
+        // Check if state is recent (within 24 hours)
+        if (modalState.timestamp && (now - modalState.timestamp) < 24 * 60 * 60 * 1000) {
+          if (modalState.showAddModal) {
+            setShowAddModal(true);
+          }
+          if (modalState.editingEmployee) {
+            setEditingEmployee(modalState.editingEmployee);
+            setShowAddModal(true);
+          }
+        }
+      }
+      
+      if (savedFormData) {
+        const formState = JSON.parse(savedFormData);
+        if (formState.timestamp && (Date.now() - formState.timestamp) < 24 * 60 * 60 * 1000) {
+          setFormData(formState.data);
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to load persisted state:', error);
+    }
+  };
+
+  // Save modal state to localStorage
+  const saveModalState = () => {
+    if (!persistenceEnabled) return;
+    
+    try {
+      const modalState = {
+        showAddModal,
+        editingEmployee,
+        timestamp: Date.now()
+      };
+      localStorage.setItem(MODAL_STATE_KEY, JSON.stringify(modalState));
+    } catch (error) {
+      console.warn('Failed to save modal state:', error);
+    }
+  };
+
+  // Save form data to localStorage
+  const saveFormData = () => {
+    if (!persistenceEnabled) return;
+    
+    try {
+      const formState = {
+        data: formData,
+        timestamp: Date.now()
+      };
+      localStorage.setItem(FORM_DATA_KEY, JSON.stringify(formState));
+    } catch (error) {
+      console.warn('Failed to save form data:', error);
+    }
+  };
+
+  // Clear persisted state
+  const clearPersistedState = () => {
+    try {
+      localStorage.removeItem(MODAL_STATE_KEY);
+      localStorage.removeItem(FORM_DATA_KEY);
+    } catch (error) {
+      console.warn('Failed to clear persisted state:', error);
+    }
+  };
+
+  // Save state whenever modal or form data changes
+  useEffect(() => {
+    if (persistenceEnabled) {
+      saveModalState();
+    }
+  }, [showAddModal, editingEmployee, persistenceEnabled]);
+
+  useEffect(() => {
+    if (persistenceEnabled) {
+      saveFormData();
+    }
+  }, [formData, persistenceEnabled]);
+
+  // Handle visibility change (when user returns to tab)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && persistenceEnabled) {
+        // User returned to tab, reload state if needed
+        loadPersistedState();
+      }
+    };
+
+    const handleBeforeUnload = () => {
+      if (persistenceEnabled) {
+        saveModalState();
+        saveFormData();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [persistenceEnabled]);
 
   useEffect(() => {
     filterEmployees();
@@ -428,6 +548,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       reason: employee.reason || '',
       assigned_clerk: employee.assigned_clerk || '',
       dept_id: employee.dept_id || '',
+    clearPersistedState();
       designation_id: employee.designation_id || '',
       tal_id: employee.tal_id || '',
       office_id: employee.office_id || '',
@@ -505,6 +626,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       }
       
       await fetchEmployees();
+      clearPersistedState();
       setShowAddModal(false);
       setShowEditModal(false);
       
