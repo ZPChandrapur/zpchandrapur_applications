@@ -23,7 +23,6 @@ interface EmployeeDashboardProps {
 }
 
 interface Employee {
-  id: string;
   emp_id: string;
   employee_name: string;
   date_of_birth: string;
@@ -149,7 +148,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       const { data, error } = await ermsClient
         .from('employee')
         .select(`
-          id,
           emp_id,
           employee_name,
           date_of_birth,
@@ -393,7 +391,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         const { error } = await ermsClient
           .from('employee')
           .update(employeeData)
-          .eq('id', editingEmployee.id);
+          .eq('emp_id', editingEmployee.emp_id);
         if (error) throw error;
       } else {
         const { error } = await ermsClient
@@ -422,7 +420,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       const { error } = await ermsClient
         .from('employee')
         .delete()
-        .eq('id', employee.id);
+        .eq('emp_id', employee.emp_id);
       
       if (error) throw error;
       await fetchEmployees();
@@ -627,7 +625,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   </tr>
                 ) : (
                   filteredEmployees.map((employee) => (
-                    <tr key={employee.id} className="hover:bg-gray-50">
+                    <tr key={employee.emp_id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {employee.panchayatrajsevarth_id || '-'}
                       </td>
