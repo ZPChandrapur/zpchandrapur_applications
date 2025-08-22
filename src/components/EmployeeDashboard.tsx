@@ -740,7 +740,14 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   <input
                     type="date"
                     value={formData.date_of_birth || ''}
-                    onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
+                    onChange={(e) => {
+                      const newFormData = { ...formData, date_of_birth: e.target.value };
+                      // Calculate retirement date when date of birth changes
+                      if (e.target.value && newFormData.cadre) {
+                        newFormData.retirement_date = calculateRetirementDate(e.target.value, newFormData.cadre);
+                      }
+                      setFormData(newFormData);
+                    }}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
@@ -925,7 +932,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    कर्मचारी आयडी
+                    {t('erms.employeeIdInternal')}
                   </label>
                   <input
                     type="text"
