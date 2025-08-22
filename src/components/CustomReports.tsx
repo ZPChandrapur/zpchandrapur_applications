@@ -399,10 +399,10 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">
-                  सानुकूल अहवाल
+                  {t('customReports.title', 'Custom Reports')}
                 </h1>
                 <p className="text-sm text-gray-500 mt-1">
-                  आपल्या डेटावरून परस्परसंवादी अहवाल आणि विश्लेषण तयार करा
+                  {t('customReports.subtitle', 'Create interactive reports and analytics from your data')}
                 </p>
               </div>
             </div>
@@ -433,7 +433,7 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
                 }`}
               >
                 <Plus className="h-4 w-4" />
-                <span>अहवाल तयार करा</span>
+                <span>{t('customReports.createReport', 'Create Report')}</span>
               </button>
               <button
                 onClick={() => setActiveTab('templates')}
@@ -444,7 +444,7 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
                 }`}
               >
                 <Save className="h-4 w-4" />
-                <span>जतन केलेले टेम्प्लेट्स</span>
+                <span>{t('customReports.savedTemplates', 'Saved Templates')}</span>
               </button>
               <button
                 onClick={() => setActiveTab('results')}
@@ -455,7 +455,7 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
                 }`}
               >
                 <Eye className="h-4 w-4" />
-                <span>परिणाम</span>
+                <span>{t('customReports.results', 'Results')}</span>
               </button>
             </nav>
           </div>
@@ -467,14 +467,14 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
                 {/* Report Type Selection */}
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                    अहवाल प्रकार निवडा
+                    {t('customReports.selectReportType', 'Select Report Type')}
                   </h3>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {[
-                      { type: 'table', icon: Table, label: 'तक्ता' },
-                      { type: 'bar', icon: BarChart3, label: 'बार चार्ट' },
-                      { type: 'pie', icon: PieChart, label: 'पाई चार्ट' },
-                      { type: 'line', icon: TrendingUp, label: 'लाइन चार्ट' }
+                      { type: 'table', icon: Table, label: t('customReports.table', 'Table') },
+                      { type: 'bar', icon: BarChart3, label: t('customReports.barChart', 'Bar Chart') },
+                      { type: 'pie', icon: PieChart, label: t('customReports.pieChart', 'Pie Chart') },
+                      { type: 'line', icon: TrendingUp, label: t('customReports.lineChart', 'Line Chart') }
                     ].map((option) => (
                       <button
                         key={option.type}
@@ -495,7 +495,7 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
                 {/* Table Selection */}
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                    डेटा स्रोत निवडा
+                    {t('customReports.selectTables', 'Select Data Sources')}
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {availableTables.map((table) => (

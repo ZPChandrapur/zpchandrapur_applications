@@ -90,8 +90,8 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, onBack }) =>
     },
     {
       id: 'retirement-file-tracker',
-      name: 'सेवानिवृत्ती फाइल ट्रॅकर',
-      description: 'सेवानिवृत्ती प्रकरण सबमिशन आणि मंजुरी वर्कफ्लो ट्रॅक करा',
+      name: t('erms.retirementFileTracker'),
+      description: t('erms.retirementFileTrackerDesc'),
       icon: FolderOpen,
       color: 'bg-indigo-500',
       hoverColor: 'hover:bg-indigo-600'
@@ -186,16 +186,7 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, onBack }) =>
       case 'organization-setup':
         return <OrganizationSetup onBack={handleBackToMain} />;
       case 'retirement-dashboard':
-        return (
-          <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-            <div className="text-center">
-              <FolderOpen className="h-16 w-16 text-indigo-600 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">सेवानिवृत्ती फाइल ट्रॅकर</h2>
-              <p className="text-gray-600 mb-4">हे मॉड्यूल लवकरच उपलब्ध होईल</p>
-              <p className="text-sm text-gray-500">सेवानिवृत्ती प्रकरण सबमिशन आणि मंजुरी वर्कफ्लो ट्रॅकिंग</p>
-            </div>
-          </div>
-        );
+        return <RetirementDashboard user={user} onBack={handleBackToMain} />;
       case 'retirement-tracker':
         return <RetirementTracker user={user} onBack={handleBackToMain} />;
       case 'custom-reports':
