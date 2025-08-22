@@ -835,6 +835,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     value={formData.date_of_birth || ''}
                     onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    max={new Date().toISOString().split('T')[0]}
                   />
                 </div>
 
@@ -860,8 +861,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     onChange={(e) => setFormData({ ...formData, cadre: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
-                    maxLength={50}
-                    placeholder="e.g., A, B, C, D"
                   />
                 </div>
 
@@ -874,7 +873,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     value={formData.date_of_joining || ''}
                     onChange={(e) => setFormData({ ...formData, date_of_joining: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    max={new Date().toISOString().split('T')[0]}
                   />
                 </div>
 
@@ -1070,6 +1068,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     value={formData.date_of_birth || ''}
                     onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    max={new Date().toISOString().split('T')[0]}
                   />
                 </div>
 
@@ -1095,8 +1094,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     onChange={(e) => setFormData({ ...formData, cadre: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
-                    maxLength={50}
-                    placeholder="e.g., A, B, C, D"
                   />
                 </div>
 
@@ -1109,7 +1106,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     value={formData.date_of_joining || ''}
                     onChange={(e) => setFormData({ ...formData, date_of_joining: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    max={new Date().toISOString().split('T')[0]}
                   />
                 </div>
 
