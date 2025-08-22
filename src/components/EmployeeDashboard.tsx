@@ -41,6 +41,11 @@ interface Employee {
   panchayatraj_sevarth_id: string | null;
   ddo_code: string | null;
   cadre: string;
+  post_name?: string;
+  appointing_department?: string;
+  working_office_name?: string;
+  date_of_joining?: string;
+  date_of_service_expiry?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -103,7 +108,12 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     date_of_assignment: '',
     panchayatraj_sevarth_id: '',
     ddo_code: '',
-    cadre: ''
+    cadre: '',
+    post_name: '',
+    appointing_department: '',
+    working_office_name: '',
+    date_of_joining: '',
+    date_of_service_expiry: ''
   });
 
   useEffect(() => {
