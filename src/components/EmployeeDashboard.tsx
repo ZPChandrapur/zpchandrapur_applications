@@ -740,14 +740,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   <input
                     type="date"
                     value={formData.date_of_birth || ''}
-                    onChange={(e) => {
-                      const newFormData = { ...formData, date_of_birth: e.target.value };
-                      // Calculate retirement date when date of birth changes
-                      if (e.target.value && newFormData.cadre) {
-                        newFormData.retirement_date = calculateRetirementDate(e.target.value, newFormData.cadre);
-                      }
-                      setFormData(newFormData);
-                    }}
+                    onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
@@ -771,7 +764,14 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   <input
                     type="text"
                     value={formData.cadre || ''}
-                    onChange={(e) => setFormData({ ...formData, cadre: e.target.value })}
+                    onChange={(e) => {
+                      const newFormData = { ...formData, cadre: e.target.value };
+                      // Calculate retirement date when cadre changes
+                      if (newFormData.date_of_birth && e.target.value) {
+                        newFormData.retirement_date = calculateRetirementDate(newFormData.date_of_birth, e.target.value);
+                      }
+                      setFormData(newFormData);
+                    }}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                   />
@@ -986,7 +986,14 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   <input
                     type="text"
                     value={formData.cadre || ''}
-                    onChange={(e) => setFormData({ ...formData, cadre: e.target.value })}
+                    onChange={(e) => {
+                      const newFormData = { ...formData, cadre: e.target.value };
+                      // Calculate retirement date when cadre changes
+                      if (newFormData.date_of_birth && e.target.value) {
+                        newFormData.retirement_date = calculateRetirementDate(newFormData.date_of_birth, e.target.value);
+                      }
+                      setFormData(newFormData);
+                    }}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                   />
