@@ -703,6 +703,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
 
     setIsLoading(true);
     try {
+      const { data, error } = await ermsClient
         .from('employee')
         .select(`
           emp_id,
