@@ -204,7 +204,38 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
   };
 
   useEffect(() => {
+    // Load persisted modal state on component mount
+    loadModalState();
+    setIsInitialized(true);
+    
     fetchAllData();
+    
+    // Add event listeners for cross-tab synchronization
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === 'erms-employee-modal-state') {
+        loadModalState();
+      }
+    };
+    
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        loadModalState();
+      }
+    };
+    
+    const handleBeforeUnload = () => {
+      saveModalState();
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
   }, []);
 
   useEffect(() => {
