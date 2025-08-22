@@ -303,6 +303,7 @@
     "notApplicable": "Not Applicable",
     "employeeId": "Employee ID",
     "employeeName": "Employee Name",
+    "employeeIdInternal": "Employee ID",
     "dateOfBirth": "Date of Birth",
     "age": "Age",
     "departmentName": "Department Name",

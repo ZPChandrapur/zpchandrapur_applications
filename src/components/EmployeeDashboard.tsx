@@ -629,6 +629,9 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {employee.panchayatrajsevarth_id || '-'}
                       </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {employee.emp_id || '-'}
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
                           <div className="text-sm font-medium text-gray-900">{employee.employee_name}</div>
