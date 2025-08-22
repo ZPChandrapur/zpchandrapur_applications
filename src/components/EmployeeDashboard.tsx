@@ -380,8 +380,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
   const fetchEmployees = async () => {
     try {
       const { data, error } = await ermsClient
-      console.log('🔍 Fetching employees from database...');
-      const { data, error } = await ermsClient
+        .from('employee')
         .select(`
           emp_id,
           employee_name,
@@ -706,29 +705,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     try {
       const { error } = await ermsClient
         .from('employee')
-        .select(`
-          emp_id,
-          employee_name,
-          date_of_birth,
-          age,
-          retirement_date,
-          reason,
-          assigned_clerk,
-          dept_id,
-          designation_id,
-          tal_id,
-          office_id,
-          panchayatrajsevarth_id,
-          ddo_code,
-          cadre,
-          post_name,
-          appointing_department,
-          working_office_name,
-          date_of_joining,
-          date_of_service_expiry,
-          created_at,
-          updated_at
-        `)
+        .delete()
         .eq('emp_id', employee.emp_id);
       
       if (error) throw error;
@@ -745,28 +722,9 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       if (error.message.includes('foreign key')) {
         errorMessage = 'Cannot delete employee. This employee has related records in the system.';
       } else {
-        console.error('❌ Error fetching employees:', error);
-      console.log('✅ Employees fetched successfully:', data?.length || 0, 'records');
         errorMessage += ': ' + error.message;
       }
       alert(errorMessage);
-      // Try a simpler query as fallback
-      try {
-        console.log('🔄 Trying fallback query...');
-        const { data: fallbackData, error: fallbackError } = await ermsClient
-          .from('employee')
-          .select('*')
-          .limit(100);
-        
-        if (fallbackError) {
-          console.error('❌ Fallback query also failed:', fallbackError);
-        } else {
-          console.log('✅ Fallback query successful:', fallbackData?.length || 0, 'records');
-          setEmployees(fallbackData || []);
-        }
-      } catch (fallbackErr) {
-        console.error('❌ Both queries failed:', fallbackErr);
-      }
     } finally {
       setIsLoading(false);
     }
