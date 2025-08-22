@@ -585,7 +585,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
   };
 
   const handleSaveEmployee = async () => {
-    if (!formData.employee_name?.trim()) {
+    if (!String(formData.emp_id || '').trim() || !String(formData.employee_name || '').trim()) {
       alert(t('erms.fillAllFields'));
       return;
     }
