@@ -660,7 +660,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         reason: '',
         assigned_clerk: '',
         dept_id: '',
-       // designation_id: '',
+        designation_id: '',
         tal_id: '',
         office_id: '',
         panchayatrajsevarth_id: '',
