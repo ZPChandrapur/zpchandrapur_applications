@@ -619,7 +619,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         reason: formData.reason?.trim() || null,
         assigned_clerk: formData.assigned_clerk || null,
         dept_id: formData.dept_id || null,
-        designation_id: formData.designation_id,
+        designation: formData.designation_id,
         tal_id: formData.tal_id,
         office_id: formData.office_id,
         ddo_code: formData.ddo_code?.trim() || null,
@@ -660,7 +660,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         reason: '',
         assigned_clerk: '',
         dept_id: '',
-        designation_id: '',
+       // designation_id: '',
         tal_id: '',
         office_id: '',
         panchayatrajsevarth_id: '',
@@ -1141,7 +1141,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.designation_id')}
+                    {t('erms.designation')}
                   </label>
                   <select
                     value={formData.designation_id || ''}

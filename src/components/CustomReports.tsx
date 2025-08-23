@@ -98,7 +98,6 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
         { column_name: 'emp_id', display_name: t('erms.employeeId'), data_type: 'text' },
         { column_name: 'employee_name', display_name: t('erms.employeeName'), data_type: 'text' },
         { column_name: 'date_of_birth', display_name: t('erms.dateOfBirth'), data_type: 'date' },
-        { column_name: 'designation_id', display_name: t('erms.designation_id'), data_type: 'text' },
         { column_name: 'retirement_date', display_name: t('erms.retirementDate'), data_type: 'date' },
         { column_name: 'reason', display_name: t('erms.retirementReason'), data_type: 'text' },
         { column_name: 'assigned_clerk', display_name: t('erms.assignedClerk'), data_type: 'text' },
@@ -116,7 +115,8 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
         { column_name: 'status', display_name: t('erms.status'), data_type: 'text' },
         { column_name: 'date_of_submission', display_name: t('erms.dateOfSubmission'), data_type: 'date' },
         { column_name: 'type_of_pension', display_name: t('erms.typeOfPension'), data_type: 'text' },
-        { column_name: 'department', display_name: t('erms.department'), data_type: 'text' }
+        { column_name: 'department', display_name: t('erms.department'), data_type: 'text' },
+        { column_name: 'designation', display_name: t('erms.designation'), data_type: 'text' }
       ]
     },
     {
@@ -135,6 +135,7 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
       icon: FileText,
       columns: [
         { column_name: 'designation_id', display_name: t('erms.designationId'), data_type: 'text' },
+        { column_name: 'designation', display_name: t('erms.designationName'), data_type: 'text' },
         { column_name: 'created_at', display_name: t('erms.createdDate'), data_type: 'date' }
       ]
     },
