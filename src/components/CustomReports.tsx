@@ -135,6 +135,7 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
       icon: FileText,
       columns: [
         { column_name: 'designation_id', display_name: t('erms.designationId'), data_type: 'text' },
+        { column_name: 'designation', display_name: t('erms.designationName'), data_type: 'text' },
         { column_name: 'created_at', display_name: t('erms.createdDate'), data_type: 'date' }
       ]
     },

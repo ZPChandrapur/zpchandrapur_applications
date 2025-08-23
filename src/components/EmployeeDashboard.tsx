@@ -610,6 +610,16 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     }
 
     setIsLoading(true);
+      // Convert empty strings to null for numeric fields
+      const processedFormData = {
+        ...formData,
+        designation_id: formData.designation_id === '' ? null : formData.designation_id,
+        dept_id: formData.dept_id === '' ? null : formData.dept_id,
+        office_id: formData.office_id === '' ? null : formData.office_id,
+        phone_number: formData.phone_number === '' ? null : formData.phone_number,
+        age: formData.age === '' ? null : parseInt(formData.age) || null
+      };
+
     try {
       const employeeData = {
         emp_id: formData.emp_id?.trim() || null,
@@ -630,13 +640,13 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       if (editingEmployee) {
         const { error } = await ermsClient
           .from('employee')
-          .update(employeeData)
+          .update(processedFormData)
           .eq('emp_id', editingEmployee.emp_id);
         if (error) throw error;
         
         // Show success message for update
         alert(t('common.success') + ': Employee updated successfully');
-      } else {
+          .insert(processedFormData);
         const { error } = await ermsClient
           .from('employee')
           .insert(employeeData);
