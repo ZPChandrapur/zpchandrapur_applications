@@ -646,7 +646,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         
         // Show success message for update
         alert(t('common.success') + ': Employee updated successfully');
-          .insert(processedFormData);
         const { error } = await ermsClient
           .from('employee')
           .insert(employeeData);
