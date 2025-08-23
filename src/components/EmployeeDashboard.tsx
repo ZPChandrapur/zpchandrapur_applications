@@ -646,10 +646,10 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         
         // Show success message for update
         alert(t('common.success') + ': Employee updated successfully');
-        const { error: insertError } = await ermsClient
+        const { error } = await ermsClient
           .from('employee')
           .insert(employeeData);
-        if (insertError) throw insertError;
+        if (error) throw error;
         
         // Show success message for creation
         alert(t('common.success') + ': Employee added successfully');
