@@ -1141,7 +1141,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.designation')}
+                    {t('erms.designation_id')}
                   </label>
                   <select
                     value={formData.designation_id || ''}
