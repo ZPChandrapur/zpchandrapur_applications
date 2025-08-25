@@ -669,6 +669,8 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         date_of_joining: ''
       });
       setEditingEmployee(null);
+      setFormData(initialFormData);
+      setErrors({});
     } catch (error) {
       console.error('Error saving employee:', error);
       
