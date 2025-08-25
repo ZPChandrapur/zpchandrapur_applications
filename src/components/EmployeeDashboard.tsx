@@ -244,7 +244,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
   };
 
   const handleSaveEmployee = async () => {
-    if (!formData.emp_id || !formData.employee_name) {
+    if (!formData.panchayatrajsevarth_id || !formData.employee_name) {
       alert(t('common.fillAllFields'));
       return;
     }
@@ -252,7 +252,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     setIsLoading(true);
     try {
       const employeeData = {
-        emp_id: formData.emp_id,
+        emp_id: formData.panchayatrajsevarth_id,
         employee_name: formData.employee_name,
         date_of_birth: formData.date_of_birth || null,
         age: formData.age ? parseInt(formData.age) : null,
@@ -285,10 +285,12 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         if (error) throw error;
       }
       
+      // Only close modal and reset form on successful save
       await fetchEmployees();
       setShowAddModal(false);
+      setEditingEmployee(null);
       setFormData({
-        emp_id: '',
+        panchayatrajsevarth_id: '',
         employee_name: '',
         date_of_birth: '',
         age: '',
@@ -304,12 +306,13 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         working_office_name: '',
         date_of_joining: '',
         date_of_service_expiry: '',
-        panchayatrajsevarth_id: '',
+        emp_id: '',
         ddo_code: ''
       });
     } catch (error) {
       console.error('Error saving employee:', error);
       alert(t('common.error') + ': ' + error.message);
+      // Don't close modal on error - let user fix the issue
     } finally {
       setIsLoading(false);
     }
