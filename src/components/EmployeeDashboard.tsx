@@ -648,7 +648,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       
       await fetchEmployees();
       clearPersistedState();
-      setShowAddModal(false);
+      setShowAddModal(true);
       setShowEditModal(false);
       
       // Reset form data properly
