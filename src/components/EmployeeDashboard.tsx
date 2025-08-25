@@ -577,7 +577,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       ddo_code: '',
       cadre: '',
       date_of_joining: ''
-    });
+      designation_id: employee.designation_id || '',
     setShowAddModal(true);
   };
 
@@ -614,7 +614,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       const employeeData = {
         emp_id: String(formData.emp_id || '').trim() || null,
         employee_name: String(formData.employee_name || '').trim(),
-        date_of_birth: formData.date_of_birth || null,
+        designation_id: formData.designation_id,
         retirement_date: formData.retirement_date || null,
         reason: String(formData.reason || '').trim() || null,
         assigned_clerk: formData.assigned_clerk || null,
@@ -624,7 +624,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         office_id: formData.office_id,
         ddo_code: String(formData.ddo_code || '').trim() || null,
         "Cadre": String(formData.cadre || '').trim() || null,
-        "date_of_joining": formData.date_of_joining || null
+        cadre_id: formData.cadre_id,
       };
 
       if (editingEmployee) {
