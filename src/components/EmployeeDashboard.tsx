@@ -623,7 +623,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         tal_id: formData.tal_id,
         office_id: formData.office_id,
         ddo_code: String(formData.ddo_code || '').trim() || null,
-        "Cadre": String(formData.cadre || '').trim(),
+        "Cadre": String(formData.cadre || '').trim() || null,
         "date_of_joining": formData.date_of_joining || null
       };
 
