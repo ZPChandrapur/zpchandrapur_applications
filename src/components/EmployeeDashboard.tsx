@@ -576,8 +576,8 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       panchayatrajsevarth_id: '',
       ddo_code: '',
       cadre: '',
-      date_of_joining: '',
-      designation_id: employee.designation_id || '',
+      date_of_joining: ''
+    });
     setShowAddModal(true);
   };
 
@@ -624,7 +624,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         office_id: formData.office_id,
         ddo_code: String(formData.ddo_code || '').trim() || null,
         "Cadre": String(formData.cadre || '').trim() || null,
-        cadre_id: formData.cadre_id,
+        cadre_id: formData.cadre_id
       };
 
       if (editingEmployee) {
@@ -660,7 +660,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         reason: '',
         assigned_clerk: '',
         dept_id: '',
-       // designation_id: '',
+        designation_id: '',
         tal_id: '',
         office_id: '',
         panchayatrajsevarth_id: '',
