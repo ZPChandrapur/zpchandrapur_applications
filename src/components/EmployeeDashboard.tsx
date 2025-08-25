@@ -578,7 +578,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       cadre: '',
       date_of_joining: ''
     });
-    setShowAddModal(false);
+    setShowAddModal(true);
   };
 
   const handleEditEmployee = (employee: Employee) => {
@@ -604,7 +604,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
 
   const handleSaveEmployee = async () => {
     // Validation
-    if (!formData.employee_name?.trim()) {
+    if (!String(formData.employee_name || '').trim()) {
       alert('Employee name is required');
       return;
     }
@@ -612,18 +612,18 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     setIsLoading(true);
     try {
       const employeeData = {
-        emp_id: formData.emp_id?.trim() || null,
-        employee_name: formData.employee_name?.trim(),
+        emp_id: String(formData.emp_id || '').trim() || null,
+        employee_name: String(formData.employee_name || '').trim(),
         date_of_birth: formData.date_of_birth || null,
         retirement_date: formData.retirement_date || null,
-        reason: formData.reason?.trim() || null,
+        reason: String(formData.reason || '').trim() || null,
         assigned_clerk: formData.assigned_clerk || null,
         dept_id: formData.dept_id || null,
         designation: formData.designation_id,
         tal_id: formData.tal_id,
         office_id: formData.office_id,
-        ddo_code: formData.ddo_code?.trim() || null,
-        "Cadre": formData.cadre?.trim(),
+        ddo_code: String(formData.ddo_code || '').trim() || null,
+        "Cadre": String(formData.cadre || '').trim(),
         "date_of_joining": formData.date_of_joining || null
       };
 
@@ -648,7 +648,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       
       await fetchEmployees();
       clearPersistedState();
-      setShowAddModal(true);
+      setShowAddModal(false);
       setShowEditModal(false);
       
       // Reset form data properly
