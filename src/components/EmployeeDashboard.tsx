@@ -578,7 +578,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       cadre: '',
       date_of_joining: ''
     });
-    setShowAddModal(true);
+    setShowAddModal(false);
   };
 
   const handleEditEmployee = (employee: Employee) => {
