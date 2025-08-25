@@ -576,7 +576,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       panchayatrajsevarth_id: '',
       ddo_code: '',
       cadre: '',
-      date_of_joining: ''
+      date_of_joining: '',
       designation_id: employee.designation_id || '',
     setShowAddModal(true);
   };
