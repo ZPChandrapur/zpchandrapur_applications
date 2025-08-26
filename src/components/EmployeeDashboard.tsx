@@ -676,3 +676,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       
       // Show error message to user
       alert('Error saving employee: ' + (error.message || 'Unknown error occurred'));
+    }
+  }
+}
