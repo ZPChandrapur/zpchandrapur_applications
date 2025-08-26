@@ -630,9 +630,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         "Cadre": String(formData.Cadre || '').trim() || null,
         date_of_joining: formData.date_of_joining || null,
         panchayatrajsevarth_id: formData.panchayatrajsevarth_id?.trim() || null,
-       
-
-        //Cadre_id: formData.cadre_id
       };
 
       if (editingEmployee) {
