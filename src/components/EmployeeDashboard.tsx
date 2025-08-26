@@ -1211,7 +1211,31 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
             
             <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200">
               <button
-                onClick={() => setShowAddModal(false)}
+                onClick={() => {
+                  setShowAddModal(false);
+                  setEditingEmployee(null);
+                  setFormData({
+                    emp_id: '',
+                    employee_name: '',
+                    date_of_birth: '',
+                    age: '',
+                    department: '',
+                    designation: '',
+                    taluka: '',
+                    office: '',
+                    retirement_reason: '',
+                    assigned_clerk: '',
+                    panchayatrajsevarth_id: '',
+                    ddo_code: '',
+                    cadre: '',
+                    post_name: '',
+                    appointing_department: '',
+                    working_office_name: '',
+                    date_of_joining: '',
+                    date_of_service_expiry: '',
+                    designation_id: ''
+                  });
+                }}
                 className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200"
               >
                 {t('common.cancel')}
