@@ -380,12 +380,12 @@ export const EmployeeDashboard = ({ onBack }) => {
 
       {/* Add Employee Modal */}
       {showAddModal && (
-        null
+        // ... your modal JSX (with formData, isLoading etc.)
       )}
 
       {/* Edit Employee Modal */}
       {showEditModal && editingEmployee && (
-        null
+        // ... your modal JSX (with formData, isLoading etc.)
       )}
     </div>
   );
