@@ -629,7 +629,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         ddo_code: String(formData.ddo_code || '').trim() || null,
         "Cadre": String(formData.Cadre || '').trim() || null,
         date_of_joining: formData.date_of_joining || null,
-        panchayatrajsevarth_id: formData.panchayatrajsevarth_id?.trim() || null,
+        panchayatrajsevarth_id: formData.panchayatrajsevarth_id?.trim() || null
       };
 
       if (editingEmployee) {
