@@ -604,6 +604,9 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
 
   const handleSaveEmployee = async () => {
     if (!formData.emp_id || !formData.employee_name || !formData.date_of_birth) {
+      alert('Employee ID, name, and date of birth are required');
+      return;
+    }
     if (!String(formData.employee_name || '').trim()) {
       alert('Employee name is required');
       return;
