@@ -1214,6 +1214,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
             <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200">
               <button
                 onClick={() => {
+                  clearPersistedState(); // Add this line
                   setShowAddModal(false);
                   setEditingEmployee(null);
                   setFormData({
