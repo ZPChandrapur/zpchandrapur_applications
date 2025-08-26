@@ -617,7 +617,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       const employeeData = {
         emp_id: String(formData.emp_id || '').trim() || null,
         employee_name: String(formData.employee_name || '').trim(),
-         date_of_birth: formData.date_of_birth, 
+        date_of_birth: formData.date_of_birth, 
         designation_id: formData.designation_id,
         retirement_date: formData.retirement_date || null,
         reason: String(formData.reason || '').trim() || null,
@@ -628,6 +628,8 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         office_id: formData.office_id,
         ddo_code: String(formData.ddo_code || '').trim() || null,
         "Cadre": String(formData.Cadre || '').trim() || null,
+        date_of_joining: formData.date_of_joining || null,
+        panchayatrajsevarth_id: formData.panchayatrajsevarth_id?.trim() || null,
        
 
         //Cadre_id: formData.cadre_id
