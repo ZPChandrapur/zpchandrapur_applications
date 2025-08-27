@@ -141,6 +141,9 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
           retirement_progress_status,
           pay_commission_status,
           group_insurance_status
+          retirement_progress_status,
+          pay_commission_status,
+          group_insurance_status
         `)
         .order('age', { ascending: false });
       
