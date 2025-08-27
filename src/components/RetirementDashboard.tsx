@@ -52,9 +52,6 @@ interface RetirementEmployee {
   government_decision_march_31_2023: string | null;
   created_at?: string;
   updated_at?: string;
-  retirement_progress_status: string | null;
-  pay_commission_status: string | null;
-  group_insurance_status: string | null;
   retirement_progress_status?: string;
   pay_commission_status?: string;
   group_insurance_status?: string;
@@ -126,7 +123,6 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
           assigned_clerk,
           department,
           designation,
-          status,
           status,
           date_of_submission,
           department_submitted,
