@@ -619,13 +619,21 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       return;
     }
 
+    // Calculate retirement date based on cadre
+    const calculatedRetirementDate = calculateRetirementDate(formData.date_of_birth, formData.cadre);
+
+    // Calculate retirement date based on cadre
+    const calculatedRetirementDate = calculateRetirementDate(formData.date_of_birth, formData.cadre);
+
     setIsLoading(true);
     try {
       const employeeData = {
         emp_id: String(formData.emp_id || '').trim() || null,
         employee_name: String(formData.employee_name || '').trim(),
         date_of_birth: formData.date_of_birth, 
+        retirement_date: calculatedRetirementDate,
         designation_id: formData.designation_id,
+        retirement_date: calculatedRetirementDate,
         retirement_date: formData.retirement_date || null,
         reason: String(formData.reason || '').trim() || null,
         assigned_clerk: formData.assigned_clerk || null,
