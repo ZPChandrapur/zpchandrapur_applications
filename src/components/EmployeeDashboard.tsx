@@ -973,7 +973,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                         {employee.date_of_joining ? new Date(employee.date_of_joining).toLocaleDateString() : '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {calculateRetirementDate(employee.date_of_birth, employee.Cadre) || '-'}
+                        {employee.retirement_date ? new Date(employee.retirement_date).toLocaleDateString() : '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex items-center space-x-2">
