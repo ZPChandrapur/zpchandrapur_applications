@@ -172,7 +172,8 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
 
   const fetchRetirementEmployees = async () => {
     try {
-      const { data, error } = await ermsClient
+      // Fetch retirement records with related data from all tables
+      const { data: retirementData, error: retirementError } = await ermsClient
         .from('employee_retirement')
         .select(`
           id,
@@ -207,10 +208,75 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
         `)
         .order('age', { ascending: false });
       
-      if (error) throw error;
+      if (retirementError) throw retirementError;
+
+      // Fetch retirement progress data
+      const { data: progressData, error: progressError } = await ermsClient
+        .from('retirement_progress')
+        .select('*');
+      
+      if (progressError) console.warn('Error fetching retirement progress:', progressError);
+
+      // Fetch pay commission data
+      const { data: payCommissionData, error: payCommissionError } = await ermsClient
+        .from('pay_comission')
+        .select('*');
+      
+      if (payCommissionError) console.warn('Error fetching pay commission:', payCommissionError);
+
+      // Fetch group insurance data
+      const { data: groupInsuranceData, error: groupInsuranceError } = await ermsClient
+        .from('group_insurance')
+        .select('*');
+      
+      if (groupInsuranceError) console.warn('Error fetching group insurance:', groupInsuranceError);
+
+      // Merge data and calculate statuses
+      const enrichedRecords = retirementData?.map(record => {
+        // Find corresponding records in other tables
+        const progressRecord = progressData?.find(p => p.emp_id === record.emp_id);
+        const payCommissionRecord = payCommissionData?.find(p => p.emp_id === record.emp_id);
+        const groupInsuranceRecord = groupInsuranceData?.find(g => g.emp_id === record.emp_id);
+
+        // Calculate statuses based on actual data from respective tables
+        const calculatedRetirementProgressStatus = progressRecord 
+          ? calculateRetirementProgressStatus(progressRecord)
+          : 'pending';
+
+        const calculatedPayCommissionStatus = payCommissionRecord 
+          ? calculatePayCommissionStatus(payCommissionRecord)
+          : 'pending';
+
+        const calculatedGroupInsuranceStatus = groupInsuranceRecord 
+          ? calculateGroupInsuranceStatus(groupInsuranceRecord)
+          : 'pending';
+
+        return {
+          ...record,
+          retirement_progress_status: calculatedRetirementProgressStatus,
+          pay_commission_status: calculatedPayCommissionStatus,
+          group_insurance_status: calculatedGroupInsuranceStatus
+        };
+      }) || [];
+
+      // Update the database with calculated statuses
+      for (const record of enrichedRecords) {
+        try {
+          await ermsClient
+            .from('employee_retirement')
+            .update({
+              retirement_progress_status: record.retirement_progress_status,
+              pay_commission_status: record.pay_commission_status,
+              group_insurance_status: record.group_insurance_status
+            })
+            .eq('id', record.id);
+        } catch (updateError) {
+          console.warn('Error updating status for record:', record.id, updateError);
+        }
+      }
       
       // Update status for each employee based on progress and save to database
-      const employeesWithUpdatedStatus = await Promise.all((data || []).map(async (employee) => {
+      const employeesWithUpdatedStatus = await Promise.all(enrichedRecords.map(async (employee) => {
         const calculatedStatus = getProgressStatus(employee);
         
         // Only update if status has changed
