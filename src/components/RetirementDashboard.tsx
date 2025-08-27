@@ -55,11 +55,6 @@ interface RetirementEmployee {
   government_decision_march_31_2023: string | null;
   created_at?: string;
   updated_at?: string;
-  retirement_progress_status?: string;
-  pay_commission_status?: string;
-  retirement_progress_status?: string;
-  pay_commission_status?: string;
-  group_insurance_status?: string;
 }
 
 interface ClerkData {
@@ -129,8 +124,6 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
           department,
           updated_at,
           retirement_progress_status,
-          pay_commission_status
-          retirement_progress_status,
           pay_commission_status,
           group_insurance_status,
           status,
@@ -147,9 +140,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
           government_decision_march_31_2023,
           created_at,
           updated_at,
-          retirement_progress_status,
-          pay_commission_status,
-          group_insurance_status
+          designation
         `)
         .order('age', { ascending: false });
       
@@ -889,7 +880,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
-                  <td colSpan={10} className="px-6 py-8 text-center text-gray-500">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.employee')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.department')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.designation')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.age')}</th>
