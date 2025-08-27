@@ -47,12 +47,23 @@ export const usePermissions = (user: User | null): PermissionCheck => {
         setIsLoading(true);
         setError(null);
 
+        // Check if Supabase is properly configured
+        if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
+          throw new Error('Supabase configuration is missing. Please check your environment variables.');
+        }
+
         // Check if we can reach Supabase
         try {
-          const { data: healthCheck } = await supabase.from('user_roles').select('count').limit(1);
+          const { data: healthCheck, error: healthError } = await supabase.from('user_roles').select('count').limit(1);
+          if (healthError && healthError.message.includes('Failed to fetch')) {
+            throw new Error('Unable to connect to Supabase. Please check your internet connection and Supabase project status.');
+          }
         } catch (networkError) {
           console.error('Network connectivity issue:', networkError);
-          throw new Error('Unable to connect to the server. Please check your internet connection and try again.');
+          if (networkError.message.includes('Failed to fetch')) {
+            throw new Error('Unable to connect to Supabase. Please check your internet connection and verify your Supabase project is active.');
+          }
+          throw new Error('Network error: Unable to connect to the server. Please check your internet connection and try again.');
         }
 
         // Fetch user roles and permissions directly without RPC function

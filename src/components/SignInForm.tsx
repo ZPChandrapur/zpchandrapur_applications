@@ -38,6 +38,12 @@ export const SignInForm: React.FC<SignInFormProps> = ({ onSignInSuccess }) => {
     e.preventDefault();
     setError('');
     
+    // Check if Supabase is configured
+    if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
+      setError('Application configuration error. Please contact your administrator.');
+      return;
+    }
+
     // Basic validation
     if (!email || !password) {
       setError(t('auth.fillAllFields'));
@@ -63,12 +69,20 @@ export const SignInForm: React.FC<SignInFormProps> = ({ onSignInSuccess }) => {
       });
 
       if (signInError) {
-        setError(signInError.message);
+        if (signInError.message.includes('Failed to fetch')) {
+          setError('Unable to connect to authentication server. Please check your internet connection and try again.');
+        } else {
+          setError(signInError.message);
+        }
       } else if (data.user) {
         onSignInSuccess();
       }
     } catch (err) {
-      setError('An unexpected error occurred. Please try again.');
+      if (err.message && err.message.includes('Failed to fetch')) {
+        setError('Network connection error. Please check your internet connection and try again.');
+      } else {
+        setError('An unexpected error occurred. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
