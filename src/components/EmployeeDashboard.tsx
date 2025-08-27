@@ -149,7 +149,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
   const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
 
   // Function to calculate retirement date based on date of birth and Cadre
-  const calculateRetirementDate = (dateOfBirth: string, cadre: string) => {
+  const calculateRetirementDate = (dateOfBirth: string, Cadre: string) => {
     
     if (!cadre) return null;
     
