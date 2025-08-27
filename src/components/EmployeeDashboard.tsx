@@ -151,15 +151,15 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
   // Function to calculate retirement date based on date of birth and Cadre
   const calculateRetirementDate = (dateOfBirth: string, Cadre: string) => {
     
-    if (!cadre) return null;
+    if (!Cadre) return null;
     
     const birthDate = new Date(dateOfBirth);
     
     // Determine retirement age based on cadre
     let retirementAge = 58; // default
-    if (cadre.toLowerCase() === 'c') {
+    if (Cadre.toLowerCase() === 'c') {
       retirementAge = 58;
-    } else if (cadre.toLowerCase() === 'd') {
+    } else if (Cadre.toLowerCase() === 'd') {
       retirementAge = 60;
     }
     
