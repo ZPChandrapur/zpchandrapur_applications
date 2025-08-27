@@ -149,21 +149,11 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
   const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
 
   // Function to calculate retirement date based on date of birth and Cadre
-  const calculateRetirementDate = (dateOfBirth: string, Cadre: string): string => {
   const calculateRetirementDate = (dateOfBirth: string, cadre: string) => {
     
     if (!cadre) return null;
     
     const birthDate = new Date(dateOfBirth);
-    const retirementAge = Cadre.toLowerCase().includes('c') ? 58 : 
-                         Cadre.toLowerCase().includes('d') ? 60 : 60; // Default to 60 for D Cadre or others
-    
-    // Calculate retirement date: birth year + retirement age
-    const retirementYear = birthDate.getFullYear() + retirementAge;
-    const retirementMonth = birthDate.getMonth(); // Same month as birth
-    
-    // Get the last day of the retirement month
-    const retirementDate = new Date(retirementYear, retirementMonth + 1, 0);
     
     // Determine retirement age based on cadre
     let retirementAge = 58; // default
@@ -174,6 +164,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     }
     
     // Add retirement age to birth year
+    const retirementDate = new Date(birthDate);
     retirementDate.setFullYear(birthDate.getFullYear() + retirementAge);
     
     // Set to last day of that month
@@ -974,7 +965,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                         {employee.date_of_joining ? new Date(employee.date_of_joining).toLocaleDateString() : '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {employee.retirement_date ? new Date(employee.retirement_date).toLocaleDateString() : '-'}
+                        {calculateRetirementDate(employee.date_of_birth, employee.Cadre) || '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex items-center space-x-2">
