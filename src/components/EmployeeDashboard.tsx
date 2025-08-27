@@ -1383,10 +1383,14 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   </label>
                   <input
                     type="date"
-                    value={formData.retirement_date || ''}
-                    onChange={(e) => setFormData({ ...formData, retirement_date: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    value={calculateRetirementDate(formData.date_of_birth, formData.cadre) || ''}
+                    readOnly
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
+                    title="Retirement date is auto-calculated based on date of birth and cadre"
                   />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Auto-calculated: Cadre C = 58 years, Cadre D = 60 years (last day of month)
+                  </p>
                 </div>
 
                 <div>
