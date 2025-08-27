@@ -52,6 +52,9 @@ interface RetirementEmployee {
   government_decision_march_31_2023: string | null;
   created_at?: string;
   updated_at?: string;
+  retirement_progress_status?: string;
+  pay_commission_status?: string;
+  group_insurance_status?: string;
 }
 
 interface ClerkData {
@@ -134,7 +137,10 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
           date_of_actual_benefit_provided_for_pending_travel_allowance_if,
           government_decision_march_31_2023,
           created_at,
-          updated_at
+          updated_at,
+          retirement_progress_status,
+          pay_commission_status,
+          group_insurance_status
         `)
         .order('age', { ascending: false });
       
