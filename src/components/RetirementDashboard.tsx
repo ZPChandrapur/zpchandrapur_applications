@@ -83,6 +83,69 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
   // Data states
   const [retirementEmployees, setRetirementEmployees] = useState<RetirementEmployee[]>([]);
   const [clerks, setClerks] = useState<ClerkData[]>([]);
+
+  // Helper function to calculate retirement progress status
+  const calculateRetirementProgressStatus = (record: any) => {
+    const progressFields = [
+      record.birth_certificate,
+      record.birth_doc_submitted,
+      record.medical_certificate,
+      record.nomination,
+      record.permanent_registration,
+      record.computer_exam,
+      record.language_exam,
+      record.post_service_exam,
+      record.verification,
+      record.date_of_birth_verification,
+      record.computer_exam_passed,
+      record.marathi_hindi_exam_exemption,
+      record.verification_completed,
+      record.undertaking_taken,
+      record.no_objection_certificate,
+      record.retirement_order
+    ];
+
+    const filledFields = progressFields.filter(field => field && field.trim() !== '').length;
+    const totalFields = progressFields.length;
+
+    if (filledFields === 0) return 'pending';
+    if (filledFields === totalFields) return 'completed';
+    return 'in_progress';
+  };
+
+  // Helper function to calculate pay commission status
+  const calculatePayCommissionStatus = (record: any) => {
+    const payCommissionFields = [
+      record.fourth_pay_comission,
+      record.fifth_pay_comission,
+      record.sixth_pay_comission,
+      record.seventh_pay_comission
+    ];
+
+    const filledFields = payCommissionFields.filter(field => field && field.trim() !== '').length;
+    const totalFields = payCommissionFields.length;
+
+    if (filledFields === 0) return 'pending';
+    if (filledFields === totalFields) return 'completed';
+    return 'in_progress';
+  };
+
+  // Helper function to calculate group insurance status
+  const calculateGroupInsuranceStatus = (record: any) => {
+    const groupInsuranceFields = [
+      record.year_1990,
+      record.year_2003,
+      record.year_2010,
+      record.year_2020
+    ];
+
+    const filledFields = groupInsuranceFields.filter(field => field && field.trim() !== '').length;
+    const totalFields = groupInsuranceFields.length;
+
+    if (filledFields === 0) return 'pending';
+    if (filledFields === totalFields) return 'completed';
+    return 'in_progress';
+  };
   const [filteredEmployees, setFilteredEmployees] = useState<RetirementEmployee[]>([]);
 
   useEffect(() => {
