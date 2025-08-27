@@ -57,6 +57,8 @@ interface RetirementEmployee {
   updated_at?: string;
   retirement_progress_status?: string;
   pay_commission_status?: string;
+  retirement_progress_status?: string;
+  pay_commission_status?: string;
   group_insurance_status?: string;
 }
 
@@ -125,7 +127,9 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
           designation_time_of_retirement,
           assigned_clerk,
           department,
-          designation,
+          updated_at,
+          retirement_progress_status,
+          pay_commission_status
           retirement_progress_status,
           pay_commission_status,
           group_insurance_status,
