@@ -38,9 +38,6 @@ interface RetirementEmployee {
   assigned_clerk: string | null;
   department: string | null;
   designation: string | null;
-  retirement_progress_status: string | null;
-  pay_commission_status: string | null;
-  group_insurance_status: string | null;
   status: string | null;
   date_of_submission: string | null;
   department_submitted: string | null;
@@ -83,69 +80,6 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
   // Data states
   const [retirementEmployees, setRetirementEmployees] = useState<RetirementEmployee[]>([]);
   const [clerks, setClerks] = useState<ClerkData[]>([]);
-
-  // Helper function to calculate retirement progress status
-  const calculateRetirementProgressStatus = (record: any) => {
-    const progressFields = [
-      record.birth_certificate,
-      record.birth_doc_submitted,
-      record.medical_certificate,
-      record.nomination,
-      record.permanent_registration,
-      record.computer_exam,
-      record.language_exam,
-      record.post_service_exam,
-      record.verification,
-      record.date_of_birth_verification,
-      record.computer_exam_passed,
-      record.marathi_hindi_exam_exemption,
-      record.verification_completed,
-      record.undertaking_taken,
-      record.no_objection_certificate,
-      record.retirement_order
-    ];
-
-    const filledFields = progressFields.filter(field => field && field.trim() !== '').length;
-    const totalFields = progressFields.length;
-
-    if (filledFields === 0) return 'pending';
-    if (filledFields === totalFields) return 'completed';
-    return 'in_progress';
-  };
-
-  // Helper function to calculate pay commission status
-  const calculatePayCommissionStatus = (record: any) => {
-    const payCommissionFields = [
-      record.fourth_pay_comission,
-      record.fifth_pay_comission,
-      record.sixth_pay_comission,
-      record.seventh_pay_comission
-    ];
-
-    const filledFields = payCommissionFields.filter(field => field && field.trim() !== '').length;
-    const totalFields = payCommissionFields.length;
-
-    if (filledFields === 0) return 'pending';
-    if (filledFields === totalFields) return 'completed';
-    return 'in_progress';
-  };
-
-  // Helper function to calculate group insurance status
-  const calculateGroupInsuranceStatus = (record: any) => {
-    const groupInsuranceFields = [
-      record.year_1990,
-      record.year_2003,
-      record.year_2010,
-      record.year_2020
-    ];
-
-    const filledFields = groupInsuranceFields.filter(field => field && field.trim() !== '').length;
-    const totalFields = groupInsuranceFields.length;
-
-    if (filledFields === 0) return 'pending';
-    if (filledFields === totalFields) return 'completed';
-    return 'in_progress';
-  };
   const [filteredEmployees, setFilteredEmployees] = useState<RetirementEmployee[]>([]);
 
   useEffect(() => {
@@ -172,8 +106,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
 
   const fetchRetirementEmployees = async () => {
     try {
-      // Fetch retirement records with related data from all tables
-      const { data: retirementData, error: retirementError } = await ermsClient
+      const { data, error } = await ermsClient
         .from('employee_retirement')
         .select(`
           id,
@@ -186,10 +119,8 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
           designation_time_of_retirement,
           assigned_clerk,
           department,
-          updated_at,
-          retirement_progress_status,
-          pay_commission_status,
-          group_insurance_status,
+          designation,
+          status,
           status,
           date_of_submission,
           department_submitted,
@@ -203,80 +134,14 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
           date_of_actual_benefit_provided_for_pending_travel_allowance_if,
           government_decision_march_31_2023,
           created_at,
-          updated_at,
-          designation
+          updated_at
         `)
         .order('age', { ascending: false });
       
-      if (retirementError) throw retirementError;
-
-      // Fetch retirement progress data
-      const { data: progressData, error: progressError } = await ermsClient
-        .from('retirement_progress')
-        .select('*');
-      
-      if (progressError) console.warn('Error fetching retirement progress:', progressError);
-
-      // Fetch pay commission data
-      const { data: payCommissionData, error: payCommissionError } = await ermsClient
-        .from('pay_comission')
-        .select('*');
-      
-      if (payCommissionError) console.warn('Error fetching pay commission:', payCommissionError);
-
-      // Fetch group insurance data
-      const { data: groupInsuranceData, error: groupInsuranceError } = await ermsClient
-        .from('group_insurance')
-        .select('*');
-      
-      if (groupInsuranceError) console.warn('Error fetching group insurance:', groupInsuranceError);
-
-      // Merge data and calculate statuses
-      const enrichedRecords = retirementData?.map(record => {
-        // Find corresponding records in other tables
-        const progressRecord = progressData?.find(p => p.emp_id === record.emp_id);
-        const payCommissionRecord = payCommissionData?.find(p => p.emp_id === record.emp_id);
-        const groupInsuranceRecord = groupInsuranceData?.find(g => g.emp_id === record.emp_id);
-
-        // Calculate statuses based on actual data from respective tables
-        const calculatedRetirementProgressStatus = progressRecord 
-          ? calculateRetirementProgressStatus(progressRecord)
-          : 'pending';
-
-        const calculatedPayCommissionStatus = payCommissionRecord 
-          ? calculatePayCommissionStatus(payCommissionRecord)
-          : 'pending';
-
-        const calculatedGroupInsuranceStatus = groupInsuranceRecord 
-          ? calculateGroupInsuranceStatus(groupInsuranceRecord)
-          : 'pending';
-
-        return {
-          ...record,
-          retirement_progress_status: calculatedRetirementProgressStatus,
-          pay_commission_status: calculatedPayCommissionStatus,
-          group_insurance_status: calculatedGroupInsuranceStatus
-        };
-      }) || [];
-
-      // Update the database with calculated statuses
-      for (const record of enrichedRecords) {
-        try {
-          await ermsClient
-            .from('employee_retirement')
-            .update({
-              retirement_progress_status: record.retirement_progress_status,
-              pay_commission_status: record.pay_commission_status,
-              group_insurance_status: record.group_insurance_status
-            })
-            .eq('id', record.id);
-        } catch (updateError) {
-          console.warn('Error updating status for record:', record.id, updateError);
-        }
-      }
+      if (error) throw error;
       
       // Update status for each employee based on progress and save to database
-      const employeesWithUpdatedStatus = await Promise.all(enrichedRecords.map(async (employee) => {
+      const employeesWithUpdatedStatus = await Promise.all((data || []).map(async (employee) => {
         const calculatedStatus = getProgressStatus(employee);
         
         // Only update if status has changed
@@ -364,10 +229,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
       employee.date_of_actual_benefit_provided_for_medical_allowance_if_applic,
       employee.date_of_benefit_provided_for_hometown_travel_allowance_if_appli,
       employee.date_of_actual_benefit_provided_for_pending_travel_allowance_if,
-      employee.government_decision_march_31_2023,
-      employee.retirement_progress_status,
-      employee.pay_commission_status,
-      employee.group_insurance_status
+      employee.government_decision_march_31_2023
     ];
 
     const filledFields = progressFields.filter(field => field && field.trim() !== '').length;
@@ -541,10 +403,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
       employee.date_of_actual_benefit_provided_for_medical_allowance_if_applic,
       employee.date_of_benefit_provided_for_hometown_travel_allowance_if_appli,
       employee.date_of_actual_benefit_provided_for_pending_travel_allowance_if,
-      employee.government_decision_march_31_2023,
-      employee.retirement_progress_status,
-      employee.pay_commission_status,
-      employee.group_insurance_status
+      employee.government_decision_march_31_2023
     ];
     const filledFields = progressFields.filter(field => field && field.trim() !== '').length;
     return Math.round((filledFields / progressFields.length) * 100);
@@ -1022,9 +881,6 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.retirementDate')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.assignedClerk')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.status')}</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.retirementProgressStatus')}</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.payCommissionStatus')}</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.groupInsuranceStatus')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.progress')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.actions')}</th>
                 </tr>
@@ -1032,7 +888,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
               <tbody className="bg-white divide-y divide-gray-200">
                 {getTabFilteredEmployees().length === 0 ? (
                   <tr>
-                    <td colSpan={12} className="px-6 py-8 text-center text-gray-500">
+                    <td colSpan={9} className="px-6 py-8 text-center text-gray-500">
                       {isLoading ? t('erms.loadingRetirementData') : t('erms.noRetirementRecordsFound')}
                     </td>
                   </tr>
@@ -1050,10 +906,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
                       employee.date_of_actual_benefit_provided_for_medical_allowance_if_applic,
                       employee.date_of_benefit_provided_for_hometown_travel_allowance_if_appli,
                       employee.date_of_actual_benefit_provided_for_pending_travel_allowance_if,
-                      employee.government_decision_march_31_2023,      
-                      employee.retirement_progress_status,
-                      employee.pay_commission_status,
-                      employee.group_insurance_status
+                      employee.government_decision_march_31_2023
                     ];
                     const filledFields = progressFields.filter(field => field && field.trim() !== '').length;
                     const progressPercentage = Math.round((filledFields / progressFields.length) * 100);
@@ -1092,15 +945,6 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
                             {status === 'pending' && <AlertCircle className="h-3 w-3 mr-1" />}
                             {t(`erms.${status}`)}
                           </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {employee.retirement_progress_status || '-'}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {employee.pay_commission_status || '-'}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {employee.group_insurance_status || '-'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
