@@ -38,6 +38,9 @@ interface RetirementEmployee {
   assigned_clerk: string | null;
   department: string | null;
   designation: string | null;
+  retirement_progress_status: string | null;
+  pay_commission_status: string | null;
+  group_insurance_status: string | null;
   status: string | null;
   date_of_submission: string | null;
   department_submitted: string | null;
@@ -123,6 +126,9 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
           assigned_clerk,
           department,
           designation,
+          retirement_progress_status,
+          pay_commission_status,
+          group_insurance_status,
           status,
           date_of_submission,
           department_submitted,
