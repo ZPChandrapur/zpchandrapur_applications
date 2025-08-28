@@ -1246,11 +1246,12 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     Cadre: '',
                     date_of_joining: '',
                     date_of_service_expiry: '',
+                    retirement_reason: '',
                     department: '',
                     designation: '',
                     taluka: '',
                     office: '',
-                    retirement_reason: '',
+                    
                     assigned_clerk: '',
                     post_name: '',
                    // appointing_department: '',
