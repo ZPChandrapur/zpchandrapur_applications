@@ -535,7 +535,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       filtered = filtered.filter(emp =>
         emp.emp_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         emp.employee_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        emp.department_name?.toLowerCase().includes(searchTerm.toLowerCase())
+        emp.department?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
