@@ -35,7 +35,7 @@ interface Employee {
   designation: string; // from designations table
   tal_id: string;
   office_id: string;
-  office_name: string; // from office_locations table
+  name: string; // from office_locations table
   date_of_assignment: string | null;
   panchayatrajsevarth_id: string | null;
   ddo_code: string | null;
