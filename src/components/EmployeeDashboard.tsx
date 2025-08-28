@@ -1255,8 +1255,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                    // post_name: '',
                    // appointing_department: '',
                    // working_office_name: '',
-                   
-                  
                   });
                 }}
                 className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200"
