@@ -133,7 +133,10 @@
     "webApp": "Web App",
     "mobileApp": "Mobile App"
   },
-  
+   "erms": {
+    "organizationSetup": "Organization Setup",
+    "organizationSetupDesc": "Manage organizational structure and master data",
+    "department": "Department",
     "departments": "विभाग",
     "departmentId": "विभाग आयडी",
     "departmentName": "विभागाचे नाव",
