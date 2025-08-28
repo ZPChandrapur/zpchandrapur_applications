@@ -1105,7 +1105,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                       <option value="">Select Cadre</option>
                       <option value="C">C</option>
                       <option value="D">D</option>
-                    </select>
+                   </select>
                 </div>
 
                 <div>
