@@ -32,7 +32,7 @@ interface Employee {
   dept_id: string;
   department: string; // from department table
   designation_id: string;
-  designation_name: string; // from designations table
+  designation: string; // from designations table
   tal_id: string;
   office_id: string;
   office_name: string; // from office_locations table
