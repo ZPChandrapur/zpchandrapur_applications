@@ -554,7 +554,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     setFilteredEmployees(filtered);
   };
 
-  const calculateUpcomingRetirements = () => {
+  const calculateUpcomingRetirements = () =< {
     const sixMonthsFromNow = new Date();
     sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
     
