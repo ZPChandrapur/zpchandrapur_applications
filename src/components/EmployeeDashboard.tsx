@@ -619,7 +619,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       return;
     }
 
-    if (!formData.cadre || formData.cadre.trim() === '') {
+    if (!formData.Cadre || formData.Cadre.trim() === '') {
       alert('Please select a Cadre');
       return;
     }
