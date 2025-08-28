@@ -1031,7 +1031,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     value={formData.panchayatrajsevarth_id || ''}
                     onChange={(e) => setFormData({ ...formData, panchayatrajsevarth_id: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder={t('erms.enterEmployeeId')}
+                    placeholder={t('erms.enterpanchayatrajsevarthId')}
                   />
                 </div>
                 
