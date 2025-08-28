@@ -1259,7 +1259,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     assigned_clerk: '',
                     panchayatrajsevarth_id: '',
                     ddo_code: '',
-                    cadre: '',
+                    Cadre: '',
                     post_name: '',
                     appointing_department: '',
                     working_office_name: '',
