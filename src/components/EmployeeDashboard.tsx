@@ -596,6 +596,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       date_of_birth: employee.date_of_birth ? employee.date_of_birth.split('T')[0] : '',
       retirement_date: employee.retirement_date,
       reason: employee.reason,
+      Cadre: employee.Cadre,
       assigned_clerk: employee.assigned_clerk,
       dept_id: employee.dept_id,
       designation_id: employee.designation_id,
