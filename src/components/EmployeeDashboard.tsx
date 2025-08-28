@@ -554,7 +554,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     setFilteredEmployees(filtered);
   };
 
-  const calculateUpcomingRetirements = () =< {
+  const calculateUpcomingRetirements = () => {
     const sixMonthsFromNow = new Date();
     sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
     
@@ -1245,7 +1245,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     ddo_code: '',
                     Cadre: '',
                     date_of_joining: '',
-                    date_of_service_expiry: '',
+                    retirement_date: '',
                     retirement_reason: '',
                     department: '',
                     designation: '',
