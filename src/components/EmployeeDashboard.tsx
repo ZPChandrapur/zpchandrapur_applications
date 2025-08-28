@@ -557,14 +557,13 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
   const calculateUpcomingRetirements = () => {
     const sixMonthsFromNow = new Date();
     sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
-    
     return employees.filter(emp => {
       if (!emp.retirement_date) return false;
       const retirementDate = new Date(emp.retirement_date);
-      const today = new Date();
-      return retirementDate >= today && retirementDate <= sixMonthsFromNow;
+      return retirementDate <= sixMonthsFromNow;
     }).length;
   };
+
 
   const handleAddEmployee = () => {
     setEditingEmployee(null);
