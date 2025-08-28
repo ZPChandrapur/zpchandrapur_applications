@@ -1099,7 +1099,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   {editingEmployee ? (
                     <input
                       type="text"
-                      value={formData.cadre}
+                      value={formData.Cadre}
                       readOnly
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
                     />
