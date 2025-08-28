@@ -1364,12 +1364,12 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     onChange={(e) => setFormData({ ...formData, Cadre: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
+                    ></select>
                    <option value="">Select Cadre</option>
                    <option value="C">C</option>
                    <option value="D">D</option>
                   </select>
                 </div>
-
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
