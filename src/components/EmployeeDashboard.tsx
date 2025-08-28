@@ -619,6 +619,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
 
     setIsLoading(true);
     try {
+      const employeeData = {
         emp_id: String(formData.emp_id || '').trim() || null,
         employee_name: String(formData.employee_name || '').trim(),
         date_of_birth: formData.date_of_birth, 
