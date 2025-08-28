@@ -18,7 +18,7 @@ import {
 import { ermsClient, supabase } from '../lib/supabase';
 import { usePermissions } from '../hooks/usePermissions';
 
-interface EmployeeDashboardProps {
+import { ermsClient } from '../lib/supabase';
   onBack: () => void;
 }
 
@@ -656,7 +656,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         
         // Show success message for update
         alert(t('common.success') + ': Employee updated successfully');
-      } else {
+        const { error } = await ermsClient
         const { error } = await ermsClient
           .from('employee')
           .insert(employeeData);
