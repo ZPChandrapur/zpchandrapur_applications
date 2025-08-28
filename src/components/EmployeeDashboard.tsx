@@ -1238,25 +1238,27 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   setShowAddModal(false);
                   setEditingEmployee(null);
                   setFormData({
+                    panchayatrajsevarth_id: '',
                     emp_id: '',
                     employee_name: '',
                     date_of_birth: '',
-                    age: '',
-                   // department: '',
+                    ddo_code: '',
+                    Cadre: '',
+                    date_of_joining: '',
+                    department: '',
                     designation: '',
                     taluka: '',
                     office: '',
                     retirement_reason: '',
                     assigned_clerk: '',
-                    panchayatrajsevarth_id: '',
-                    ddo_code: '',
-                    Cadre: '',
+                    
+                    
+                  
                     post_name: '',
                    // appointing_department: '',
                    // working_office_name: '',
-                    date_of_joining: '',
+                   
                     date_of_service_expiry: ''
-                   // designation_id: ''
                   });
                 }}
                 className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200"
