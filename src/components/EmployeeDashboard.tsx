@@ -1252,9 +1252,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     office: '',
                     retirement_reason: '',
                     assigned_clerk: '',
-                    
-                    
-                  
                     post_name: '',
                    // appointing_department: '',
                    // working_office_name: '',
