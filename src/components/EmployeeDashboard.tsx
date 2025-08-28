@@ -1245,7 +1245,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     ddo_code: '',
                     Cadre: '',
                     date_of_joining: '',
-                    date_of_service_expiry: ''
+                    date_of_service_expiry: '',
                     department: '',
                     designation: '',
                     taluka: '',
