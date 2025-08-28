@@ -1360,7 +1360,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     {t('erms.Cadre')} <span className="text-red-500">*</span>
                   </label>
                   <select
-                    value={formData.Cadre}
+                    value={formData.Cadre || ''}
                     onChange={(e) => setFormData({ ...formData, Cadre: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
