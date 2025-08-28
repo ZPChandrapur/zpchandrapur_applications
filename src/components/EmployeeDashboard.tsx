@@ -619,6 +619,11 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       return;
     }
 
+    if (!formData.cadre || formData.cadre.trim() === '') {
+      alert('Please select a Cadre');
+      return;
+    }
+
     // Calculate retirement date based on cadre
     const calculatedRetirementDate = calculateRetirementDate(formData.date_of_birth, formData.cadre);
 
