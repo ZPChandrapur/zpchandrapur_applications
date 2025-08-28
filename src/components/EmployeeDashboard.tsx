@@ -1125,8 +1125,8 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   </label>
                   <input
                     type="date"
-                    value={formData.date_of_service_expiry || ''}
-                    onChange={(e) => setFormData({ ...formData, date_of_service_expiry: e.target.value })}
+                    value={calculateRetirementDate(formData.date_of_birth, formData.cadre)?.toISOString().split('T')[0] || ''}
+                    readOnly
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
                     disabled
                   />
