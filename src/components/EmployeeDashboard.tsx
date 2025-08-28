@@ -1250,10 +1250,9 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     department: '',
                     designation: '',
                     taluka: '',
-                    office: '',
-                    
-                    assigned_clerk: '',
-                    post_name: '',
+                    office: '', 
+                    assigned_clerk: ''
+                   // post_name: '',
                    // appointing_department: '',
                    // working_office_name: '',
                    
