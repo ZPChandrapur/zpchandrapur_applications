@@ -659,7 +659,8 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       } else {
         const { error } = await ermsClient
           .from('employee')
-          .insert(employeeData);
+          .insert([employeeData])
+          .select();
         if (error) throw error;
         
         // Show success message for creation
