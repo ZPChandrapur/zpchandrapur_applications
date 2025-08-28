@@ -1383,8 +1383,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   </label>
                   <input
                     type="date"
-                   // value={calculateRetirementDate(formData.date_of_birth, formData.Cadre) || ''}
-                    value={calculatedRetirementDate ? calculatedRetirementDate.toISOString().split('T')[0] : ''}
+                    value={calculateRetirementDate(formData.date_of_birth, formData.Cadre) || ''}
                     readOnly
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
                     title="Retirement date is auto-calculated based on date of birth and cadre"
