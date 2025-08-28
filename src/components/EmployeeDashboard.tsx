@@ -406,7 +406,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
 
   const fetchEmployees = async () => {
     try {
-      console.log('🔍 Fetching employees from erms.employee table...');
+      console.log('ðŸ” Fetching employees from erms.employee table...');
       const { data, error } = await ermsClient
         .from('employee')
         .select(`
@@ -430,15 +430,15 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         .order('date_of_birth');
       
       if (error) {
-        console.error('❌ Error fetching employees:', error);
+        console.error('âŒ Error fetching employees:', error);
         throw error;
       }
       
-      console.log('✅ Raw employee data from database:', data);
-      console.log('📊 Number of employees fetched:', data?.length || 0);
+      console.log('âœ… Raw employee data from database:', data);
+      console.log('ðŸ“Š Number of employees fetched:', data?.length || 0);
       
       setEmployees(data || []);
-      console.log('📋 Employees state updated with:', data?.length || 0, 'records');
+      console.log('ðŸ“‹ Employees state updated with:', data?.length || 0, 'records');
     } catch (error) {
       console.error('Error fetching employees:', error);
       // Set empty array on error to prevent undefined state
@@ -881,9 +881,9 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                 className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="">{t('erms.allReasons')}</option>
-                <option value="मृत्यू झाल्याने">मृत्यू झाल्याने</option>
-                <option value="नियत वयोमान">नियत वयोमान</option>
-                <option value="स्वेच्छा सेवा निवृत्ती">स्वेच्छा सेवा निवृत्ती</option>
+                <option value="à¤®à¥ƒà¤¤à¥à¤¯à¥‚ à¤à¤¾à¤²à¥à¤¯à¤¾à¤¨à¥‡">à¤®à¥ƒà¤¤à¥à¤¯à¥‚ à¤à¤¾à¤²à¥à¤¯à¤¾à¤¨à¥‡</option>
+                <option value="à¤¨à¤¿à¤¯à¤¤ à¤µà¤¯à¥‹à¤®à¤¾à¤¨">à¤¨à¤¿à¤¯à¤¤ à¤µà¤¯à¥‹à¤®à¤¾à¤¨</option>
+                <option value="à¤¸à¥à¤µà¥‡à¤šà¥à¤›à¤¾ à¤¸à¥‡à¤µà¤¾ à¤¨à¤¿à¤µà¥ƒà¤¤à¥à¤¤à¥€">à¤¸à¥à¤µà¥‡à¤šà¥à¤›à¤¾ à¤¸à¥‡à¤µà¤¾ à¤¨à¤¿à¤µà¥ƒà¤¤à¥à¤¤à¥€</option>
               </select>
 
               <button
@@ -904,18 +904,18 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">कर्मचारी आयडी</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">कर्मचारी नाव</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">जन्म तारीख</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">डीडीओ कोड</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">संवर्ग</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">पदाचे नाव</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">नियुक्ती करणारा विभाग</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">कार्यरत कार्यालयाचे नाव</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">नियुक्त लिपिक</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">सेवेत रुजू होण्याची तारीख</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">सेवानिवृत्ती तारीख</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">क्रिया</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">à¤•à¤°à¥à¤®à¤šà¤¾à¤°à¥€ à¤†à¤¯à¤¡à¥€</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">à¤•à¤°à¥à¤®à¤šà¤¾à¤°à¥€ à¤¨à¤¾à¤µ</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">à¤œà¤¨à¥à¤® à¤¤à¤¾à¤°à¥€à¤–</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">à¤¡à¥€à¤¡à¥€à¤“ à¤•à¥‹à¤¡</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">à¤¸à¤‚à¤µà¤°à¥à¤—</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">à¤ªà¤¦à¤¾à¤šà¥‡ à¤¨à¤¾à¤µ</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">à¤¨à¤¿à¤¯à¥à¤•à¥à¤¤à¥€ à¤•à¤°à¤£à¤¾à¤°à¤¾ à¤µà¤¿à¤­à¤¾à¤—</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">à¤•à¤¾à¤°à¥à¤¯à¤°à¤¤ à¤•à¤¾à¤°à¥à¤¯à¤¾à¤²à¤¯à¤¾à¤šà¥‡ à¤¨à¤¾à¤µ</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">à¤¨à¤¿à¤¯à¥à¤•à¥à¤¤ à¤²à¤¿à¤ªà¤¿à¤•</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">à¤¸à¥‡à¤µà¥‡à¤¤ à¤°à¥à¤œà¥‚ à¤¹à¥‹à¤£à¥à¤¯à¤¾à¤šà¥€ à¤¤à¤¾à¤°à¥€à¤–</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">à¤¸à¥‡à¤µà¤¾à¤¨à¤¿à¤µà¥ƒà¤¤à¥à¤¤à¥€ à¤¤à¤¾à¤°à¥€à¤–</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">à¤•à¥à¤°à¤¿à¤¯à¤¾</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -1026,7 +1026,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    कर्मचारी आयडी
+                    à¤•à¤°à¥à¤®à¤šà¤¾à¤°à¥€ à¤†à¤¯à¤¡à¥€
                   </label>
                   <input
                     type="text"
@@ -1133,9 +1133,9 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="">{t('erms.selectReason')}</option>
-                    <option value="मृत्यू झाल्याने">मृत्यू झाल्याने</option>
-                    <option value="नियत वयोमान">नियत वयोमान</option>
-                    <option value="स्वेच्छा सेवा निवृत्ती">स्वेच्छा सेवा निवृत्ती</option>
+                    <option value="à¤®à¥ƒà¤¤à¥à¤¯à¥‚ à¤à¤¾à¤²à¥à¤¯à¤¾à¤¨à¥‡">à¤®à¥ƒà¤¤à¥à¤¯à¥‚ à¤à¤¾à¤²à¥à¤¯à¤¾à¤¨à¥‡</option>
+                    <option value="à¤¨à¤¿à¤¯à¤¤ à¤µà¤¯à¥‹à¤®à¤¾à¤¨">à¤¨à¤¿à¤¯à¤¤ à¤µà¤¯à¥‹à¤®à¤¾à¤¨</option>
+                    <option value="à¤¸à¥à¤µà¥‡à¤šà¥à¤›à¤¾ à¤¸à¥‡à¤µà¤¾ à¤¨à¤¿à¤µà¥ƒà¤¤à¥à¤¤à¥€">à¤¸à¥à¤µà¥‡à¤šà¥à¤›à¤¾ à¤¸à¥‡à¤µà¤¾ à¤¨à¤¿à¤µà¥ƒà¤¤à¥à¤¤à¥€</option>
                   </select>
                 </div>
 
@@ -1404,9 +1404,9 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="">{t('erms.selectReason')}</option>
-                    <option value="मृत्यू झाल्याने">मृत्यू झाल्याने</option>
-                    <option value="नियत वयोमान">नियत वयोमान</option>
-                    <option value="स्वेच्छा सेवा निवृत्ती">स्वेच्छा सेवा निवृत्ती</option>
+                    <option value="à¤®à¥ƒà¤¤à¥à¤¯à¥‚ à¤à¤¾à¤²à¥à¤¯à¤¾à¤¨à¥‡">à¤®à¥ƒà¤¤à¥à¤¯à¥‚ à¤à¤¾à¤²à¥à¤¯à¤¾à¤¨à¥‡</option>
+                    <option value="à¤¨à¤¿à¤¯à¤¤ à¤µà¤¯à¥‹à¤®à¤¾à¤¨">à¤¨à¤¿à¤¯à¤¤ à¤µà¤¯à¥‹à¤®à¤¾à¤¨</option>
+                    <option value="à¤¸à¥à¤µà¥‡à¤šà¥à¤›à¤¾ à¤¸à¥‡à¤µà¤¾ à¤¨à¤¿à¤µà¥ƒà¤¤à¥à¤¤à¥€">à¤¸à¥à¤µà¥‡à¤šà¥à¤›à¤¾ à¤¸à¥‡à¤µà¤¾ à¤¨à¤¿à¤µà¥ƒà¤¤à¥à¤¤à¥€</option>
                   </select>
                 </div>
 
