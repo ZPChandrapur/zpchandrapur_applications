@@ -1370,9 +1370,9 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                    <option value="D">D</option>
                   </select>
                   {formData.Cadre && (
-                <p className="text-xs text-gray-500 mt-1">
-              Currently selected: <span className="font-semibold">{formData.Cadre}</span>
-                </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                    Currently selected: <span className="font-semibold">{formData.Cadre}</span>
+                    </p>
                   )}
                 </div>
 
