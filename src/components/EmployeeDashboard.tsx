@@ -1121,7 +1121,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.dateOfServiceExpiry')} (Auto-calculated)
+                    {t('erms.retirementDate')} (Auto-calculated)
                   </label>
                   <input
                     type="date"
