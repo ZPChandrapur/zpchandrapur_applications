@@ -1262,11 +1262,11 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     ddo_code: '',
                     Cadre: '',
                     post_name: '',
-                    appointing_department: '',
-                    working_office_name: '',
+                   // appointing_department: '',
+                   // working_office_name: '',
                     date_of_joining: '',
-                    date_of_service_expiry: '',
-                    designation_id: ''
+                    date_of_service_expiry: ''
+                   // designation_id: ''
                   });
                 }}
                 className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200"
