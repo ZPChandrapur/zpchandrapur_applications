@@ -613,22 +613,12 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       alert('Employee ID, name, and date of birth are required');
       return;
     }
-    if (!String(formData.employee_name || '').trim()) {
-      alert('Employee name is required');
-      return;
-    }
-
-    if (!formData.Cadre || formData.Cadre.trim() === '') {
-      alert('Please select a Cadre');
-      return;
-    }
 
     // Calculate retirement date based on cadre
     const calculatedRetirementDate = calculateRetirementDate(formData.date_of_birth, formData.Cadre);
 
     setIsLoading(true);
     try {
-      const employeeData = {
         emp_id: String(formData.emp_id || '').trim() || null,
         employee_name: String(formData.employee_name || '').trim(),
         date_of_birth: formData.date_of_birth, 
