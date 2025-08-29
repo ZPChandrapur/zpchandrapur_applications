@@ -654,7 +654,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       const calculatedAge = calculateAge(formData.date_of_birth);
       
         // Calculate retirement date based on cadre
-    const calculatedRetirementDate = calculateRetirementDate(formData.date_of_birth, formData.Cadre);
+      const calculatedRetirementDate = calculateRetirementDate(formData.date_of_birth, formData.Cadre);
       
       const employeeData = {
         emp_id: String(formData.emp_id || '').trim() || null,
