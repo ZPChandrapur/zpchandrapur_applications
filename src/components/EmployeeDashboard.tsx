@@ -619,7 +619,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       return;
     }
 
-
     
     // Calculate age from date of birth
     const calculateAge = (dateOfBirth: string) => {
