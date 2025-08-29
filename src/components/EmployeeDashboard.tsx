@@ -686,7 +686,8 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         office_id: formData.office_id,
         ddo_code: String(formData.ddo_code || '').trim() || null,
         date_of_joining: formData.date_of_joining || null,
-        panchayatrajsevarth_id: formData.panchayatrajsevarth_id?.trim() || null
+        panchayatrajsevarth_id: formData.panchayatrajsevarth_id?.trim() || null,
+        department: formData.department || null
       };
 
       // Log the employeeData object before insert to verify retirement_date is present
