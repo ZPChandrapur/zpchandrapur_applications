@@ -30,7 +30,7 @@ interface Employee {
   reason: string;
   assigned_clerk: string | null;
   dept_id: string;
-  //department: string; // from department table
+  department: string; // from department table
   designation_id: string;
   designation: string; // from designations table
   tal_id: string;
