@@ -937,7 +937,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {employee.date_of_birth ? new Date(employee.date_of_birth).toLocaleDateString() : '-'}
+                        {employee.date_of_birth ? new Date(employee.date_of_birth)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {employee.ddo_code || '-'}
