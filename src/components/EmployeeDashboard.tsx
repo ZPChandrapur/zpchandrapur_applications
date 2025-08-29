@@ -681,6 +681,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         reason: String(formData.reason || '').trim() || null,
         assigned_clerk: formData.assigned_clerk || null,
         tal_id: formData.tal_id,
+        dept_id: formData.dept_id,
         office_id: formData.office_id,
         ddo_code: String(formData.ddo_code || '').trim() || null,
         date_of_joining: formData.date_of_joining || null,
