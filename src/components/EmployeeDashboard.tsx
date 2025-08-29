@@ -29,7 +29,7 @@ interface Employee {
   retirement_date: string; // calculated field
   reason: string;
   assigned_clerk: string | null;
-  dept_id: string;
+  dept_id: bigint;
   department: string; // from department table
   designation_id: string;
   designation: string; // from designations table
@@ -46,7 +46,7 @@ interface Employee {
 }
 
 interface Department {
-  dept_id: string;
+  dept_id: bigint;
   department: string;
 }
 
