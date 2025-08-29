@@ -621,6 +621,19 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
 
     // Calculate retirement date based on cadre
     const calculatedRetirementDate = calculateRetirementDate(formData.date_of_birth, formData.Cadre);
+    
+    // Calculate age from date of birth
+    const calculateAge = (dateOfBirth: string) => {
+      if (!dateOfBirth) return null;
+      const today = new Date();
+      const birthDate = new Date(dateOfBirth);
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      return age;
+    };
 
     setIsLoading(true);
     try {
@@ -628,6 +641,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         emp_id: String(formData.emp_id || '').trim() || null,
         employee_name: String(formData.employee_name || '').trim(),
         date_of_birth: formData.date_of_birth, 
+        age: calculateAge(formData.date_of_birth),
         retirement_date: calculatedRetirementDate,
         designation_id: formData.designation_id,
         //retirement_date: formData.retirement_date || null,
@@ -792,7 +806,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
               </div>
             </div>
           </div>
-a
+
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -1070,7 +1084,8 @@ a
                     value={formData.date_of_birth || ''}
                     onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    max={new Date()}
+                    min="1940-01-01"
+                    max={new Date().toISOString().split('T')[0]}
                   />
                 </div>
 
@@ -1120,7 +1135,7 @@ a
                   </label>
                   <input
                     type="date"
-                    value={calculateRetirementDate(formData.date_of_birth, formData.cadre)|| ''}
+                    value={calculateRetirementDate(formData.date_of_birth, formData.Cadre) || ''}
                     readOnly
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
                     title="Retirement date is auto-calculated based on date of birth and Cadre"
@@ -1334,7 +1349,8 @@ a
                     value={formData.date_of_birth || ''}
                     onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    max={new Date()}
+                    min="1940-01-01"
+                    max={new Date().toISOString().split('T')[0]}
                   />
                 </div>
 
@@ -1389,7 +1405,7 @@ a
                   </label>
                   <input
                     type="date"
-                   value={calculateRetirementDate(formData.date_of_birth, formData.cadre) || ''}
+                    value={calculateRetirementDate(formData.date_of_birth, formData.Cadre) || ''}
                     readOnly
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
                     title="Retirement date is auto-calculated based on date of birth and Cadre"
