@@ -592,7 +592,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     setFormData({
       emp_id: employee.emp_id,
       employee_name: employee.employee_name,
-      date_of_birth: employee.date_of_birth ? employee.date_of_birth.split('T')[0] : '',
+      date_of_birth: employee.date_of_birth,
       retirement_date: employee.retirement_date,
       reason: employee.reason,
       Cadre: employee.Cadre,
