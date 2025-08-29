@@ -141,7 +141,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
   
   // Data states
   const [employees, setEmployees] = useState<Employee[]>([]);
-  const [departments, setDepartments] = useState<Department[]>([]);
+  const [department, setDepartments] = useState<Department[]>([]);
   const [designations, setDesignations] = useState<Designation[]>([]);
   const [talukas, setTalukas] = useState<Taluka[]>([]);
   const [offices, setOffices] = useState<Office[]>([]);
@@ -686,8 +686,8 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         office_id: formData.office_id,
         ddo_code: String(formData.ddo_code || '').trim() || null,
         date_of_joining: formData.date_of_joining || null,
-        panchayatrajsevarth_id: formData.panchayatrajsevarth_id?.trim() || null,
-        department: formData.department || null
+        panchayatrajsevarth_id: formData.panchayatrajsevarth_id?.trim() || null
+        //department: formData.department || null
       };
 
       // Log the employeeData object before insert to verify retirement_date is present
@@ -932,7 +932,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                 className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="">{t('erms.allDepartments')}</option>
-                {departments.map(dept => (
+                {department.map(dept => (
                   <option key={dept.dept_id} value={dept.dept_id}>{dept.department}</option>
                 ))}
               </select>
@@ -1022,7 +1022,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                         {designations.find(d => d.designation_id === employee.designation_id)?.designation || '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {departments.find(d => d.dept_id === employee.dept_id)?.department || '-'}
+                        {department.find(d => d.dept_id === employee.dept_id)?.department || '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {offices.find(o => o.office_id === employee.office_id)?.name || '-'}
@@ -1221,7 +1221,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="">{t('erms.selectDepartment')}</option>
-                    {departments.map(dept => (
+                    {department.map(dept => (
                       <option key={dept.dept_id} value={dept.dept_id}>{dept.department}</option>
                     ))}
                   </select>
@@ -1490,7 +1490,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="">{t('erms.selectDepartment')}</option>
-                    {departments.map(dept => (
+                    {department.map(dept => (
                       <option key={dept.dept_id} value={dept.dept_id}>{dept.department}</option>
                     ))}
                   </select>
