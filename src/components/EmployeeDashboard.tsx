@@ -603,7 +603,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       office_id: employee.office_id,
       panchayatrajsevarth_id: employee.panchayatrajsevarth_id,
       ddo_code: employee.ddo_code,
-      date_of_joining: employee.date_of_joining);
+      date_of_joining: employee.date_of_joining;
     setShowEditModal(true);
   };
 
