@@ -565,7 +565,7 @@ export const PayCommission: React.FC<PayCommissionProps> = ({ user }) => {
                         {record.department || '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {record.retirement_date ? new Date(record.retirement_date).toLocaleDateString() : '-'}
+                        {record.retirement_date || '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {record.age || '-'}
@@ -735,7 +735,7 @@ export const PayCommission: React.FC<PayCommissionProps> = ({ user }) => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">4th Pay Commission Date</label>
                     <input
                       type="date"
-                      value={editingRecord.fourth_pay_comission_date ? editingRecord.fourth_pay_comission_date.split('T')[0] : ''}
+                      value={editingRecord.fourth_pay_comission_date || ''}
                       onChange={(e) => setEditingRecord({ ...editingRecord, fourth_pay_comission_date: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
@@ -760,7 +760,7 @@ export const PayCommission: React.FC<PayCommissionProps> = ({ user }) => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">5th Pay Commission Date</label>
                     <input
                       type="date"
-                      value={editingRecord.fifth_pay_comission_date ? editingRecord.fifth_pay_comission_date.split('T')[0] : ''}
+                      value={editingRecord.fifth_pay_comission_date || ''}
                       onChange={(e) => setEditingRecord({ ...editingRecord, fifth_pay_comission_date: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
@@ -785,7 +785,7 @@ export const PayCommission: React.FC<PayCommissionProps> = ({ user }) => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">6th Pay Commission Date</label>
                     <input
                       type="date"
-                      value={editingRecord.sixth_pay_comission_date ? editingRecord.sixth_pay_comission_date.split('T')[0] : ''}
+                      value={editingRecord.sixth_pay_comission_date || ''}
                       onChange={(e) => setEditingRecord({ ...editingRecord, sixth_pay_comission_date: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
@@ -810,7 +810,7 @@ export const PayCommission: React.FC<PayCommissionProps> = ({ user }) => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">7th Pay Commission Date</label>
                     <input
                       type="date"
-                      value={editingRecord.seventh_pay_comission_date ? editingRecord.seventh_pay_comission_date.split('T')[0] : ''}
+                      value={editingRecord.seventh_pay_comission_date || ''}
                       onChange={(e) => setEditingRecord({ ...editingRecord, seventh_pay_comission_date: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
