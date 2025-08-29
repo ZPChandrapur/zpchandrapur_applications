@@ -677,7 +677,10 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         Cadre: String(formData.Cadre || '').trim() || null,
         date_of_birth: formData.date_of_birth,
         //retirement_date: calculatedRetirementDate,
-        retirement_date: calculateRetirementDate(formData.date_of_birth, formData.Cadre),
+        //retirement_date: calculateRetirementDate(formData.date_of_birth, formData.Cadre),
+        retirement_date: formData.Cadre && formData.date_of_birthcalculateRetirementDate(formData.date_of_birth, formData.Cadre)
+  : null,
+
         designation_id: formData.designation_id,
         reason: String(formData.reason || '').trim() || null,
         assigned_clerk: formData.assigned_clerk || null,
