@@ -668,6 +668,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       console.log('📊 Calculated values:');
       console.log('   Age:', calculatedAge);
       console.log('   Retirement Date:', calculatedRetirementDate);
+    
       
       // Calculate retirement date based on cadre
       const employeeData = {
@@ -693,6 +694,10 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       console.log(JSON.stringify(employeeData, null, 2));
       console.log('   retirement_date field present:', 'retirement_date' in employeeData);
       console.log('   retirement_date value:', employeeData.retirement_date);
+      console.log('   dept_id:', employeeData.dept_id);
+      console.log('   department:', employeeData.department);
+
+
       if (editingEmployee) {
         const { error } = await ermsClient
           .from('employee')
