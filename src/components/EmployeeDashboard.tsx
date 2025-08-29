@@ -170,7 +170,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     // Set to last day of that month
     retirementDate.setMonth(retirementDate.getMonth() + 1, 0);
     
-    return retirementDate.toISOString().split('T')[0];
+    return retirementDate;
   };
   const [persistenceEnabled, setPersistenceEnabled] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
