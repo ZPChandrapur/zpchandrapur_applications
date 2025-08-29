@@ -158,9 +158,9 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     // Determine retirement age based on cadre
     let retirementAge = 58; // default
     if (Cadre.toLowerCase() === 'c') {
-      retirementAge = 58;
+      retirementAge = 70;
     } else if (Cadre.toLowerCase() === 'd') {
-      retirementAge = 60;
+      retirementAge = 70;
     }
     
     // Add retirement age to birth year
