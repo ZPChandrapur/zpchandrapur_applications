@@ -619,6 +619,15 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       return;
     }
 
+    // Check if Cadre is selected before calling calculateRetirementDate
+    console.log('🔍 Debugging retirement date calculation:');
+    console.log('   Date of Birth:', formData.date_of_birth);
+    console.log('   Cadre:', formData.Cadre);
+    console.log('   Cadre selected:', !!formData.Cadre);
+    
+    if (!formData.Cadre) {
+      console.warn('⚠️ Warning: Cadre not selected, retirement date will be null');
+    }
     
     // Calculate age from date of birth
     const calculateAge = (dateOfBirth: string) => {
@@ -653,15 +662,22 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       const calculatedAge = calculateAge(formData.date_of_birth);
       
       // Calculate retirement date based on cadre
+      const calculatedRetirementDate = formData.Cadre ? 
+        calculateRetirementDate(formData.date_of_birth, formData.Cadre) : null;
+      
+      console.log('📊 Calculated values:');
+      console.log('   Age:', calculatedAge);
+      console.log('   Retirement Date:', calculatedRetirementDate);
+      
+      // Calculate retirement date based on cadre
       const calculatedRetirementDate = calculateRetirementDate(formData.date_of_birth, formData.Cadre);
       
       const employeeData = {
         emp_id: String(formData.emp_id || '').trim() || null,
         employee_name: String(formData.employee_name || '').trim(),
         Cadre: String(formData.Cadre || '').trim() || null,
-        date_of_birth: formData.date_of_birth, 
+        retirement_date: calculatedRetirementDate,
         retirement_date: calculateRetirementDate(formData.date_of_birth, formData.Cadre),
-        age: calculatedAge,
         designation_id: formData.designation_id,
         reason: String(formData.reason || '').trim() || null,
         assigned_clerk: formData.assigned_clerk || null,
@@ -672,6 +688,11 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         panchayatrajsevarth_id: formData.panchayatrajsevarth_id?.trim() || null
       };
 
+      // Log the employeeData object before insert to verify retirement_date is present
+      console.log('📝 Employee data being sent to database:');
+      console.log(JSON.stringify(employeeData, null, 2));
+      console.log('   retirement_date field present:', 'retirement_date' in employeeData);
+      console.log('   retirement_date value:', employeeData.retirement_date);
       if (editingEmployee) {
         const { error } = await ermsClient
           .from('employee')
@@ -717,12 +738,24 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     } catch (error) {
       console.error('Error saving employee:', error);
       
+      // Print error.message fully to see if it's a constraint violation or type mismatch
+      console.error('🚨 Full error details:');
+      console.error('   Error message:', error.message);
+      console.error('   Error code:', error.code);
+      console.error('   Error details:', error.details);
+      console.error('   Error hint:', error.hint);
+      console.error('   Full error object:', JSON.stringify(error, null, 2));
+      
       // More user-friendly error messages
       let errorMessage = t('common.error');
       if (error.message.includes('duplicate key')) {
         errorMessage = 'Employee ID already exists. Please use a different ID.';
       } else if (error.message.includes('foreign key')) {
         errorMessage = 'Please select valid department, designation, taluka, and office.';
+      } else if (error.message.includes('retirement_date')) {
+        errorMessage = 'Retirement date validation failed. Please check date of birth and cadre selection.';
+      } else if (error.message.includes('constraint')) {
+        errorMessage = 'Data validation failed. Please check all required fields and constraints.';
       } else {
         errorMessage += ': ' + error.message;
       }
