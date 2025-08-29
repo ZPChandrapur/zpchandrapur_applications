@@ -625,6 +625,20 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     // Calculate age from date of birth
     const calculateAge = (dateOfBirth: string) => {
       if (!dateOfBirth) return null;
+      const birthDate = new Date(dateOfBirth);
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      return age;
+    };
+
+    const calculatedAge = calculateAge(formData.date_of_birth);
+    // Calculate age from date of birth
+    const calculateAge = (dateOfBirth: string) => {
+      if (!dateOfBirth) return null;
       const today = new Date();
       const birthDate = new Date(dateOfBirth);
       let age = today.getFullYear() - birthDate.getFullYear();
@@ -641,6 +655,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         emp_id: String(formData.emp_id || '').trim() || null,
         employee_name: String(formData.employee_name || '').trim(),
         date_of_birth: formData.date_of_birth, 
+        age: calculatedAge,
         age: calculateAge(formData.date_of_birth),
         retirement_date: calculatedRetirementDate,
         designation_id: formData.designation_id,
