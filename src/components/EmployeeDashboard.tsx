@@ -25,7 +25,7 @@ interface EmployeeDashboardProps {
 interface Employee {
   emp_id: string;
   employee_name: string;
-  date_of_birth: date;
+  date_of_birth: string;
   retirement_date: string; // calculated field
   reason: string;
   assigned_clerk: string | null;
