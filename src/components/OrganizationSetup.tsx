@@ -501,7 +501,7 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
                          item.name}
                       </td>
                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                       {item.created_at || '-'}
+                       {item.created_at ? new Date(item.created_at).toLocaleDateString() : '-'}
                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex items-center space-x-2">

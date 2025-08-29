@@ -565,7 +565,7 @@ export const GroupInsurance: React.FC<GroupInsuranceProps> = ({ user }) => {
                         {record.department || '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {record.retirement_date || '-'}
+                        {record.retirement_date ? new Date(record.retirement_date).toLocaleDateString() : '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {record.age || '-'}
@@ -735,7 +735,7 @@ export const GroupInsurance: React.FC<GroupInsuranceProps> = ({ user }) => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">1990 Date</label>
                     <input
                       type="date"
-                      value={editingRecord.year_1990_date || ''}
+                      value={editingRecord.year_1990_date ? editingRecord.year_1990_date.split('T')[0] : ''}
                       onChange={(e) => setEditingRecord({ ...editingRecord, year_1990_date: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
@@ -760,7 +760,7 @@ export const GroupInsurance: React.FC<GroupInsuranceProps> = ({ user }) => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">2003 Date</label>
                     <input
                       type="date"
-                      value={editingRecord.year_2003_date || ''}
+                      value={editingRecord.year_2003_date ? editingRecord.year_2003_date.split('T')[0] : ''}
                       onChange={(e) => setEditingRecord({ ...editingRecord, year_2003_date: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
@@ -785,7 +785,7 @@ export const GroupInsurance: React.FC<GroupInsuranceProps> = ({ user }) => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">2010 Date</label>
                     <input
                       type="date"
-                      value={editingRecord.year_2010_date || ''}
+                      value={editingRecord.year_2010_date ? editingRecord.year_2010_date.split('T')[0] : ''}
                       onChange={(e) => setEditingRecord({ ...editingRecord, year_2010_date: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
@@ -810,7 +810,7 @@ export const GroupInsurance: React.FC<GroupInsuranceProps> = ({ user }) => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">2020 Date</label>
                     <input
                       type="date"
-                      value={editingRecord.year_2020_date || ''}
+                      value={editingRecord.year_2020_date ? editingRecord.year_2020_date.split('T')[0] : ''}
                       onChange={(e) => setEditingRecord({ ...editingRecord, year_2020_date: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
