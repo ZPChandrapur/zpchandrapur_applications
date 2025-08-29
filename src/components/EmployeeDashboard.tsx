@@ -660,6 +660,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         employee_name: String(formData.employee_name || '').trim(),
         date_of_birth: formData.date_of_birth, 
         age: calculatedAge,
+        retirement_date: calculatedRetirementDate
         designation_id: formData.designation_id,
         reason: String(formData.reason || '').trim() || null,
         assigned_clerk: formData.assigned_clerk || null,
