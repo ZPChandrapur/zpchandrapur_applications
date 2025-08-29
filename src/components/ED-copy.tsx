@@ -30,12 +30,12 @@ interface Employee {
   reason: string;
   assigned_clerk: string | null;
   dept_id: string;
-  department_name: string; // from department table
+  department: string; // from department table
   designation_id: string;
-  designation_name: string; // from designations table
+  designation: string; // from designations table
   tal_id: string;
   office_id: string;
-  office_name: string; // from office_locations table
+  name: string; // from office_locations table
   date_of_assignment: string | null;
   panchayatrajsevarth_id: string | null;
   ddo_code: string | null;
@@ -128,7 +128,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         office_id: '',
         panchayatrajsevarth_id: '',
         ddo_code: '',
-        cadre: '',
+        Cadre: '',
         date_of_joining: ''
       }
     };
@@ -149,21 +149,33 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
   const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
 
   // Function to calculate retirement date based on date of birth and Cadre
-  const calculateRetirementDate = (dateOfBirth: string, Cadre: string): string => {
-    if (!dateOfBirth || !Cadre) return '';
+  const calculateRetirementDate = (dateOfBirth: string, Cadre: string) => {
+    
+    if (!Cadre) return null;
     
     const birthDate = new Date(dateOfBirth);
-    const retirementAge = Cadre.toLowerCase().includes('c') ? 58 : 
-                         Cadre.toLowerCase().includes('d') ? 60 : 60; // Default to 60 for D Cadre or others
     
-    // Calculate retirement date: birth year + retirement age
-    const retirementYear = birthDate.getFullYear() + retirementAge;
-    const retirementMonth = birthDate.getMonth(); // Same month as birth
+    // Determine retirement age based on cadre
+    let retirementAge = 58; // default
+    if (Cadre.toLowerCase() === 'c') {
+      retirementAge = 58;
+    } else if (Cadre.toLowerCase() === 'd') {
+      retirementAge = 60;
+    }
     
-    // Get the last day of the retirement month
-    const retirementDate = new Date(retirementYear, retirementMonth + 1, 0);
+    // Add retirement age to birth year
+    const retirementDate = new Date(birthDate);
+    retirementDate.setFullYear(birthDate.getFullYear() + retirementAge);
     
-    return retirementDate.toISOString().split('T')[0];
+    // Set to last day of that month
+    retirementDate.setMonth(retirementDate.getMonth() + 1, 0);
+    
+     // Format date to YYYY-MM-DD
+    const year = retirementDate.getFullYear();
+    const month = (retirementDate.getMonth() + 1).toString().padStart(2, '0');
+    const day = retirementDate.getDate().toString().padStart(2, '0');
+    
+    return `${year}-${month}-${day}`;
   };
   const [persistenceEnabled, setPersistenceEnabled] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -528,7 +540,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       filtered = filtered.filter(emp =>
         emp.emp_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         emp.employee_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        emp.department_name?.toLowerCase().includes(searchTerm.toLowerCase())
+        emp.department?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
@@ -550,14 +562,13 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
   const calculateUpcomingRetirements = () => {
     const sixMonthsFromNow = new Date();
     sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
-    
     return employees.filter(emp => {
       if (!emp.retirement_date) return false;
       const retirementDate = new Date(emp.retirement_date);
-      const today = new Date();
-      return retirementDate >= today && retirementDate <= sixMonthsFromNow;
+      return retirementDate <= sixMonthsFromNow;
     }).length;
   };
+
 
   const handleAddEmployee = () => {
     setEditingEmployee(null);
@@ -589,6 +600,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       date_of_birth: employee.date_of_birth,
       retirement_date: employee.retirement_date,
       reason: employee.reason,
+      Cadre: employee.Cadre,
       assigned_clerk: employee.assigned_clerk,
       dept_id: employee.dept_id,
       designation_id: employee.designation_id,
@@ -596,35 +608,39 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       office_id: employee.office_id,
       panchayatrajsevarth_id: employee.panchayatrajsevarth_id,
       ddo_code: employee.ddo_code,
-      Cadre: employee.Cadre,
       date_of_joining: employee.date_of_joining
     });
     setShowEditModal(true);
   };
 
   const handleSaveEmployee = async () => {
-    // Validation
-    if (!String(formData.employee_name || '').trim()) {
-      alert('Employee name is required');
+    if (!formData.emp_id || !formData.employee_name || !formData.date_of_birth) {
+      alert('Employee ID, name, and date of birth are required');
       return;
     }
+
+    // Calculate retirement date based on cadre
+    const calculatedRetirementDate = calculateRetirementDate(formData.date_of_birth, formData.Cadre);
 
     setIsLoading(true);
     try {
       const employeeData = {
         emp_id: String(formData.emp_id || '').trim() || null,
         employee_name: String(formData.employee_name || '').trim(),
+        date_of_birth: formData.date_of_birth, 
+        retirement_date: calculatedRetirementDate,
         designation_id: formData.designation_id,
-        retirement_date: formData.retirement_date || null,
+        //retirement_date: formData.retirement_date || null,
         reason: String(formData.reason || '').trim() || null,
         assigned_clerk: formData.assigned_clerk || null,
-        dept_id: formData.dept_id || null,
+        dept_id: formData.dept_id,
         //designation: formData.designation_id,
         tal_id: formData.tal_id,
         office_id: formData.office_id,
         ddo_code: String(formData.ddo_code || '').trim() || null,
-        "Cadre": String(formData.Cadre || '').trim() || null,
-        //Cadre_id: formData.cadre_id
+        Cadre: String(formData.Cadre || '').trim() || null,
+        date_of_joining: formData.date_of_joining || null,
+        panchayatrajsevarth_id: formData.panchayatrajsevarth_id?.trim() || null
       };
 
       if (editingEmployee) {
@@ -838,6 +854,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
                 />
               </div>
 
@@ -894,16 +911,16 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">कर्मचारी आयडी</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">कर्मचारी नाव</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.dateOfBirth')}</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.ddoCode')}</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.Cadre')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">जन्म तारीख</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">डीडीओ कोड</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">संवर्ग</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">पदाचे नाव</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">नियुक्ती करणारा विभाग</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">कार्यरत कार्यालयाचे नाव</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">नियुक्त लिपिक</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">सेवेत रुजू होण्याची तारीख</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">सेवानिवृत्ती तारीख</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.actions')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">क्रिया</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -925,7 +942,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {employee.date_of_birth ? new Date(employee.date_of_birth).toLocaleDateString() : '-'}
+                        {employee.date_of_birth}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {employee.ddo_code || '-'}
@@ -949,10 +966,10 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                         }
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {employee.date_of_joining ? new Date(employee.date_of_joining).toLocaleDateString() : '-'}
+                        {employee.date_of_joining}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {employee.retirement_date ? new Date(employee.retirement_date).toLocaleDateString() : '-'}
+                        {employee.retirement_date}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex items-center space-x-2">
@@ -1008,7 +1025,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     value={formData.panchayatrajsevarth_id || ''}
                     onChange={(e) => setFormData({ ...formData, panchayatrajsevarth_id: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder={t('erms.enterEmployeeId')}
+                    placeholder={t('erms.enterpanchayatrajsevarthId')}
                   />
                 </div>
                 
@@ -1053,7 +1070,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     value={formData.date_of_birth || ''}
                     onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    max={new Date().toISOString().split('T')[0]}
+                    max={new Date()}
                   />
                 </div>
 
@@ -1073,13 +1090,16 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     {t('erms.Cadre')} <span className="text-red-500">*</span>
                   </label>
-                  <input
-                    type="text"
-                    value={formData.Cadre || ''}
-                    onChange={(e) => setFormData({ ...formData, Cadre: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
-                  />
+                  <select
+                      value={formData.Cadre}
+                      onChange={(e) => setFormData({ ...formData, Cadre: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      required
+                    >
+                      <option value="">Select Cadre</option>
+                      <option value="C">C</option>
+                      <option value="D">D</option>
+                   </select>
                 </div>
 
                 <div>
@@ -1096,13 +1116,14 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.dateOfServiceExpiry')} (Auto-calculated)
+                    {t('erms.retirementDate')} (Auto-calculated)
                   </label>
                   <input
                     type="date"
-                    value={formData.date_of_service_expiry || ''}
-                    onChange={(e) => setFormData({ ...formData, date_of_service_expiry: e.target.value })}
+                    value={calculateRetirementDate(formData.date_of_birth, formData.cadre)|| ''}
+                    readOnly
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
+                    title="Retirement date is auto-calculated based on date of birth and Cadre"
                     disabled
                   />
                 </div>
@@ -1207,7 +1228,30 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
             
             <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200">
               <button
-                onClick={() => setShowAddModal(false)}
+                onClick={() => {
+                  clearPersistedState(); // Add this line
+                  setShowAddModal(false);
+                  setEditingEmployee(null);
+                  setFormData({
+                    panchayatrajsevarth_id: '',
+                    emp_id: '',
+                    employee_name: '',
+                    date_of_birth: '',
+                    ddo_code: '',
+                    Cadre: '',
+                    date_of_joining: '',
+                    retirement_date: '',
+                    retirement_reason: '',
+                    department: '',
+                    designation: '',
+                    taluka: '',
+                    office: '', 
+                    assigned_clerk: ''
+                   // post_name: '',
+                   // appointing_department: '',
+                   // working_office_name: '',
+                  });
+                }}
                 className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200"
               >
                 {t('common.cancel')}
@@ -1290,7 +1334,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     value={formData.date_of_birth || ''}
                     onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    max={new Date().toISOString().split('T')[0]}
+                    max={new Date()}
                   />
                 </div>
 
@@ -1310,13 +1354,21 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     {t('erms.Cadre')} <span className="text-red-500">*</span>
                   </label>
-                  <input
-                    type="text"
+                  <select
                     value={formData.Cadre || ''}
                     onChange={(e) => setFormData({ ...formData, Cadre: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
-                  />
+                  >
+                   <option value="">Select Cadre</option>
+                   <option value="C">C</option>
+                   <option value="D">D</option>
+                  </select>
+                  {formData.Cadre && (
+                    <p className="text-xs text-gray-500 mt-1">
+                    Currently selected Cadre: <span className="font-semibold">{formData.Cadre}</span>
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -1337,10 +1389,14 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   </label>
                   <input
                     type="date"
-                    value={formData.retirement_date || ''}
-                    onChange={(e) => setFormData({ ...formData, retirement_date: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                   value={calculateRetirementDate(formData.date_of_birth, formData.cadre) || ''}
+                    readOnly
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
+                    title="Retirement date is auto-calculated based on date of birth and Cadre"
                   />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Auto-calculated: Cadre C = 58 years, Cadre D = 60 years (last day of month)
+                  </p>
                 </div>
 
                 <div>
