@@ -249,6 +249,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
   };
 
   const handleAppClick = (appId: string) => {
+    // Special handling for E-estimate - open in new window
+    if (appId === 'estimate') {
+      const estimateUrl = 'https://your-e-estimate-app.bolt.new'; // Replace with actual URL
+      window.open(estimateUrl, '_blank', 'noopener,noreferrer');
+      return;
+    }
+    
     setSelectedApp(appId);
   };
 
@@ -263,9 +270,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
       fullName: t('systems.erms.fullName'),
       description: t('systems.erms.description'),
       icon: Users,
-      color: 'bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-700',
-      hoverColor: 'hover:from-blue-600 hover:via-blue-700 hover:to-indigo-800',
-      headerColor: 'bg-gradient-to-r from-blue-600 to-indigo-700',
+      color: 'bg-gradient-to-br from-blue-200 via-blue-300 to-indigo-400',
+      hoverColor: 'hover:from-blue-300 hover:via-blue-400 hover:to-indigo-500',
+      headerColor: 'bg-gradient-to-r from-blue-300 to-indigo-400',
       type: t('systems.erms.webApplication'),
       mobileOnly: false
     },
@@ -275,9 +282,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
       fullName: t('systems.estimate.fullName'),
       description: t('systems.estimate.description'),
       icon: FileText,
-      color: 'bg-gradient-to-br from-emerald-500 via-green-600 to-teal-700',
-      hoverColor: 'hover:from-emerald-600 hover:via-green-700 hover:to-teal-800',
-      headerColor: 'bg-gradient-to-r from-emerald-600 to-teal-700',
+      color: 'bg-gradient-to-br from-emerald-200 via-green-300 to-teal-400',
+      hoverColor: 'hover:from-emerald-300 hover:via-green-400 hover:to-teal-500',
+      headerColor: 'bg-gradient-to-r from-emerald-300 to-teal-400',
       type: t('systems.estimate.mobileApplication'),
       mobileOnly: true
     },
@@ -287,9 +294,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
       fullName: t('systems.fims.fullName'),
       description: t('systems.fims.description'),
       icon: Camera,
-      color: 'bg-gradient-to-br from-purple-500 via-violet-600 to-indigo-700',
-      hoverColor: 'hover:from-purple-600 hover:via-violet-700 hover:to-indigo-800',
-      headerColor: 'bg-gradient-to-r from-purple-600 to-indigo-700',
+      color: 'bg-gradient-to-br from-purple-200 via-violet-300 to-indigo-400',
+      hoverColor: 'hover:from-purple-300 hover:via-violet-400 hover:to-indigo-500',
+      headerColor: 'bg-gradient-to-r from-purple-300 to-indigo-400',
       type: t('systems.fims.mobileApplication'),
       mobileOnly: true
     },
@@ -299,9 +306,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
       fullName: t('systems.pesa.fullName'),
       description: t('systems.pesa.description'),
       icon: TrendingUp,
-      color: 'bg-gradient-to-br from-orange-500 via-red-500 to-pink-600',
-      hoverColor: 'hover:from-orange-600 hover:via-red-600 hover:to-pink-700',
-      headerColor: 'bg-gradient-to-r from-orange-600 to-pink-600',
+      color: 'bg-gradient-to-br from-orange-200 via-red-300 to-pink-400',
+      hoverColor: 'hover:from-orange-300 hover:via-red-400 hover:to-pink-500',
+      headerColor: 'bg-gradient-to-r from-orange-300 to-pink-400',
       type: t('systems.pesa.webApplication'),
       mobileOnly: false
     }
@@ -321,15 +328,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
   const getSystemGradient = (systemId: string) => {
     switch (systemId) {
       case 'erms':
-        return 'from-blue-500 to-indigo-600';
+        return 'from-blue-200 to-indigo-300';
       case 'estimate':
-        return 'from-emerald-500 to-teal-600';
+        return 'from-emerald-200 to-teal-300';
       case 'fims':
-        return 'from-purple-500 to-indigo-600';
+        return 'from-purple-200 to-indigo-300';
       case 'pesa':
-        return 'from-orange-500 to-pink-600';
+        return 'from-orange-200 to-pink-300';
       default:
-        return 'from-gray-500 to-gray-600';
+        return 'from-gray-200 to-gray-300';
     }
   };
 
@@ -347,11 +354,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
     // Special handling for ERMS
     if (selectedApp === 'erms') {
       return <ERMSDashboard user={user} onBack={handleBackToDashboard} />;
-    }
-    
-    // Special handling for E-estimate (iframe)
-    if (selectedApp === 'estimate') {
-      return <EEstimateFrame user={user} onBack={handleBackToDashboard} />;
     }
     
     // Special handling for FIMS (iframe)
@@ -607,37 +609,35 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
         {/* Systems Grid */}
         <div className={`grid grid-cols-1 ${isMobile ? 'gap-4' : 'lg:grid-cols-2 gap-8'}`}>
           {visibleSystems.map((system) => (
-              <div 
-                key={system.id}
-                className={`bg-white ${isMobile ? 'rounded-3xl' : 'rounded-3xl'} shadow-xl border border-gray-100 overflow-hidden hover:shadow-2xl transition-all duration-500 cursor-pointer ${isMobile ? 'hover:scale-105' : 'transform hover:-translate-y-2 hover:scale-105'} group`}
-                onClick={() => handleAppClick(system.id)}
-              >
-                {/* System Header */}
-                <div className={`${isMobile ? 'p-6' : 'p-8'} bg-gradient-to-br ${getSystemGradient(system.id)} border-b border-white/20`}>
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center space-x-4">
-                      <div className={`bg-white/20 backdrop-blur-sm ${isMobile ? 'p-4' : 'p-5'} rounded-3xl shadow-2xl group-hover:scale-110 transition-all duration-500`}>
-                        <system.icon className={`${isMobile ? 'h-6 w-6' : 'h-8 w-8'} text-white`} />
-                      </div>
-                      <div>
-                        <h3 className={`${isMobile ? 'text-lg' : 'text-xl'} font-bold text-white mb-1 drop-shadow-lg`}>
-                          {system.name}
-                        </h3>
-                        <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-white/90 font-medium drop-shadow`}>{system.fullName}</p>
-                        <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-white/80 mt-1 drop-shadow`}>{system.description}</p>
-                      </div>
+            <div 
+              key={system.id}
+              className={`${system.color} ${system.hoverColor} ${isMobile ? 'rounded-3xl' : 'rounded-3xl'} shadow-xl border border-gray-100 overflow-hidden hover:shadow-2xl transition-all duration-500 cursor-pointer ${isMobile ? 'hover:scale-105' : 'transform hover:-translate-y-2 hover:scale-105'} group`}
+              onClick={() => handleAppClick(system.id)}
+            >
+              {/* System Header - Full card now has gradient */}
+              <div className={`${isMobile ? 'p-6' : 'p-8'} h-full`}>
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center space-x-4">
+                    <div className={`bg-white/30 backdrop-blur-sm ${isMobile ? 'p-4' : 'p-5'} rounded-3xl shadow-2xl group-hover:scale-110 transition-all duration-500`}>
+                      <system.icon className={`${isMobile ? 'h-6 w-6' : 'h-8 w-8'} text-white`} />
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <span className={`inline-flex items-center ${isMobile ? 'px-3 py-1.5' : 'px-4 py-2'} rounded-2xl text-xs font-semibold bg-white/20 text-white backdrop-blur-sm shadow-lg`}>
-                        {system.type}
-                      </span>
-                      <ArrowRight className={`${isMobile ? 'h-5 w-5' : 'h-6 w-6'} text-white/80 group-hover:translate-x-1 transition-all duration-300`} />
+                    <div>
+                      <h3 className={`${isMobile ? 'text-lg' : 'text-xl'} font-bold text-white mb-1 drop-shadow-lg`}>
+                        {system.name}
+                      </h3>
+                      <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-white/90 font-medium drop-shadow`}>{system.fullName}</p>
+                      <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-white/80 mt-1 drop-shadow`}>{system.description}</p>
                     </div>
                   </div>
+                  <div className="flex items-center space-x-2">
+                    <span className={`inline-flex items-center ${isMobile ? 'px-3 py-1.5' : 'px-4 py-2'} rounded-2xl text-xs font-semibold bg-white/30 text-white backdrop-blur-sm shadow-lg`}>
+                      {system.type}
+                    </span>
+                    <ArrowRight className={`${isMobile ? 'h-5 w-5' : 'h-6 w-6'} text-white/80 group-hover:translate-x-1 transition-all duration-300`} />
+                  </div>
                 </div>
-
-                {/* System Actions */}
               </div>
+            </div>
           ))}
         </div>
       </main>
