@@ -255,5 +255,4 @@ export const SignInForm: React.FC<SignInFormProps> = ({ onSignInSuccess }) => {
       </button>
     </form>
     </div>
-  );
 };
