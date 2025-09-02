@@ -24,7 +24,14 @@ import {
   Clock,
   CheckCircle,
   AlertCircle,
-  DollarSign
+  DollarSign,
+  Workflow,
+  Activity,
+  Target,
+  Timer,
+  CheckSquare,
+  AlertTriangle,
+  TrendingDown
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { usePermissions } from '../hooks/usePermissions';
@@ -415,6 +422,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
     // Special handling for FIMS (iframe)
     if (selectedApp === 'fims') {
       return <FIMSFrame user={user} onBack={handleBackToDashboard} />;
+    }
+    
+    // Special handling for Workflow Management
+    if (selectedApp === 'workflow') {
+      return <WorkflowManagement user={user} onBack={handleBackToDashboard} />;
     }
     
     const app = systems.find(s => s.id === selectedApp);
