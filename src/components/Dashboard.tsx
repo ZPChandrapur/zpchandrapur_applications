@@ -294,9 +294,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
       fullName: t('systems.fims.fullName'),
       description: t('systems.fims.description'),
       icon: Camera,
-      color: 'bg-gradient-to-br from-purple-200 via-violet-300 to-indigo-400',
-      hoverColor: 'hover:from-purple-300 hover:via-violet-400 hover:to-indigo-500',
-      headerColor: 'bg-gradient-to-r from-purple-300 to-indigo-400',
+      color: 'bg-gradient-to-br from-purple-500 via-violet-600 to-indigo-700',
+      hoverColor: 'hover:from-purple-400 hover:via-violet-500 hover:to-indigo-600',
+      headerColor: 'bg-gradient-to-r from-purple-400 to-indigo-500',
       type: t('systems.fims.mobileApplication'),
       mobileOnly: true
     },
@@ -306,9 +306,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
       fullName: t('systems.pesa.fullName'),
       description: t('systems.pesa.description'),
       icon: TrendingUp,
-      color: 'bg-gradient-to-br from-orange-200 via-red-300 to-pink-400',
-      hoverColor: 'hover:from-orange-300 hover:via-red-400 hover:to-pink-500',
-      headerColor: 'bg-gradient-to-r from-orange-300 to-pink-400',
+      color: 'bg-gradient-to-br from-orange-400 via-red-500 to-pink-600',
+      hoverColor: 'hover:from-orange-300 hover:via-red-500 hover:to-pink-600',
+      headerColor: 'bg-gradient-to-r from-orange-500 to-pink-600',
       type: t('systems.pesa.webApplication'),
       mobileOnly: false
     }
