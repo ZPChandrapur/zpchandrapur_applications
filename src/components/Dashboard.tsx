@@ -328,7 +328,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
   const getSystemGradient = (systemId: string) => {
     switch (systemId) {
       case 'erms':
-        return 'from-blue-200 to-indigo-300';
+        return 'from-blue-500 to-indigo-600';
       case 'estimate':
         return 'from-emerald-300 to-cyan-400';
       case 'fims':
