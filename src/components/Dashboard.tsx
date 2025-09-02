@@ -319,6 +319,23 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
   };
 
   const visibleSystems = getVisibleSystems();
+
+  // Helper function to get gradient colors for each system
+  const getSystemGradient = (systemId: string) => {
+    switch (systemId) {
+      case 'erms':
+        return 'from-indigo-500 via-blue-600 to-purple-700';
+      case 'estimate':
+        return 'from-emerald-500 via-teal-600 to-green-700';
+      case 'fims':
+        return 'from-purple-500 via-violet-600 to-pink-700';
+      case 'pesa':
+        return 'from-orange-500 via-red-500 to-pink-600';
+      default:
+        return 'from-gray-500 via-gray-600 to-gray-700';
+    }
+  };
+
   if (permissionsLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
