@@ -39,7 +39,7 @@ const EEstimateFrame: React.FC<{ user: SupabaseUser; onBack: () => void }> = ({ 
   const [isLoading, setIsLoading] = useState(true);
   
   // E-estimate application URL - replace with actual URL when available
-  const eEstimateUrl = 'https://your-e-estimate-app.bolt.new';
+  const eEstimateUrl = 'https://zpchandrapur-estimat-bha0.bolt.host/';
   
   const handleIframeLoad = () => {
     setIsLoading(false);
