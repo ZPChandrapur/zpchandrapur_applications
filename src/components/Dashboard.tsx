@@ -308,7 +308,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
       icon: TrendingUp,
       color: 'bg-gradient-to-br from-orange-400 via-red-500 to-pink-600',
       hoverColor: 'hover:from-orange-300 hover:via-red-500 hover:to-pink-600',
-      headerColor: 'bg-gradient-to-r from-orange-500 to-pink-600',
+      headerColor: 'bg-gradient-to-r from-orange-400 to-pink-500',
       type: t('systems.pesa.webApplication'),
       mobileOnly: false
     }
