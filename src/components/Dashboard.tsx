@@ -330,11 +330,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
       case 'erms':
         return 'from-blue-200 to-indigo-300';
       case 'estimate':
-        return 'from-emerald-200 to-teal-300';
+        return 'from-emerald-300 to-cyan-400';
       case 'fims':
-        return 'from-purple-200 to-indigo-300';
+        return 'from-violet-300 to-fuchsia-400';
       case 'pesa':
-        return 'from-orange-200 to-pink-300';
+        return 'from-amber-300 to-red-400';
       default:
         return 'from-gray-200 to-gray-300';
     }
