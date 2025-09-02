@@ -25,13 +25,7 @@ import {
   CheckCircle,
   AlertCircle,
   DollarSign,
-  Workflow,
-  Activity,
-  Target,
-  Timer,
-  CheckSquare,
-  AlertTriangle,
-  TrendingDown
+  Activity
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { usePermissions } from '../hooks/usePermissions';
@@ -262,6 +256,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
       return;
     }
     
+    // Special handling for Workflow Management - open in new window
+    if (appId === 'workflow') {
+      handleWorkflowClick();
+      return;
+    }
+    
     setSelectedApp(appId);
   };
 
@@ -322,6 +322,63 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
     }
   };
 
+  const handleWorkflowClick = async () => {
+    try {
+      // Get current session
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        console.error('Error getting session:', error);
+        // Open without auth if session fetch fails
+        window.open('https://your-workflow-app-url.com', '_blank', 'noopener,noreferrer');
+        return;
+      }
+
+      if (session?.access_token && session?.refresh_token) {
+        // Method 1: Try localStorage approach
+        try {
+          const authData = {
+            access_token: session.access_token,
+            refresh_token: session.refresh_token,
+            user: session.user,
+            expires_at: session.expires_at,
+            auto_login: true,
+            source_app: 'zp_chandrapur_main',
+            timestamp: Date.now()
+          };
+          
+          localStorage.setItem('workflow_auth_transfer', JSON.stringify(authData));
+          
+          // Clean up after 30 seconds
+          setTimeout(() => {
+            localStorage.removeItem('workflow_auth_transfer');
+          }, 30000);
+          
+        } catch (storageError) {
+          console.warn('localStorage not available:', storageError);
+        }
+        
+        // Method 2: URL parameters as fallback
+        const workflowUrl = new URL('https://your-workflow-app-url.com');
+        workflowUrl.searchParams.set('auto_login', 'true');
+        workflowUrl.searchParams.set('access_token', session.access_token);
+        workflowUrl.searchParams.set('refresh_token', session.refresh_token);
+        workflowUrl.searchParams.set('source', 'zp_main');
+        
+        // Open Workflow Management with auth data
+        window.open(workflowUrl.toString(), '_blank', 'noopener,noreferrer');
+      } else {
+        console.warn('No valid session found');
+        // Open without auth
+        window.open('https://your-workflow-app-url.com', '_blank', 'noopener,noreferrer');
+      }
+    } catch (error) {
+      console.error('Error in handleWorkflowClick:', error);
+      // Fallback: open without auth
+      window.open('https://your-workflow-app-url.com', '_blank', 'noopener,noreferrer');
+    }
+  };
+
   const handleBackToDashboard = () => {
     setSelectedApp(null);
   };
@@ -369,10 +426,22 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
       fullName: t('systems.pesa.fullName'),
       description: t('systems.pesa.description'),
       icon: TrendingUp,
-      color: 'bg-gradient-to-br from-amber-300 via-orange-400 to-red-500',
-      hoverColor: 'hover:from-amber-200 hover:via-orange-300 hover:to-red-400',
-      headerColor: 'bg-gradient-to-r from-amber-300 to-red-400',
+      color: 'bg-gradient-to-br from-sky-300 via-blue-400 to-indigo-500',
+      hoverColor: 'hover:from-sky-200 hover:via-blue-300 hover:to-indigo-400',
+      headerColor: 'bg-gradient-to-r from-sky-300 to-indigo-400',
       type: t('systems.pesa.webApplication'),
+      mobileOnly: false
+    },
+    {
+      id: 'workflow',
+      name: 'Workflow Management',
+      fullName: 'Workflow Management System',
+      description: 'Track and manage workflow progress across departments',
+      icon: Activity,
+      color: 'bg-gradient-to-br from-rose-300 via-pink-400 to-red-500',
+      hoverColor: 'hover:from-rose-200 hover:via-pink-300 hover:to-red-400',
+      headerColor: 'bg-gradient-to-r from-rose-300 to-red-400',
+      type: 'Web Application',
       mobileOnly: false
     }
   ];
