@@ -251,7 +251,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
   const handleAppClick = (appId: string) => {
     // Special handling for E-estimate - open in new window
     if (appId === 'estimate') {
-      const estimateUrl = 'https://zpchandrapur-estimat-bha0.bolt.host/'; // Replace with actual URL
+      const estimateUrl = 'https://zpchandrapur-estimat-bha0.bolt.host'; // Replace with actual URL
       window.open(estimateUrl, '_blank', 'noopener,noreferrer');
       return;
     }
