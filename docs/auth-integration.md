@@ -65,7 +65,7 @@ const LoginPage = () => {
 ## Security Considerations
 
 1. **localStorage Method**: More secure as tokens aren't visible in URL
-2. **Automatic Cleanup**: Auth data is removed after 10 seconds or successful use
+2. **Automatic Cleanup**: Auth data is removed after 30 seconds or successful use
 3. **Source Verification**: Checks that auth data comes from the main app
 4. **Error Handling**: Graceful fallback to normal login if auto-login fails
 
@@ -74,7 +74,8 @@ const LoginPage = () => {
 1. Login to main ZP Chandrapur application
 2. Click on E-estimate card
 3. E-estimate should open in new tab and automatically log you in
-4. If auto-login fails, normal login page should appear
+4. Check browser console for detailed logs
+5. If auto-login fails, normal login page should appear
 
 ## Configuration
 
@@ -86,10 +87,17 @@ const estimateUrl = 'https://your-actual-estimate-url.com';
 
 ## Troubleshooting
 
-1. **Auto-login not working**: Check browser console for errors
+### Common Issues:
+1. **Auto-login not working**: Check browser console for error messages
 2. **Session expired**: Main app session might be expired
 3. **CORS issues**: Ensure both apps have proper CORS configuration
 4. **Different domains**: localStorage won't work across different domains - use URL method only
+
+### Debug Steps:
+1. Open browser console in E-estimate app
+2. Look for logs starting with 🔍, 🔑, ✅, or ❌
+3. Check if auth data is being passed correctly
+4. Verify Supabase configuration matches between apps
 
 ## Same Domain Optimization
 

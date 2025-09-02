@@ -10,19 +10,26 @@ interface AuthTransferData {
   expires_at: number;
   auto_login: boolean;
   source_app: string;
+  timestamp: number;
 }
 
 export const handleAutoLogin = async (): Promise<boolean> => {
   try {
-    // Method 1: Check URL parameters
+    console.log('🔍 Checking for auto-login data...');
+    
+    // Method 1: Check URL parameters first
     const urlParams = new URLSearchParams(window.location.search);
     const autoLogin = urlParams.get('auto_login');
+    const source = urlParams.get('source');
     
-    if (autoLogin === 'true') {
+    if (autoLogin === 'true' && source === 'zp_main') {
+      console.log('📧 Found URL parameters for auto-login');
       const accessToken = urlParams.get('access_token');
       const refreshToken = urlParams.get('refresh_token');
       
       if (accessToken && refreshToken) {
+        console.log('🔑 Setting session from URL parameters...');
+        
         // Set the session in Supabase
         const { data, error } = await supabase.auth.setSession({
           access_token: accessToken,
@@ -30,11 +37,15 @@ export const handleAutoLogin = async (): Promise<boolean> => {
         });
         
         if (!error && data.session) {
-          console.log('Auto-login successful via URL parameters');
-          // Clean URL parameters
+          console.log('✅ Auto-login successful via URL parameters');
+          
+          // Clean URL parameters immediately
           const cleanUrl = window.location.pathname;
           window.history.replaceState({}, document.title, cleanUrl);
+          
           return true;
+        } else {
+          console.error('❌ Failed to set session from URL:', error);
         }
       }
     }
@@ -42,10 +53,20 @@ export const handleAutoLogin = async (): Promise<boolean> => {
     // Method 2: Check localStorage
     const authTransferData = localStorage.getItem('estimate_auth_transfer');
     if (authTransferData) {
+      console.log('💾 Found localStorage auth data');
+      
       try {
         const authData: AuthTransferData = JSON.parse(authTransferData);
         
-        if (authData.auto_login && authData.source_app === 'zp_chandrapur_main') {
+        // Check if data is not too old (30 seconds max)
+        const isDataFresh = (Date.now() - authData.timestamp) < 30000;
+        
+        if (authData.auto_login && 
+            authData.source_app === 'zp_chandrapur_main' && 
+            isDataFresh) {
+          
+          console.log('🔑 Setting session from localStorage...');
+          
           // Set the session in Supabase
           const { data, error } = await supabase.auth.setSession({
             access_token: authData.access_token,
@@ -53,44 +74,91 @@ export const handleAutoLogin = async (): Promise<boolean> => {
           });
           
           if (!error && data.session) {
-            console.log('Auto-login successful via localStorage');
-            // Clean up the transfer data
+            console.log('✅ Auto-login successful via localStorage');
+            
+            // Clean up the transfer data immediately
             localStorage.removeItem('estimate_auth_transfer');
+            
             return true;
+          } else {
+            console.error('❌ Failed to set session from localStorage:', error);
           }
+        } else {
+          console.log('⏰ Auth data expired or invalid, removing...');
+          localStorage.removeItem('estimate_auth_transfer');
         }
       } catch (parseError) {
-        console.error('Error parsing auth transfer data:', parseError);
+        console.error('❌ Error parsing auth transfer data:', parseError);
         localStorage.removeItem('estimate_auth_transfer');
       }
     }
     
+    console.log('ℹ️ No valid auto-login data found');
     return false;
+    
   } catch (error) {
-    console.error('Error in auto-login process:', error);
+    console.error('❌ Error in auto-login process:', error);
+    
+    // Clean up any potentially corrupted data
+    try {
+      localStorage.removeItem('estimate_auth_transfer');
+    } catch (cleanupError) {
+      console.error('❌ Error cleaning up auth data:', cleanupError);
+    }
+    
     return false;
   }
 };
 
 // Function to be called when E-estimate app initializes
 export const initializeAuthReceiver = async () => {
-  // Check if user is already logged in
-  const { data: { session } } = await supabase.auth.getSession();
+  console.log('🚀 Initializing auth receiver...');
   
-  if (!session) {
+  try {
+    // Check if user is already logged in
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (session) {
+      console.log('👤 User already logged in');
+      return true;
+    }
+    
     // Try auto-login
+    console.log('🔄 Attempting auto-login...');
     const autoLoginSuccess = await handleAutoLogin();
     
     if (autoLoginSuccess) {
-      console.log('User automatically logged in from main application');
-      // Optionally redirect to dashboard or refresh the page
-      window.location.reload();
+      console.log('🎉 Auto-login successful! Reloading page...');
+      
+      // Small delay to ensure session is properly set
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+      
+      return true;
+    } else {
+      console.log('ℹ️ Auto-login not available, user needs to login manually');
+      return false;
     }
+    
+  } catch (error) {
+    console.error('❌ Error initializing auth receiver:', error);
+    return false;
   }
+};
+
+// Utility function to check if auto-login is available
+export const isAutoLoginAvailable = (): boolean => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const hasUrlAuth = urlParams.get('auto_login') === 'true';
+  const hasStorageAuth = localStorage.getItem('estimate_auth_transfer') !== null;
+  
+  return hasUrlAuth || hasStorageAuth;
 };
 
 // Export for use in E-estimate application
 export default {
   handleAutoLogin,
-  initializeAuthReceiver
+  initializeAuthReceiver,
+  isAutoLoginAvailable
 };

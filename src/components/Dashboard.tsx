@@ -249,14 +249,70 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
   };
 
   const handleAppClick = (appId: string) => {
-    // Special handling for E-estimate - open in new window
+    // Special handling for E-estimate - pass auth and open in new window
     if (appId === 'estimate') {
-      const estimateUrl = 'https://zpchandrapur-estimat-bha0.bolt.host'; // Replace with actual URL
-      window.open(estimateUrl, '_blank', 'noopener,noreferrer');
+      handleEstimateClick();
       return;
     }
     
     setSelectedApp(appId);
+  };
+
+  const handleEstimateClick = async () => {
+    try {
+      // Get current session
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        console.error('Error getting session:', error);
+        // Open without auth if session fetch fails
+        window.open('https://zpchandrapur-estimat-bha0.bolt.host', '_blank', 'noopener,noreferrer');
+        return;
+      }
+
+      if (session?.access_token && session?.refresh_token) {
+        // Method 1: Try localStorage approach
+        try {
+          const authData = {
+            access_token: session.access_token,
+            refresh_token: session.refresh_token,
+            user: session.user,
+            expires_at: session.expires_at,
+            auto_login: true,
+            source_app: 'zp_chandrapur_main',
+            timestamp: Date.now()
+          };
+          
+          localStorage.setItem('estimate_auth_transfer', JSON.stringify(authData));
+          
+          // Clean up after 30 seconds
+          setTimeout(() => {
+            localStorage.removeItem('estimate_auth_transfer');
+          }, 30000);
+          
+        } catch (storageError) {
+          console.warn('localStorage not available:', storageError);
+        }
+        
+        // Method 2: URL parameters as fallback
+        const estimateUrl = new URL('https://zpchandrapur-estimat-bha0.bolt.host');
+        estimateUrl.searchParams.set('auto_login', 'true');
+        estimateUrl.searchParams.set('access_token', session.access_token);
+        estimateUrl.searchParams.set('refresh_token', session.refresh_token);
+        estimateUrl.searchParams.set('source', 'zp_main');
+        
+        // Open E-estimate with auth data
+        window.open(estimateUrl.toString(), '_blank', 'noopener,noreferrer');
+      } else {
+        console.warn('No valid session found');
+        // Open without auth
+        window.open('https://zpchandrapur-estimat-bha0.bolt.host', '_blank', 'noopener,noreferrer');
+      }
+    } catch (error) {
+      console.error('Error in handleEstimateClick:', error);
+      // Fallback: open without auth
+      window.open('https://zpchandrapur-estimat-bha0.bolt.host', '_blank', 'noopener,noreferrer');
+    }
   };
 
   const handleBackToDashboard = () => {
