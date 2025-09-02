@@ -270,9 +270,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
       fullName: t('systems.erms.fullName'),
       description: t('systems.erms.description'),
       icon: Users,
-      color: 'bg-gradient-to-br from-blue-200 via-blue-300 to-indigo-400',
-      hoverColor: 'hover:from-blue-300 hover:via-blue-400 hover:to-indigo-500',
-      headerColor: 'bg-gradient-to-r from-blue-300 to-indigo-400',
+      color: 'bg-gradient-to-br from-blue-300 via-blue-400 to-indigo-500',
+      hoverColor: 'hover:from-blue-400 hover:via-blue-500 hover:to-indigo-600',
+      headerColor: 'bg-gradient-to-r from-blue-400 to-indigo-500',
       type: t('systems.erms.webApplication'),
       mobileOnly: false
     },
