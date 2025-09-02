@@ -251,7 +251,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
   const handleAppClick = (appId: string) => {
     // Special handling for E-estimate - open in new window
     if (appId === 'estimate') {
-      const estimateUrl = 'https://zpchandrapur-estimat-bha0.bolt.host'; // Replace with actual URL
+      const estimateUrl = 'https://your-e-estimate-app.bolt.new'; // Replace with actual URL
       window.open(estimateUrl, '_blank', 'noopener,noreferrer');
       return;
     }
@@ -270,9 +270,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
       fullName: t('systems.erms.fullName'),
       description: t('systems.erms.description'),
       icon: Users,
-      color: 'bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-700',
-      hoverColor: 'hover:from-blue-400 hover:via-blue-500 hover:to-indigo-600',
-      headerColor: 'bg-gradient-to-r from-blue-400 to-indigo-500',
+      color: 'bg-gradient-to-br from-blue-200 via-blue-300 to-indigo-400',
+      hoverColor: 'hover:from-blue-300 hover:via-blue-400 hover:to-indigo-500',
+      headerColor: 'bg-gradient-to-r from-blue-300 to-indigo-400',
       type: t('systems.erms.webApplication'),
       mobileOnly: false
     },
@@ -282,9 +282,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
       fullName: t('systems.estimate.fullName'),
       description: t('systems.estimate.description'),
       icon: FileText,
-      color: 'bg-gradient-to-br from-emerald-500 via-green-600 to-teal-700',
-      hoverColor: 'hover:from-emerald-400 hover:via-green-500 hover:to-teal-600',
-      headerColor: 'bg-gradient-to-r from-emerald-400 to-teal-500',
+      color: 'bg-gradient-to-br from-emerald-200 via-green-300 to-teal-400',
+      hoverColor: 'hover:from-emerald-300 hover:via-green-400 hover:to-teal-500',
+      headerColor: 'bg-gradient-to-r from-emerald-300 to-teal-400',
       type: t('systems.estimate.mobileApplication'),
       mobileOnly: true
     },
@@ -294,9 +294,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
       fullName: t('systems.fims.fullName'),
       description: t('systems.fims.description'),
       icon: Camera,
-      color: 'bg-gradient-to-br from-purple-500 via-violet-600 to-indigo-700',
-      hoverColor: 'hover:from-purple-400 hover:via-violet-500 hover:to-indigo-600',
-      headerColor: 'bg-gradient-to-r from-purple-400 to-indigo-500',
+      color: 'bg-gradient-to-br from-purple-200 via-violet-300 to-indigo-400',
+      hoverColor: 'hover:from-purple-300 hover:via-violet-400 hover:to-indigo-500',
+      headerColor: 'bg-gradient-to-r from-purple-300 to-indigo-400',
       type: t('systems.fims.mobileApplication'),
       mobileOnly: true
     },
@@ -306,9 +306,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
       fullName: t('systems.pesa.fullName'),
       description: t('systems.pesa.description'),
       icon: TrendingUp,
-      color: 'bg-gradient-to-br from-orange-400 via-red-500 to-pink-600',
-      hoverColor: 'hover:from-orange-300 hover:via-red-500 hover:to-pink-600',
-      headerColor: 'bg-gradient-to-r from-orange-400 to-pink-500',
+      color: 'bg-gradient-to-br from-orange-200 via-red-300 to-pink-400',
+      hoverColor: 'hover:from-orange-300 hover:via-red-400 hover:to-pink-500',
+      headerColor: 'bg-gradient-to-r from-orange-300 to-pink-400',
       type: t('systems.pesa.webApplication'),
       mobileOnly: false
     }
