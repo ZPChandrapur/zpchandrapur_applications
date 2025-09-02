@@ -282,9 +282,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
       fullName: t('systems.estimate.fullName'),
       description: t('systems.estimate.description'),
       icon: FileText,
-      color: 'bg-gradient-to-br from-emerald-200 via-green-300 to-teal-400',
-      hoverColor: 'hover:from-emerald-300 hover:via-green-400 hover:to-teal-500',
-      headerColor: 'bg-gradient-to-r from-emerald-300 to-teal-400',
+      color: 'bg-gradient-to-br from-emerald-500 via-green-600 to-teal-700',
+      hoverColor: 'hover:from-emerald-400 hover:via-green-500 hover:to-teal-600',
+      headerColor: 'bg-gradient-to-r from-emerald-400 to-teal-500',
       type: t('systems.estimate.mobileApplication'),
       mobileOnly: true
     },
