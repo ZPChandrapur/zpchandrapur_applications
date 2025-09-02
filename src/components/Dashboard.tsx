@@ -318,24 +318,22 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
     }
   };
 
-  const visibleSystems = getVisibleSystems();
-
-  // Helper function to get gradient colors for each system
   const getSystemGradient = (systemId: string) => {
     switch (systemId) {
       case 'erms':
-        return 'from-indigo-500 via-blue-600 to-purple-700';
+        return 'from-blue-500 to-indigo-600';
       case 'estimate':
-        return 'from-emerald-500 via-teal-600 to-green-700';
+        return 'from-emerald-500 to-teal-600';
       case 'fims':
-        return 'from-purple-500 via-violet-600 to-pink-700';
+        return 'from-purple-500 to-indigo-600';
       case 'pesa':
-        return 'from-orange-500 via-red-500 to-pink-600';
+        return 'from-orange-500 to-pink-600';
       default:
-        return 'from-gray-500 via-gray-600 to-gray-700';
+        return 'from-gray-500 to-gray-600';
     }
   };
 
+  const visibleSystems = getVisibleSystems();
   if (permissionsLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -490,7 +488,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Navigation Header */}
-      <nav className="bg-gradient-to-r from-blue-600 via-purple-600 to-teal-600 shadow-lg border-b border-gray-200">
+      <nav className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 shadow-xl border-b border-purple-200/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo and Title */}
@@ -498,7 +496,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
               <img 
                 src="/image.png" 
                 alt="ZP Chandrapur Logo" 
-                className="h-12 w-12 object-contain"
+                className="h-12 w-12 object-contain rounded-2xl shadow-lg"
               />
               <div>
                 <h1 className="text-lg font-semibold text-white">
@@ -519,9 +517,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
               <div className="relative user-profile-dropdown">
                 <button
                   onClick={() => setIsProfileOpen(!isProfileOpen)}
-                  className="flex items-center space-x-3 px-3 py-2 text-white hover:bg-white/20 rounded-lg transition-all duration-200"
+                  className="flex items-center space-x-3 px-4 py-2 text-white hover:bg-white/20 rounded-2xl transition-all duration-300 hover:scale-105 hover:shadow-lg backdrop-blur-sm"
                 >
-                  <div className="bg-white/20 p-1.5 rounded-full">
+                  <div className="bg-gradient-to-br from-white/30 to-white/10 p-2 rounded-full shadow-lg">
                     <User className="h-4 w-4 text-white" />
                   </div>
                   <div className="text-left">
@@ -534,12 +532,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
                 </button>
 
                 {isProfileOpen && (
-                  <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-[60]">
+                  <div className="absolute right-0 mt-2 w-64 bg-white rounded-3xl shadow-2xl border border-purple-200/50 py-2 z-[60] backdrop-blur-lg">
                     {/* Profile Header */}
-                    <div className="px-4 py-3 border-b border-gray-100">
+                    <div className="px-6 py-4 border-b border-gradient-to-r from-purple-100 to-pink-100">
                       <div className="flex items-center space-x-3">
-                        <div className="bg-blue-100 p-2 rounded-full">
-                          <User className="h-5 w-5 text-blue-600" />
+                        <div className="bg-gradient-to-br from-indigo-100 to-purple-100 p-3 rounded-2xl shadow-lg">
+                          <User className="h-5 w-5 text-indigo-600" />
                         </div>
                         <div>
                           <div className="font-medium text-gray-900">
@@ -555,7 +553,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
                     {/* Profile Actions */}
                     <div className="py-2">
                       <button 
-                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-3"
+                        className="w-full text-left px-6 py-3 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 rounded-2xl mx-2 transition-all duration-300 hover:scale-105 flex items-center space-x-3"
                         onClick={() => {
                           // Show user profile details
                           alert(`Profile Details:\nName: ${userProfile?.name || 'Not set'}\nEmail: ${userProfile?.email || 'Not available'}\nPhone: ${userProfile?.phone_number || 'Not set'}\nRole: ${userProfile?.role_name || 'Not assigned'}`);
@@ -564,7 +562,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
                         <User className="h-4 w-4" />
                         <span>{t('profile.userProfile')}</span>
                       </button>
-                      <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-3">
+                      <button className="w-full text-left px-6 py-3 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-teal-50 hover:to-cyan-50 rounded-2xl mx-2 transition-all duration-300 hover:scale-105 flex items-center space-x-3">
                         <Settings className="h-4 w-4" />
                         <span>{t('navigation.settings')}</span>
                       </button>
@@ -574,7 +572,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
                     <div className="border-t border-gray-100 pt-2">
                       <button
                         onClick={handleSignOut}
-                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center space-x-3"
+                        className="w-full text-left px-6 py-3 text-sm text-red-600 hover:bg-gradient-to-r hover:from-red-50 hover:to-pink-50 rounded-2xl mx-2 transition-all duration-300 hover:scale-105 flex items-center space-x-3"
                       >
                         <LogOut className="h-4 w-4" />
                         <span>{t('auth.signOut')}</span>
@@ -595,13 +593,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
           <h2 className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2`}>
             Welcome, {userProfile?.name || user.email?.split('@')[0]}
           </h2>
-          <p className={`text-gray-600 ${isMobile ? 'text-base' : 'text-lg'}`}>
+          <p className={`text-gray-600 ${isMobile ? 'text-base' : 'text-lg'} font-medium`}>
             {isMobile ? 'मोबाइल अनुप्रयोग प्रणाली' : t('dashboard.overview')}
           </p>
           {isMobile && (
-            <div className="mt-2 flex items-center space-x-2">
-              <Smartphone className="h-4 w-4 text-blue-600" />
-              <span className="text-sm text-blue-600 font-medium">Mobile Application</span>
+            <div className="mt-3 flex items-center space-x-2 bg-gradient-to-r from-blue-50 to-indigo-50 px-4 py-2 rounded-2xl shadow-lg">
+              <Smartphone className="h-5 w-5 text-blue-600" />
+              <span className="text-sm text-blue-600 font-semibold">Mobile Application</span>
             </div>
           )}
         </div>
@@ -611,29 +609,29 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
           {visibleSystems.map((system) => (
               <div 
                 key={system.id}
-                className={`bg-white ${isMobile ? 'rounded-lg' : 'rounded-xl'} shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer ${isMobile ? '' : 'transform hover:-translate-y-1'} ${system.hoverColor}`}
+                className={`bg-white ${isMobile ? 'rounded-3xl' : 'rounded-3xl'} shadow-xl border border-gray-100 overflow-hidden hover:shadow-2xl transition-all duration-500 cursor-pointer ${isMobile ? 'hover:scale-105' : 'transform hover:-translate-y-2 hover:scale-105'} group`}
                 onClick={() => handleAppClick(system.id)}
               >
                 {/* System Header */}
-                <div className={`${isMobile ? 'p-4' : 'p-6'} border-b border-gray-100`}>
+                <div className={`${isMobile ? 'p-6' : 'p-8'} bg-gradient-to-br ${getSystemGradient(system.id)} border-b border-white/20`}>
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center space-x-4">
-                      <div className={`${system.color} ${isMobile ? 'p-3' : 'p-4'} rounded-xl shadow-lg`}>
+                      <div className={`bg-white/20 backdrop-blur-sm ${isMobile ? 'p-4' : 'p-5'} rounded-3xl shadow-2xl group-hover:scale-110 transition-all duration-500`}>
                         <system.icon className={`${isMobile ? 'h-6 w-6' : 'h-8 w-8'} text-white`} />
                       </div>
                       <div>
-                        <h3 className={`${isMobile ? 'text-lg' : 'text-xl'} font-bold text-gray-900 mb-1`}>
+                        <h3 className={`${isMobile ? 'text-lg' : 'text-xl'} font-bold text-white mb-1 drop-shadow-lg`}>
                           {system.name}
                         </h3>
-                        <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-600 font-medium`}>{system.fullName}</p>
-                        <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-500 mt-1`}>{system.description}</p>
+                        <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-white/90 font-medium drop-shadow`}>{system.fullName}</p>
+                        <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-white/80 mt-1 drop-shadow`}>{system.description}</p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <span className={`inline-flex items-center ${isMobile ? 'px-2 py-1' : 'px-3 py-1'} rounded-full text-xs font-medium bg-blue-100 text-blue-800`}>
+                      <span className={`inline-flex items-center ${isMobile ? 'px-3 py-1.5' : 'px-4 py-2'} rounded-2xl text-xs font-semibold bg-white/20 text-white backdrop-blur-sm shadow-lg`}>
                         {system.type}
                       </span>
-                      <ArrowRight className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-gray-400`} />
+                      <ArrowRight className={`${isMobile ? 'h-5 w-5' : 'h-6 w-6'} text-white/80 group-hover:translate-x-1 transition-all duration-300`} />
                     </div>
                   </div>
                 </div>

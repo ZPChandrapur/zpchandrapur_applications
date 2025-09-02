@@ -145,21 +145,25 @@ export const SignInForm: React.FC<SignInFormProps> = ({ onSignInSuccess }) => {
   return (
     <div>
       {/* Platform Indicator */}
-      <div className="mb-6 text-center">
-        <div className="flex items-center justify-center space-x-2 mb-2">
+      <div className="mb-8 text-center">
+        <div className="flex items-center justify-center space-x-3 mb-3 bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-3 rounded-3xl shadow-lg">
           {isMobile ? (
             <>
-              <Smartphone className="h-5 w-5 text-blue-600" />
-              <span className="text-sm font-medium text-blue-600">Mobile Application</span>
+              <div className="bg-gradient-to-br from-blue-100 to-indigo-100 p-2 rounded-2xl shadow-lg">
+                <Smartphone className="h-5 w-5 text-blue-600" />
+              </div>
+              <span className="text-sm font-semibold text-blue-600">Mobile Application</span>
             </>
           ) : (
             <>
-              <Globe className="h-5 w-5 text-green-600" />
-              <span className="text-sm font-medium text-green-600">Web Application</span>
+              <div className="bg-gradient-to-br from-emerald-100 to-teal-100 p-2 rounded-2xl shadow-lg">
+                <Globe className="h-5 w-5 text-emerald-600" />
+              </div>
+              <span className="text-sm font-semibold text-emerald-600">Web Application</span>
             </>
           )}
         </div>
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-gray-600 font-medium">
           {isMobile 
             ? 'Access FIMS and E-estimate on mobile' 
             : 'Full system access on web'
@@ -169,23 +173,25 @@ export const SignInForm: React.FC<SignInFormProps> = ({ onSignInSuccess }) => {
 
     <form onSubmit={handleSignIn} className="space-y-6">
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+        <div className="bg-gradient-to-r from-red-50 to-pink-50 border border-red-200/50 text-red-700 px-6 py-4 rounded-3xl shadow-lg backdrop-blur-sm">
           {error}
         </div>
       )}
 
       <div>
-        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+        <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-3">
           {t('auth.email')}
         </label>
         <div className="relative">
-          <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <div className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-gradient-to-br from-blue-100 to-indigo-100 p-2 rounded-2xl shadow-lg">
+            <Mail className="h-4 w-4 text-blue-600" />
+          </div>
           <input
             id="email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+            className="w-full pl-16 pr-6 py-4 border border-gray-200 rounded-3xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300 shadow-lg hover:shadow-xl bg-gradient-to-r from-gray-50 to-blue-50/30 hover:from-blue-50 hover:to-indigo-50/50"
             placeholder={t('auth.enterEmail')}
             disabled={isLoading}
           />
@@ -193,27 +199,29 @@ export const SignInForm: React.FC<SignInFormProps> = ({ onSignInSuccess }) => {
       </div>
 
       <div>
-        <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+        <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-3">
           {t('auth.password')}
         </label>
         <div className="relative">
-          <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <div className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-gradient-to-br from-purple-100 to-pink-100 p-2 rounded-2xl shadow-lg">
+            <Lock className="h-4 w-4 text-purple-600" />
+          </div>
           <input
             id="password"
             type={showPassword ? 'text' : 'password'}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+            className="w-full pl-16 pr-16 py-4 border border-gray-200 rounded-3xl focus:ring-4 focus:ring-purple-500/20 focus:border-purple-500 transition-all duration-300 shadow-lg hover:shadow-xl bg-gradient-to-r from-gray-50 to-purple-50/30 hover:from-purple-50 hover:to-pink-50/50"
             placeholder={t('auth.enterPassword')}
             disabled={isLoading}
           />
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+            className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-gradient-to-br from-gray-100 to-purple-100 p-2 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110"
             disabled={isLoading}
           >
-            {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+            {showPassword ? <EyeOff className="h-4 w-4 text-purple-600" /> : <Eye className="h-4 w-4 text-purple-600" />}
           </button>
         </div>
       </div>
@@ -222,7 +230,7 @@ export const SignInForm: React.FC<SignInFormProps> = ({ onSignInSuccess }) => {
         <button
           type="button"
           onClick={handlePasswordReset}
-          className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
+          className="text-sm text-blue-600 hover:text-blue-700 font-semibold transition-all duration-300 hover:scale-105 bg-gradient-to-r from-blue-50 to-indigo-50 px-4 py-2 rounded-2xl shadow-lg hover:shadow-xl"
           disabled={isLoading}
         >
           {t('auth.forgotPassword')}
@@ -232,18 +240,19 @@ export const SignInForm: React.FC<SignInFormProps> = ({ onSignInSuccess }) => {
       <button
         type="submit"
         disabled={isLoading}
-        className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2"
+        className="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 disabled:from-blue-400 disabled:via-indigo-400 disabled:to-purple-400 text-white font-bold py-4 px-6 rounded-3xl transition-all duration-500 flex items-center justify-center space-x-3 shadow-2xl hover:shadow-3xl hover:scale-105 transform"
       >
         {isLoading ? (
-          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white shadow-lg"></div>
         ) : (
           <>
-            <LogIn className="h-5 w-5" />
-            <span>{t('auth.signIn')}</span>
+            <div className="bg-white/20 p-1 rounded-full">
+              <LogIn className="h-5 w-5" />
+            </div>
+            <span className="text-lg">{t('auth.signIn')}</span>
           </>
         )}
       </button>
     </form>
     </div>
   );
-};
