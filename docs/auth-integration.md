@@ -1,25 +1,27 @@
 # Authentication Integration Guide
 
 ## Overview
-This guide explains how to integrate automatic login between the main ZP Chandrapur application and the E-estimate application using shared Supabase authentication.
+This guide explains how to integrate automatic login between the main ZP Chandrapur application and the E-estimate/FIMS applications using shared Supabase authentication.
 
-## Implementation in E-estimate Application
+## Implementation in E-estimate/FIMS Applications
 
 ### 1. Copy the Auth Receiver Utility
-Copy the `src/utils/authReceiver.ts` file to your E-estimate application.
+Copy the `src/utils/authReceiver.ts` file to your E-estimate or FIMS application.
 
-### 2. Initialize Auto-Login in E-estimate App
+### 2. Initialize Auto-Login in Target App
 Add this to your main App component or entry point:
 
 ```typescript
-// In your E-estimate App.tsx or main component
+// In your E-estimate/FIMS App.tsx or main component
 import { useEffect } from 'react';
 import { initializeAuthReceiver } from './utils/authReceiver';
 
 function App() {
   useEffect(() => {
     // Initialize auth receiver when app loads
-    initializeAuthReceiver();
+    // For E-estimate: initializeAuthReceiver('estimate');
+    // For FIMS: initializeAuthReceiver('fims');
+    initializeAuthReceiver('estimate'); // or 'fims'
   }, []);
 
   // Rest of your app code...
@@ -36,7 +38,8 @@ import { handleAutoLogin } from './utils/authReceiver';
 const LoginPage = () => {
   useEffect(() => {
     const checkAutoLogin = async () => {
-      const success = await handleAutoLogin();
+      // Pass 'estimate' for E-estimate or 'fims' for FIMS
+      const success = await handleAutoLogin('estimate'); // or 'fims'
       if (success) {
         // Redirect to dashboard or main app
         navigate('/dashboard');
@@ -53,8 +56,8 @@ const LoginPage = () => {
 ## How It Works
 
 ### Method 1: URL Parameters (Fallback)
-- Main app passes auth tokens via URL parameters
-- E-estimate app reads and uses them to set Supabase session
+- Main app passes auth tokens via URL parameters  
+- Target app (E-estimate/FIMS) reads and uses them to set Supabase session
 - URL is cleaned after successful login
 
 ### Method 2: localStorage Transfer (Primary)
@@ -68,14 +71,16 @@ const LoginPage = () => {
 2. **Automatic Cleanup**: Auth data is removed after 30 seconds or successful use
 3. **Source Verification**: Checks that auth data comes from the main app
 4. **Error Handling**: Graceful fallback to normal login if auto-login fails
+5. **App-Specific Storage**: Each app uses its own localStorage key to prevent conflicts
 
 ## Testing
 
 1. Login to main ZP Chandrapur application
-2. Click on E-estimate card
-3. E-estimate should open in new tab and automatically log you in
+2. Click on E-estimate or FIMS card
+3. Target application should open in new tab and automatically log you in
 4. Check browser console for detailed logs
 5. If auto-login fails, normal login page should appear
+6. Look for app-specific log messages (E-ESTIMATE: or FIMS:)
 
 ## Configuration
 
@@ -85,6 +90,11 @@ Update the E-estimate URL in the main application:
 const estimateUrl = 'https://your-actual-estimate-url.com';
 ```
 
+Update the FIMS URL in the main application:
+```typescript
+const fimsUrl = 'https://your-actual-fims-url.com';
+```
+
 ## Troubleshooting
 
 ### Common Issues:
@@ -92,12 +102,14 @@ const estimateUrl = 'https://your-actual-estimate-url.com';
 2. **Session expired**: Main app session might be expired
 3. **CORS issues**: Ensure both apps have proper CORS configuration
 4. **Different domains**: localStorage won't work across different domains - use URL method only
+5. **Wrong app name**: Ensure you're passing the correct app name ('estimate' or 'fims') to the functions
 
 ### Debug Steps:
-1. Open browser console in E-estimate app
-2. Look for logs starting with 🔍, 🔑, ✅, or ❌
+1. Open browser console in target app (E-estimate/FIMS)
+2. Look for logs starting with app name (E-ESTIMATE: or FIMS:) and emojis 🔍, 🔑, ✅, or ❌
 3. Check if auth data is being passed correctly
 4. Verify Supabase configuration matches between apps
+5. Ensure the correct localStorage key is being used for each app
 
 ## Same Domain Optimization
 

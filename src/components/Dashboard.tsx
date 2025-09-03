@@ -256,6 +256,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
       return;
     }
     
+    // Special handling for FIMS - pass auth and open in new window
+    if (appId === 'fims') {
+      handleFIMSClick();
+      return;
+    }
+    
     // Special handling for Workflow Management - open in new window
     if (appId === 'workflow') {
       handleWorkflowClick();
@@ -267,17 +273,19 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
 
   const handleEstimateClick = async () => {
     try {
+      console.log('🚀 E-estimate: Starting authentication transfer...');
       // Get current session
       const { data: { session }, error } = await supabase.auth.getSession();
       
       if (error) {
-        console.error('Error getting session:', error);
+        console.error('❌ E-estimate: Error getting session:', error);
         // Open without auth if session fetch fails
         window.open('https://zpchandrapur-estimat-bha0.bolt.host', '_blank', 'noopener,noreferrer');
         return;
       }
 
       if (session?.access_token && session?.refresh_token) {
+        console.log('🔑 E-estimate: Valid session found, preparing auth transfer...');
         // Method 1: Try localStorage approach
         try {
           const authData = {
@@ -291,14 +299,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
           };
           
           localStorage.setItem('estimate_auth_transfer', JSON.stringify(authData));
+          console.log('💾 E-estimate: Auth data stored in localStorage');
           
           // Clean up after 30 seconds
           setTimeout(() => {
             localStorage.removeItem('estimate_auth_transfer');
+            console.log('🧹 E-estimate: Auth data cleaned up from localStorage');
           }, 30000);
           
         } catch (storageError) {
-          console.warn('localStorage not available:', storageError);
+          console.warn('⚠️ E-estimate: localStorage not available:', storageError);
         }
         
         // Method 2: URL parameters as fallback
@@ -308,17 +318,81 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
         estimateUrl.searchParams.set('refresh_token', session.refresh_token);
         estimateUrl.searchParams.set('source', 'zp_main');
         
+        console.log('🌐 E-estimate: Opening with auth data...');
         // Open E-estimate with auth data
         window.open(estimateUrl.toString(), '_blank', 'noopener,noreferrer');
       } else {
-        console.warn('No valid session found');
+        console.warn('⚠️ E-estimate: No valid session found');
         // Open without auth
         window.open('https://zpchandrapur-estimat-bha0.bolt.host', '_blank', 'noopener,noreferrer');
       }
     } catch (error) {
-      console.error('Error in handleEstimateClick:', error);
+      console.error('❌ E-estimate: Error in handleEstimateClick:', error);
       // Fallback: open without auth
       window.open('https://zpchandrapur-estimat-bha0.bolt.host', '_blank', 'noopener,noreferrer');
+    }
+  };
+
+  const handleFIMSClick = async () => {
+    try {
+      console.log('🚀 FIMS: Starting authentication transfer...');
+      // Get current session
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        console.error('❌ FIMS: Error getting session:', error);
+        // Open without auth if session fetch fails
+        window.open('https://zpchandrapur-fims-ba-06xp.bolt.host/', '_blank', 'noopener,noreferrer');
+        return;
+      }
+
+      if (session?.access_token && session?.refresh_token) {
+        console.log('🔑 FIMS: Valid session found, preparing auth transfer...');
+        
+        // Method 1: Try localStorage approach
+        try {
+          const authData = {
+            access_token: session.access_token,
+            refresh_token: session.refresh_token,
+            user: session.user,
+            expires_at: session.expires_at,
+            auto_login: true,
+            source_app: 'zp_chandrapur_main',
+            timestamp: Date.now()
+          };
+          
+          localStorage.setItem('fims_auth_transfer', JSON.stringify(authData));
+          console.log('💾 FIMS: Auth data stored in localStorage');
+          
+          // Clean up after 30 seconds
+          setTimeout(() => {
+            localStorage.removeItem('fims_auth_transfer');
+            console.log('🧹 FIMS: Auth data cleaned up from localStorage');
+          }, 30000);
+          
+        } catch (storageError) {
+          console.warn('⚠️ FIMS: localStorage not available:', storageError);
+        }
+        
+        // Method 2: URL parameters as fallback
+        const fimsUrl = new URL('https://zpchandrapur-fims-ba-06xp.bolt.host/');
+        fimsUrl.searchParams.set('auto_login', 'true');
+        fimsUrl.searchParams.set('access_token', session.access_token);
+        fimsUrl.searchParams.set('refresh_token', session.refresh_token);
+        fimsUrl.searchParams.set('source', 'zp_main');
+        
+        console.log('🌐 FIMS: Opening with auth data...');
+        // Open FIMS with auth data
+        window.open(fimsUrl.toString(), '_blank', 'noopener,noreferrer');
+      } else {
+        console.warn('⚠️ FIMS: No valid session found');
+        // Open without auth
+        window.open('https://zpchandrapur-fims-ba-06xp.bolt.host/', '_blank', 'noopener,noreferrer');
+      }
+    } catch (error) {
+      console.error('❌ FIMS: Error in handleFIMSClick:', error);
+      // Fallback: open without auth
+      window.open('https://zpchandrapur-fims-ba-06xp.bolt.host/', '_blank', 'noopener,noreferrer');
     }
   };
 

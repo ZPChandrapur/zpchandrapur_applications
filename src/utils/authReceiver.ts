@@ -1,5 +1,5 @@
 // Authentication receiver utility for E-estimate application
-// This should be used in the E-estimate application to automatically log in users
+// This should be used in the E-estimate and FIMS applications to automatically log in users
 
 import { supabase } from '../lib/supabase';
 
@@ -13,9 +13,9 @@ interface AuthTransferData {
   timestamp: number;
 }
 
-export const handleAutoLogin = async (): Promise<boolean> => {
+export const handleAutoLogin = async (appName: string = 'estimate'): Promise<boolean> => {
   try {
-    console.log('🔍 Checking for auto-login data...');
+    console.log(`🔍 ${appName.toUpperCase()}: Checking for auto-login data...`);
     
     // Method 1: Check URL parameters first
     const urlParams = new URLSearchParams(window.location.search);
@@ -23,12 +23,12 @@ export const handleAutoLogin = async (): Promise<boolean> => {
     const source = urlParams.get('source');
     
     if (autoLogin === 'true' && source === 'zp_main') {
-      console.log('📧 Found URL parameters for auto-login');
+      console.log(`📧 ${appName.toUpperCase()}: Found URL parameters for auto-login`);
       const accessToken = urlParams.get('access_token');
       const refreshToken = urlParams.get('refresh_token');
       
       if (accessToken && refreshToken) {
-        console.log('🔑 Setting session from URL parameters...');
+        console.log(`🔑 ${appName.toUpperCase()}: Setting session from URL parameters...`);
         
         // Set the session in Supabase
         const { data, error } = await supabase.auth.setSession({
@@ -37,7 +37,7 @@ export const handleAutoLogin = async (): Promise<boolean> => {
         });
         
         if (!error && data.session) {
-          console.log('✅ Auto-login successful via URL parameters');
+          console.log(`✅ ${appName.toUpperCase()}: Auto-login successful via URL parameters`);
           
           // Clean URL parameters immediately
           const cleanUrl = window.location.pathname;
@@ -45,15 +45,16 @@ export const handleAutoLogin = async (): Promise<boolean> => {
           
           return true;
         } else {
-          console.error('❌ Failed to set session from URL:', error);
+          console.error(`❌ ${appName.toUpperCase()}: Failed to set session from URL:`, error);
         }
       }
     }
     
     // Method 2: Check localStorage
-    const authTransferData = localStorage.getItem('estimate_auth_transfer');
+    const storageKey = appName === 'fims' ? 'fims_auth_transfer' : 'estimate_auth_transfer';
+    const authTransferData = localStorage.getItem(storageKey);
     if (authTransferData) {
-      console.log('💾 Found localStorage auth data');
+      console.log(`💾 ${appName.toUpperCase()}: Found localStorage auth data`);
       
       try {
         const authData: AuthTransferData = JSON.parse(authTransferData);
@@ -65,7 +66,7 @@ export const handleAutoLogin = async (): Promise<boolean> => {
             authData.source_app === 'zp_chandrapur_main' && 
             isDataFresh) {
           
-          console.log('🔑 Setting session from localStorage...');
+          console.log(`🔑 ${appName.toUpperCase()}: Setting session from localStorage...`);
           
           // Set the session in Supabase
           const { data, error } = await supabase.auth.setSession({
@@ -74,36 +75,37 @@ export const handleAutoLogin = async (): Promise<boolean> => {
           });
           
           if (!error && data.session) {
-            console.log('✅ Auto-login successful via localStorage');
+            console.log(`✅ ${appName.toUpperCase()}: Auto-login successful via localStorage`);
             
             // Clean up the transfer data immediately
-            localStorage.removeItem('estimate_auth_transfer');
+            localStorage.removeItem(storageKey);
             
             return true;
           } else {
-            console.error('❌ Failed to set session from localStorage:', error);
+            console.error(`❌ ${appName.toUpperCase()}: Failed to set session from localStorage:`, error);
           }
         } else {
-          console.log('⏰ Auth data expired or invalid, removing...');
-          localStorage.removeItem('estimate_auth_transfer');
+          console.log(`⏰ ${appName.toUpperCase()}: Auth data expired or invalid, removing...`);
+          localStorage.removeItem(storageKey);
         }
       } catch (parseError) {
-        console.error('❌ Error parsing auth transfer data:', parseError);
-        localStorage.removeItem('estimate_auth_transfer');
+        console.error(`❌ ${appName.toUpperCase()}: Error parsing auth transfer data:`, parseError);
+        localStorage.removeItem(storageKey);
       }
     }
     
-    console.log('ℹ️ No valid auto-login data found');
+    console.log(`ℹ️ ${appName.toUpperCase()}: No valid auto-login data found`);
     return false;
     
   } catch (error) {
-    console.error('❌ Error in auto-login process:', error);
+    console.error(`❌ ${appName.toUpperCase()}: Error in auto-login process:`, error);
     
     // Clean up any potentially corrupted data
     try {
-      localStorage.removeItem('estimate_auth_transfer');
+      const storageKey = appName === 'fims' ? 'fims_auth_transfer' : 'estimate_auth_transfer';
+      localStorage.removeItem(storageKey);
     } catch (cleanupError) {
-      console.error('❌ Error cleaning up auth data:', cleanupError);
+      console.error(`❌ ${appName.toUpperCase()}: Error cleaning up auth data:`, cleanupError);
     }
     
     return false;
@@ -111,24 +113,24 @@ export const handleAutoLogin = async (): Promise<boolean> => {
 };
 
 // Function to be called when E-estimate app initializes
-export const initializeAuthReceiver = async () => {
-  console.log('🚀 Initializing auth receiver...');
+export const initializeAuthReceiver = async (appName: string = 'estimate') => {
+  console.log(`🚀 ${appName.toUpperCase()}: Initializing auth receiver...`);
   
   try {
     // Check if user is already logged in
     const { data: { session } } = await supabase.auth.getSession();
     
     if (session) {
-      console.log('👤 User already logged in');
+      console.log(`👤 ${appName.toUpperCase()}: User already logged in`);
       return true;
     }
     
     // Try auto-login
-    console.log('🔄 Attempting auto-login...');
-    const autoLoginSuccess = await handleAutoLogin();
+    console.log(`🔄 ${appName.toUpperCase()}: Attempting auto-login...`);
+    const autoLoginSuccess = await handleAutoLogin(appName);
     
     if (autoLoginSuccess) {
-      console.log('🎉 Auto-login successful! Reloading page...');
+      console.log(`🎉 ${appName.toUpperCase()}: Auto-login successful! Reloading page...`);
       
       // Small delay to ensure session is properly set
       setTimeout(() => {
@@ -137,26 +139,27 @@ export const initializeAuthReceiver = async () => {
       
       return true;
     } else {
-      console.log('ℹ️ Auto-login not available, user needs to login manually');
+      console.log(`ℹ️ ${appName.toUpperCase()}: Auto-login not available, user needs to login manually`);
       return false;
     }
     
   } catch (error) {
-    console.error('❌ Error initializing auth receiver:', error);
+    console.error(`❌ ${appName.toUpperCase()}: Error initializing auth receiver:`, error);
     return false;
   }
 };
 
 // Utility function to check if auto-login is available
-export const isAutoLoginAvailable = (): boolean => {
+export const isAutoLoginAvailable = (appName: string = 'estimate'): boolean => {
   const urlParams = new URLSearchParams(window.location.search);
   const hasUrlAuth = urlParams.get('auto_login') === 'true';
-  const hasStorageAuth = localStorage.getItem('estimate_auth_transfer') !== null;
+  const storageKey = appName === 'fims' ? 'fims_auth_transfer' : 'estimate_auth_transfer';
+  const hasStorageAuth = localStorage.getItem(storageKey) !== null;
   
   return hasUrlAuth || hasStorageAuth;
 };
 
-// Export for use in E-estimate application
+// Export for use in E-estimate and FIMS applications
 export default {
   handleAutoLogin,
   initializeAuthReceiver,
