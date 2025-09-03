@@ -123,7 +123,7 @@ const FIMSFrame: React.FC<{ user: SupabaseUser; onBack: () => void }> = ({ user,
   const [isLoading, setIsLoading] = useState(true);
   
   // FIMS application URL - replace with actual URL when available
-  const fimsUrl = 'https://zpchandrapur-fims-ba-06xp.bolt.host';
+  const fimsUrl = 'https://zpchandrapur-fims-ba-06xp.bolt.host/';
   
   const handleIframeLoad = () => {
     setIsLoading(false);
