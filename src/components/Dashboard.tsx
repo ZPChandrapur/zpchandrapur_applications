@@ -396,6 +396,69 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
     }
   };
 
+  const handlePESAClick = async () => {
+    try {
+      console.log('🚀 PESA: Starting authentication transfer...');
+      // Get current session
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        console.error('❌ PESA: Error getting session:', error);
+        // Open without auth if session fetch fails
+        window.open('https://zpchandrapur-pesa-fi-r90q.bolt.host', '_blank', 'noopener,noreferrer');
+        return;
+      }
+
+      if (session?.access_token && session?.refresh_token) {
+        console.log('🔑 PESA: Valid session found, preparing auth transfer...');
+        
+        // Method 1: Try localStorage approach
+        try {
+          const authData = {
+            access_token: session.access_token,
+            refresh_token: session.refresh_token,
+            user: session.user,
+            expires_at: session.expires_at,
+            auto_login: true,
+            source_app: 'zp_chandrapur_main',
+            timestamp: Date.now()
+          };
+          
+          localStorage.setItem('pesa_auth_transfer', JSON.stringify(authData));
+          console.log('💾 PESA: Auth data stored in localStorage');
+          
+          // Clean up after 30 seconds
+          setTimeout(() => {
+            localStorage.removeItem('pesa_auth_transfer');
+            console.log('🧹 PESA: Auth data cleaned up from localStorage');
+          }, 30000);
+          
+        } catch (storageError) {
+          console.warn('⚠️ PESA: localStorage not available:', storageError);
+        }
+        
+        // Method 2: URL parameters as fallback
+        const pesaUrl = new URL('https://zpchandrapur-pesa-fi-r90q.bolt.host');
+        pesaUrl.searchParams.set('auto_login', 'true');
+        pesaUrl.searchParams.set('access_token', session.access_token);
+        pesaUrl.searchParams.set('refresh_token', session.refresh_token);
+        pesaUrl.searchParams.set('source', 'zp_main');
+        
+        console.log('🌐 PESA: Opening with auth data...');
+        // Open PESA with auth data
+        window.open(pesaUrl.toString(), '_blank', 'noopener,noreferrer');
+      } else {
+        console.warn('⚠️ PESA: No valid session found');
+        // Open without auth
+        window.open('https://zpchandrapur-pesa-fi-r90q.bolt.host', '_blank', 'noopener,noreferrer');
+      }
+    } catch (error) {
+      console.error('❌ PESA: Error in handlePESAClick:', error);
+      // Fallback: open without auth
+      window.open('https://zpchandrapur-pesa-fi-r90q.bolt.host', '_blank', 'noopener,noreferrer');
+    }
+  };
+
   const handleWorkflowClick = async () => {
     try {
       // Get current session
@@ -470,6 +533,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
       type: t('systems.erms.webApplication'),
       mobileOnly: false
     },
+    // Special handling for PESA - pass auth and open in new window
+    if (appId === 'pesa') {
+      handlePESAClick();
+      return;
+    }
+    
     {
       id: 'estimate',
       name: t('systems.estimate.name'),

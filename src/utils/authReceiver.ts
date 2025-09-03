@@ -51,7 +51,16 @@ export const handleAutoLogin = async (appName: string = 'estimate'): Promise<boo
     }
     
     // Method 2: Check localStorage
-    const storageKey = appName === 'fims' ? 'fims_auth_transfer' : 'estimate_auth_transfer';
+    const getStorageKey = (app: string) => {
+      switch (app) {
+        case 'fims': return 'fims_auth_transfer';
+        case 'pesa': return 'pesa_auth_transfer';
+        case 'workflow': return 'workflow_auth_transfer';
+        default: return 'estimate_auth_transfer';
+      }
+    };
+    
+    const storageKey = getStorageKey(appName);
     const authTransferData = localStorage.getItem(storageKey);
     if (authTransferData) {
       console.log(`💾 ${appName.toUpperCase()}: Found localStorage auth data`);
@@ -102,7 +111,16 @@ export const handleAutoLogin = async (appName: string = 'estimate'): Promise<boo
     
     // Clean up any potentially corrupted data
     try {
-      const storageKey = appName === 'fims' ? 'fims_auth_transfer' : 'estimate_auth_transfer';
+      const getStorageKey = (app: string) => {
+        switch (app) {
+          case 'fims': return 'fims_auth_transfer';
+          case 'pesa': return 'pesa_auth_transfer';
+          case 'workflow': return 'workflow_auth_transfer';
+          default: return 'estimate_auth_transfer';
+        }
+      };
+      
+      const storageKey = getStorageKey(appName);
       localStorage.removeItem(storageKey);
     } catch (cleanupError) {
       console.error(`❌ ${appName.toUpperCase()}: Error cleaning up auth data:`, cleanupError);
@@ -153,7 +171,17 @@ export const initializeAuthReceiver = async (appName: string = 'estimate') => {
 export const isAutoLoginAvailable = (appName: string = 'estimate'): boolean => {
   const urlParams = new URLSearchParams(window.location.search);
   const hasUrlAuth = urlParams.get('auto_login') === 'true';
-  const storageKey = appName === 'fims' ? 'fims_auth_transfer' : 'estimate_auth_transfer';
+  
+  const getStorageKey = (app: string) => {
+    switch (app) {
+      case 'fims': return 'fims_auth_transfer';
+      case 'pesa': return 'pesa_auth_transfer';
+      case 'workflow': return 'workflow_auth_transfer';
+      default: return 'estimate_auth_transfer';
+    }
+  };
+  
+  const storageKey = getStorageKey(appName);
   const hasStorageAuth = localStorage.getItem(storageKey) !== null;
   
   return hasUrlAuth || hasStorageAuth;

@@ -21,6 +21,8 @@ function App() {
     // Initialize auth receiver when app loads
     // For E-estimate: initializeAuthReceiver('estimate');
     // For FIMS: initializeAuthReceiver('fims');
+    // For PESA: initializeAuthReceiver('pesa');
+    // For Workflow: initializeAuthReceiver('workflow');
     initializeAuthReceiver('estimate'); // or 'fims'
   }, []);
 
@@ -39,6 +41,7 @@ const LoginPage = () => {
   useEffect(() => {
     const checkAutoLogin = async () => {
       // Pass 'estimate' for E-estimate or 'fims' for FIMS
+      // Pass 'pesa' for PESA or 'workflow' for Workflow Management
       const success = await handleAutoLogin('estimate'); // or 'fims'
       if (success) {
         // Redirect to dashboard or main app
@@ -71,16 +74,20 @@ const LoginPage = () => {
 2. **Automatic Cleanup**: Auth data is removed after 30 seconds or successful use
 3. **Source Verification**: Checks that auth data comes from the main app
 4. **Error Handling**: Graceful fallback to normal login if auto-login fails
-5. **App-Specific Storage**: Each app uses its own localStorage key to prevent conflicts
+5. **App-Specific Storage**: Each app uses its own localStorage key to prevent conflicts:
+   - E-estimate: `estimate_auth_transfer`
+   - FIMS: `fims_auth_transfer`
+   - PESA: `pesa_auth_transfer`
+   - Workflow: `workflow_auth_transfer`
 
 ## Testing
 
 1. Login to main ZP Chandrapur application
-2. Click on E-estimate or FIMS card
+2. Click on E-estimate, FIMS, PESA, or Workflow Management card
 3. Target application should open in new tab and automatically log you in
 4. Check browser console for detailed logs
 5. If auto-login fails, normal login page should appear
-6. Look for app-specific log messages (E-ESTIMATE: or FIMS:)
+6. Look for app-specific log messages (E-ESTIMATE:, FIMS:, PESA:, or WORKFLOW:)
 
 ## Configuration
 
@@ -95,6 +102,16 @@ Update the FIMS URL in the main application:
 const fimsUrl = 'https://your-actual-fims-url.com';
 ```
 
+Update the PESA URL in the main application:
+```typescript
+const pesaUrl = 'https://zpchandrapur-pesa-fi-r90q.bolt.host';
+```
+
+Update the Workflow Management URL in the main application:
+```typescript
+const workflowUrl = 'https://your-actual-workflow-url.com';
+```
+
 ## Troubleshooting
 
 ### Common Issues:
@@ -102,14 +119,18 @@ const fimsUrl = 'https://your-actual-fims-url.com';
 2. **Session expired**: Main app session might be expired
 3. **CORS issues**: Ensure both apps have proper CORS configuration
 4. **Different domains**: localStorage won't work across different domains - use URL method only
-5. **Wrong app name**: Ensure you're passing the correct app name ('estimate' or 'fims') to the functions
+5. **Wrong app name**: Ensure you're passing the correct app name ('estimate', 'fims', 'pesa', or 'workflow') to the functions
 
 ### Debug Steps:
 1. Open browser console in target app (E-estimate/FIMS)
-2. Look for logs starting with app name (E-ESTIMATE: or FIMS:) and emojis 🔍, 🔑, ✅, or ❌
+2. Look for logs starting with app name (E-ESTIMATE:, FIMS:, PESA:, or WORKFLOW:) and emojis 🔍, 🔑, ✅, or ❌
 3. Check if auth data is being passed correctly
 4. Verify Supabase configuration matches between apps
-5. Ensure the correct localStorage key is being used for each app
+5. Ensure the correct localStorage key is being used for each app:
+   - E-estimate: `estimate_auth_transfer`
+   - FIMS: `fims_auth_transfer`
+   - PESA: `pesa_auth_transfer`
+   - Workflow: `workflow_auth_transfer`
 
 ## Same Domain Optimization
 
