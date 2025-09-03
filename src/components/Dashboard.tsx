@@ -262,6 +262,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
       return;
     }
     
+    // Special handling for PESA - pass auth and open in new window
+    if (appId === 'pesa') {
+      handlePESAClick();
+      return;
+    }
+    
     // Special handling for Workflow Management - open in new window
     if (appId === 'workflow') {
       handleWorkflowClick();
@@ -533,12 +539,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
       type: t('systems.erms.webApplication'),
       mobileOnly: false
     },
-    // Special handling for PESA - pass auth and open in new window
-    if (appId === 'pesa') {
-      handlePESAClick();
-      return;
-    }
-    
     {
       id: 'estimate',
       name: t('systems.estimate.name'),
