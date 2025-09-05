@@ -473,7 +473,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
       if (error) {
         console.error('Error getting session:', error);
         // Open without auth if session fetch fails
-        window.open('https://your-workflow-app-url.com', '_blank', 'noopener,noreferrer');
+        window.open('https://ajdpulse-workflowbui-s078.bolt.host', '_blank', 'noopener,noreferrer');
         return;
       }
 
