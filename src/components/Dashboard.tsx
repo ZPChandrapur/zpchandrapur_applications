@@ -513,12 +513,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
       } else {
         console.warn('No valid session found');
         // Open without auth
-        window.open('https://your-workflow-app-url.com', '_blank', 'noopener,noreferrer');
+        window.open('https://ajdpulse-workflowbui-s078.bolt.host', '_blank', 'noopener,noreferrer');
       }
     } catch (error) {
       console.error('Error in handleWorkflowClick:', error);
       // Fallback: open without auth
-      window.open('https://your-workflow-app-url.com', '_blank', 'noopener,noreferrer');
+      window.open('https://ajdpulse-workflowbui-s078.bolt.host', '_blank', 'noopener,noreferrer');
     }
   };
 
