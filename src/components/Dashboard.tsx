@@ -503,7 +503,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
         }
         
         // Method 2: URL parameters as fallback
-        const workflowUrl = new URL('https://ajdpulse-workflowbui-s078.bolt.host/');
+        const workflowUrl = new URL('https://ajdpulse-pesa-import-oipi.bolt.host');
         workflowUrl.searchParams.set('auto_login', 'true');
         workflowUrl.searchParams.set('access_token', session.access_token);
         workflowUrl.searchParams.set('refresh_token', session.refresh_token);
