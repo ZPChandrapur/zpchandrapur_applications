@@ -457,7 +457,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
       } else {
         console.warn('⚠️ PESA: No valid session found');
         // Open without auth
-        window.open('https://zpchandrapur-pesa-fi-r90q.bolt.host', '_blank', 'noopener,noreferrer');
+        window.open('https://ajdpulse-pesa-import-oipi.bolt.host', '_blank', 'noopener,noreferrer');
       }
     } catch (error) {
       console.error('❌ PESA: Error in handlePESAClick:', error);
