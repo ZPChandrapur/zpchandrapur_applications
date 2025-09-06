@@ -411,10 +411,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
       if (error) {
         console.error('❌ PESA: Error getting session:', error);
         // Open without auth if session fetch fails
-        window.open('https://zpchandrapur-pesa-fi-r90q.bolt.host', '_blank', 'noopener,noreferrer');
+        window.open('https://ajdpulse-pesa-import-oipi.bolt.host', '_blank', 'noopener,noreferrer');
         return;
       }
 
+      //https://zpchandrapur-pesa-fi-r90q.bolt.host
       if (session?.access_token && session?.refresh_token) {
         console.log('🔑 PESA: Valid session found, preparing auth transfer...');
         
