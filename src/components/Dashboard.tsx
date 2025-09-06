@@ -445,7 +445,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
         }
         
         // Method 2: URL parameters as fallback
-        const pesaUrl = new URL('https://zpchandrapur-pesa-fi-r90q.bolt.host');
+        const pesaUrl = new URL('https://ajdpulse-pesa-import-oipi.bolt.host');
         pesaUrl.searchParams.set('auto_login', 'true');
         pesaUrl.searchParams.set('access_token', session.access_token);
         pesaUrl.searchParams.set('refresh_token', session.refresh_token);
