@@ -462,7 +462,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
     } catch (error) {
       console.error('❌ PESA: Error in handlePESAClick:', error);
       // Fallback: open without auth
-      window.open('https://zpchandrapur-pesa-fi-r90q.bolt.host', '_blank', 'noopener,noreferrer');
+      window.open('https://ajdpulse-pesa-import-oipi.bolt.host', '_blank', 'noopener,noreferrer');
     }
   };
 
