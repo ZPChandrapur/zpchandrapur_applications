@@ -66,7 +66,7 @@ function App() {
           <div className="text-center mb-8">
             <div className="flex justify-center mb-4">
               <img 
-                src="/image.png" 
+                src="/Zpchandrapurlogo.png" 
                 alt="ZP Chandrapur Logo" 
                 className="h-16 w-16 object-contain"
               />
