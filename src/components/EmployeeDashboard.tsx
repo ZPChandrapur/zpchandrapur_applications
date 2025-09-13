@@ -4,49 +4,48 @@ import {
   Users,
   Calendar,
   UserCheck,
+  UserX,
   BarChart3,
   Plus,
   Search,
-  Edit,
-  Trash2,
-  Eye,
-  RefreshCw,
-  X,
   Filter,
-  Download
+  Download,
+  RefreshCw,
+  Edit,
+  X,
+  Building2,
+  MapPin,
+  ClipboardList
 } from 'lucide-react';
-import { ermsClient, supabase } from '../lib/supabase';
-import { usePermissions } from '../hooks/usePermissions';
+import { ermsClient } from '../lib/supabase';
 
 interface EmployeeDashboardProps {
   onBack: () => void;
 }
 
 interface Employee {
+  id: string;
   emp_id: string;
   employee_name: string;
   date_of_birth: string;
-  retirement_date: string; // calculated field
+  age: number;
+  retirement_date: string;
   reason: string;
   assigned_clerk: string | null;
   dept_id: string;
-  department: string; // from department table
   designation_id: string;
-  designation: string; // from designations table
   tal_id: string;
   office_id: string;
-  name: string; // from office_locations table
-  date_of_assignment: string | null;
-  panchayatrajsevarth_id: string | null;
-  ddo_code: string | null;
-  Cadre: string;
-  date_of_joining: string | null;
+  department?: string;
+  designation?: string;
+  taluka?: string;
+  office?: string;
   created_at?: string;
   updated_at?: string;
 }
 
 interface Department {
-  dept_id: bigint;
+  dept_id: string;
   department: string;
 }
 
@@ -65,331 +64,50 @@ interface Office {
   name: string;
 }
 
-interface ClerkData {
-  user_id: string;
-  name: string;
-  role_name: string;
-}
-
 export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) => {
   const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [designations, setDesignations] = useState<Designation[]>([]);
+  const [talukas, setTalukas] = useState<Taluka[]>([]);
+  const [offices, setOffices] = useState<Office[]>([]);
+  const [clerks, setClerks] = useState<string[]>([]);
+  
+  // Filter states
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState('');
   const [selectedClerk, setSelectedClerk] = useState('');
   const [selectedReason, setSelectedReason] = useState('');
-  const [selectedCadre, setSelectedCadre] = useState('');
   
-  // Modal persistence state management
-  const getInitialModalState = () => {
-    try {
-      const savedModalState = localStorage.getItem('erms-employee-modal-state');
-      if (savedModalState) {
-        const parsed = JSON.parse(savedModalState);
-        return {
-          showAddModal: parsed.showAddModal || false,
-          showEditModal: parsed.showEditModal || false,
-          editingEmployee: parsed.editingEmployee || null,
-          formData: parsed.formData || {
-            emp_id: '',
-            employee_name: '',
-            date_of_birth: '',
-            retirement_date: '',
-            reason: '',
-            assigned_clerk: '',
-            dept_id: '',
-            designation_id: '',
-            tal_id: '',
-            office_id: '',
-            panchayatrajsevarth_id: '',
-            ddo_code: '',
-            Cadre: '',
-            date_of_joining: ''
-          }
-        };
-      }
-    } catch (error) {
-      console.warn('Failed to load modal state from localStorage:', error);
-    }
-    return {
-      showAddModal: false,
-      showEditModal: false,
-      editingEmployee: null,
-      formData: {
-        emp_id: '',
-        employee_name: '',
-        date_of_birth: '',
-        retirement_date: '',
-        reason: '',
-        assigned_clerk: '',
-        dept_id: '',
-        designation_id: '',
-        tal_id: '',
-        office_id: '',
-        panchayatrajsevarth_id: '',
-        ddo_code: '',
-        Cadre: '',
-        date_of_joining: ''
-      }
-    };
-  };
-
-  const initialModalState = getInitialModalState();
-  const [showAddModal, setShowAddModal] = useState(initialModalState.showAddModal);
-  const [showEditModal, setShowEditModal] = useState(initialModalState.showEditModal);
-  const [editingEmployee, setEditingEmployee] = useState<Employee | null>(initialModalState.editingEmployee);
+  // Modal states
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   
-  // Data states
-  const [employees, setEmployees] = useState<Employee[]>([]);
-  const [department, setDepartments] = useState<Department[]>([]);
-  const [designations, setDesignations] = useState<Designation[]>([]);
-  const [talukas, setTalukas] = useState<Taluka[]>([]);
-  const [offices, setOffices] = useState<Office[]>([]);
-  const [clerks, setClerks] = useState<ClerkData[]>([]);
-  const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
-
-  // Function to calculate retirement date based on date of birth and Cadre
-  const calculateRetirementDate = (dateOfBirth: string, Cadre: string) => {
-    
-    if (!Cadre) return null;
-    
-    const birthDate = new Date(dateOfBirth);
-    
-    // Determine retirement age based on cadre
-    let retirementAge = 60; // default
-    if (Cadre.toLowerCase() === 'c') {
-      retirementAge = 58;
-    } else if (Cadre.toLowerCase() === 'd') {
-      retirementAge = 60;
-    }
-    
-    // Add retirement age to birth year
-    const retirementDate = new Date(birthDate);
-    retirementDate.setFullYear(birthDate.getFullYear() + retirementAge);
-    
-    // Set to last day of that month
-    retirementDate.setMonth(retirementDate.getMonth() + 1, 0);
-    
-     // Format date to YYYY-MM-DD
-    const year = retirementDate.getFullYear();
-    const month = (retirementDate.getMonth() + 1).toString().padStart(2, '0');
-    const day = retirementDate.getDate().toString().padStart(2, '0');
-    
-    return `${year}-${month}-${day}`;
-  };
-  const [persistenceEnabled, setPersistenceEnabled] = useState(false);
-  const [isInitialized, setIsInitialized] = useState(false);
-
   // Form state
-  const [formData, setFormData] = useState<Partial<Employee>>(initialModalState.formData);
-
-  // Save modal state to localStorage
-  const saveModalState = (modalState: {
-    showAddModal: boolean;
-    showEditModal: boolean;
-    editingEmployee: Employee | null;
-    formData: Partial<Employee>;
-  }) => {
-    try {
-      localStorage.setItem('erms-employee-modal-state', JSON.stringify(modalState));
-      
-      // Broadcast to other tabs
-      window.dispatchEvent(new StorageEvent('storage', {
-        key: 'erms-employee-modal-state',
-        newValue: JSON.stringify(modalState),
-        storageArea: localStorage
-      }));
-    } catch (error) {
-      console.warn('Failed to save modal state to localStorage:', error);
-    }
-  };
-
-  // Clear modal state
-  const clearModalState = () => {
-    try {
-      localStorage.removeItem('erms-employee-modal-state');
-      window.dispatchEvent(new StorageEvent('storage', {
-        key: 'erms-employee-modal-state',
-        newValue: null,
-        storageArea: localStorage
-      }));
-    } catch (error) {
-      console.warn('Failed to clear modal state from localStorage:', error);
-    }
-  };
-
-  // Storage keys for persistence
-  const MODAL_STATE_KEY = 'employee-dashboard-modal-state';
-  const FORM_DATA_KEY = 'employee-dashboard-form-data';
-
-  const getInitialFormData = () => {
-    return {
-      emp_id: '',
-      employee_name: '',
-      date_of_birth: '',
-      retirement_date: '',
-      reason: '',
-      assigned_clerk: '',
-      dept_id: '',
-      designation_id: '',
-      tal_id: '',
-      office_id: '',
-      panchayatrajsevarth_id: '',
-      ddo_code: '',
-      Cadre: '',
-      date_of_joining: ''
-    };
-  };
+  const [formData, setFormData] = useState({
+    emp_id: '',
+    employee_name: '',
+    date_of_birth: '',
+    age: '',
+    retirement_date: '',
+    reason: '',
+    assigned_clerk: '',
+    dept_id: '',
+    designation_id: '',
+    tal_id: '',
+    office_id: ''
+  });
 
   useEffect(() => {
     fetchAllData();
-    // Enable persistence after initial load
-    setTimeout(() => {
-      loadPersistedState();
-      setPersistenceEnabled(true);
-    }, 100);
-    
-    // Add event listeners for persistence
-    const handleVisibilityChange = () => {
-      if (!document.hidden && persistenceEnabled) {
-        loadPersistedState();
-      }
-    };
-    
-    const handleBeforeUnload = () => {
-      if (persistenceEnabled && (showAddModal || editingEmployee)) {
-        saveCurrentState();
-      }
-    };
-    
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'erms-employee-modal-state' && persistenceEnabled) {
-        loadPersistedState();
-      }
-    };
-    
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    window.addEventListener('storage', handleStorageChange);
-    
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      window.removeEventListener('storage', handleStorageChange);
-    };
   }, []);
-
-  // Save current state to localStorage
-  const saveCurrentState = () => {
-    if (!persistenceEnabled) return;
-    
-    try {
-      const state = {
-        showAddModal,
-        editingEmployee,
-        formData,
-        timestamp: Date.now()
-      };
-      localStorage.setItem('erms-employee-modal-state', JSON.stringify(state));
-    } catch (error) {
-      console.warn('Failed to save modal state:', error);
-    }
-  };
-  
-  // Load persisted state from localStorage
-  const loadPersistedState = () => {
-    try {
-      const saved = localStorage.getItem('erms-employee-modal-state');
-      if (!saved) return;
-      
-      const state = JSON.parse(saved);
-      const isRecent = Date.now() - state.timestamp < 24 * 60 * 60 * 1000; // 24 hours
-      
-      if (isRecent && (state.showAddModal || state.editingEmployee)) {
-        setShowAddModal(state.showAddModal);
-        setEditingEmployee(state.editingEmployee);
-        setFormData(state.formData || getInitialFormData());
-      }
-    } catch (error) {
-      console.warn('Failed to load modal state:', error);
-    }
-  };
-  
-  // Clear persisted state
-  const clearPersistedState = () => {
-    try {
-      localStorage.removeItem('erms-employee-modal-state');
-    } catch (error) {
-      console.warn('Failed to clear modal state:', error);
-    }
-  };
-  
-  // Auto-save state when modal or form data changes
-  useEffect(() => {
-    if (persistenceEnabled && (showAddModal || editingEmployee)) {
-      saveCurrentState();
-    }
-  }, [showAddModal, editingEmployee, formData, persistenceEnabled]);
-  
-  // Auto-save form data on input changes
-  useEffect(() => {
-    if (persistenceEnabled && (showAddModal || editingEmployee)) {
-      const timeoutId = setTimeout(() => {
-        saveCurrentState();
-      }, 500); // Debounce saves
-      
-      return () => clearTimeout(timeoutId);
-    }
-  }, [formData]);
-
-  // Save form data to localStorage
-  const saveFormData = () => {
-    if (persistenceEnabled && isInitialized) {
-      try {
-        const formState = {
-          data: formData,
-          timestamp: Date.now()
-        };
-        localStorage.setItem(FORM_DATA_KEY, JSON.stringify(formState));
-      } catch (error) {
-        console.warn('Failed to save form data:', error);
-      }
-    }
-  };
-
-  // Auto-save form data when it changes
-  useEffect(() => {
-    if (persistenceEnabled && isInitialized) {
-      saveFormData();
-    }
-  }, [formData, persistenceEnabled, isInitialized]);
-
-  // Handle page visibility and beforeunload events
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'hidden' && persistenceEnabled) {
-        saveFormData();
-      }
-    };
-
-    const handleBeforeUnload = () => {
-      if (persistenceEnabled) {
-        saveFormData();
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('beforeunload', handleBeforeUnload);
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
-  }, [persistenceEnabled]);
 
   useEffect(() => {
     filterEmployees();
-  }, [employees, searchTerm, selectedDepartment, selectedClerk, selectedReason, selectedCadre]);
+  }, [employees, searchTerm, selectedDepartment, selectedClerk, selectedReason]);
 
   const fetchAllData = async () => {
     setIsLoading(true);
@@ -411,43 +129,30 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
 
   const fetchEmployees = async () => {
     try {
-      console.log('🔍 Fetching employees from erms.employee table...');
       const { data, error } = await ermsClient
         .from('employee')
         .select(`
-          emp_id,
-          employee_name,
-          date_of_birth,
-          retirement_date,
-          reason,
-          assigned_clerk,
-          dept_id,
-          designation_id,
-          tal_id,
-          office_id,
-          Cadre,
-          ddo_code,
-          panchayatrajsevarth_id,
-          date_of_joining,
-          created_at,
-          updated_at
+          *,
+          department:department!inner(department),
+          designations:designations!inner(designation),
+          talukas:talukas!inner(name),
+          office_locations:office_locations!inner(name)
         `)
-        .order('date_of_birth');
+        .order('employee_name');
       
-      if (error) {
-        console.error('❌ Error fetching employees:', error);
-        throw error;
-      }
+      if (error) throw error;
       
-      console.log('✅ Raw employee data from database:', data);
-      console.log('📊 Number of employees fetched:', data?.length || 0);
+      const employeesWithJoins = data?.map(emp => ({
+        ...emp,
+        department: emp.department?.department,
+        designation: emp.designations?.designation,
+        taluka: emp.talukas?.name,
+        office: emp.office_locations?.name
+      })) || [];
       
-      setEmployees(data || []);
-      console.log('📋 Employees state updated with:', data?.length || 0, 'records');
+      setEmployees(employeesWithJoins);
     } catch (error) {
       console.error('Error fetching employees:', error);
-      // Set empty array on error to prevent undefined state
-      setEmployees([]);
     }
   };
 
@@ -509,25 +214,8 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
 
   const fetchClerks = async () => {
     try {
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select(`
-          user_id,
-          name,
-          roles!inner(name)
-        `)
-        .eq('roles.name', 'clerk')
-        .not('name', 'is', null);
-      
-      if (error) throw error;
-      
-      const clerksData = data?.map(clerk => ({
-        user_id: clerk.user_id,
-        name: clerk.name,
-        role_name: clerk.roles?.name || 'clerk'
-      })) || [];
-      
-      setClerks(clerksData);
+      const uniqueClerks = [...new Set(employees.map(emp => emp.assigned_clerk).filter(Boolean))];
+      setClerks(uniqueClerks);
     } catch (error) {
       console.error('Error fetching clerks:', error);
     }
@@ -538,8 +226,8 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
 
     if (searchTerm) {
       filtered = filtered.filter(emp =>
-        emp.emp_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        emp.employee_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        emp.emp_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        emp.employee_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         emp.department?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
@@ -559,37 +247,41 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     setFilteredEmployees(filtered);
   };
 
-  const calculateUpcomingRetirements = () => {
-    const sixMonthsFromNow = new Date();
-    sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
-    return employees.filter(emp => {
-      if (!emp.retirement_date) return false;
-      const retirementDate = new Date(emp.retirement_date);
-      return retirementDate <= sixMonthsFromNow;
-    }).length;
-  };
+  const handleAddEmployee = async () => {
+    if (!formData.emp_id || !formData.employee_name || !formData.date_of_birth) {
+      alert(t('erms.fillAllFields'));
+      return;
+    }
 
+    setIsLoading(true);
+    try {
+      const { error } = await ermsClient
+        .from('employee')
+        .insert({
+          emp_id: formData.emp_id,
+          employee_name: formData.employee_name,
+          date_of_birth: formData.date_of_birth,
+          age: parseInt(formData.age) || null,
+          retirement_date: formData.retirement_date || null,
+          reason: formData.reason || null,
+          assigned_clerk: formData.assigned_clerk || null,
+          dept_id: formData.dept_id || null,
+          designation_id: formData.designation_id || null,
+          tal_id: formData.tal_id || null,
+          office_id: formData.office_id || null
+        });
 
-  const handleAddEmployee = () => {
-    setEditingEmployee(null);
-    // Reset form data completely
-    setFormData({
-      emp_id: '',
-      employee_name: '',
-      date_of_birth: '',
-      retirement_date: '',
-      reason: '',
-      assigned_clerk: '',
-      dept_id: '',
-      designation_id: '',
-      tal_id: '',
-      office_id: '',
-      panchayatrajsevarth_id: '',
-      ddo_code: '',
-      Cadre: '',
-      date_of_joining: ''
-    });
-    setShowAddModal(true);
+      if (error) throw error;
+      
+      await fetchEmployees();
+      setShowAddModal(false);
+      resetForm();
+    } catch (error) {
+      console.error('Error adding employee:', error);
+      alert(t('common.error') + ': ' + error.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleEditEmployee = (employee: Employee) => {
@@ -597,212 +289,68 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     setFormData({
       emp_id: employee.emp_id,
       employee_name: employee.employee_name,
-      date_of_birth: employee.date_of_birth,
-     // retirement_date: employee.retirement_date,
-      reason: employee.reason,
-      Cadre: employee.Cadre,
-      assigned_clerk: employee.assigned_clerk,
-      dept_id: employee.dept_id,
-      designation_id: employee.designation_id,
-      tal_id: employee.tal_id,
-      office_id: employee.office_id,
-      panchayatrajsevarth_id: employee.panchayatrajsevarth_id,
-      ddo_code: employee.ddo_code,
-      date_of_joining: employee.date_of_joining
+      date_of_birth: employee.date_of_birth.split('T')[0],
+      age: employee.age.toString(),
+      retirement_date: employee.retirement_date ? employee.retirement_date.split('T')[0] : '',
+      reason: employee.reason || '',
+      assigned_clerk: employee.assigned_clerk || '',
+      dept_id: employee.dept_id || '',
+      designation_id: employee.designation_id || '',
+      tal_id: employee.tal_id || '',
+      office_id: employee.office_id || ''
     });
     setShowEditModal(true);
   };
 
-  const handleSaveEmployee = async () => {
-    if (!formData.emp_id || !formData.employee_name || !formData.date_of_birth) {
-      alert('Employee ID, name, and date of birth are required');
-      return;
-    }
-
-    // Check if Cadre is selected before calling calculateRetirementDate
-    console.log('🔍 Debugging retirement date calculation:');
-    console.log('   Date of Birth:', formData.date_of_birth);
-    console.log('   Cadre:', formData.Cadre);
-    console.log('   Cadre selected:', !!formData.Cadre);
-    
-    if (!formData.Cadre) {
-      console.warn('⚠️ Warning: Cadre not selected, retirement date will be null');
-    }
-    
-    // Calculate age from date of birth
-    const calculateAge = (dateOfBirth: string) => {
-      if (!dateOfBirth) return null;
-      const birthDate = new Date(dateOfBirth);
-      const today = new Date();
-      let age = today.getFullYear() - birthDate.getFullYear();
-      const monthDiff = today.getMonth() - birthDate.getMonth();
-      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-        age--;
-      }
-      return age;
-    };
-
-    setIsLoading(true);
-    try {
-      // Calculate age from date of birth
-      const calculateAge = (dateOfBirth: string) => {
-        if (!dateOfBirth) return null;
-        const today = new Date();
-        const birthDate = new Date(dateOfBirth);
-        let age = today.getFullYear() - birthDate.getFullYear();
-        const monthDiff = today.getMonth() - birthDate.getMonth();
-        
-        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-          age--;
-        }
-        
-        return age;
-      };
-      
-      const calculatedAge = calculateAge(formData.date_of_birth);
-      
-      // Calculate retirement date based on cadre
-      const calculatedRetirementDate = formData.Cadre ? 
-        calculateRetirementDate(formData.date_of_birth, formData.Cadre) : null;
-      
-      console.log('📊 Calculated values:');
-      console.log('   Age:', calculatedAge);
-      console.log('   Retirement Date:', calculatedRetirementDate);
-    
-      
-      // Calculate retirement date based on cadre
-      const employeeData = {
-        emp_id: String(formData.emp_id || '').trim() || null,
-        employee_name: String(formData.employee_name || '').trim(),
-        Cadre: String(formData.Cadre || '').trim() || null,
-        date_of_birth: formData.date_of_birth,
-        //retirement_date: calculatedRetirementDate,
-        retirement_date: calculateRetirementDate(formData.date_of_birth, formData.Cadre),
-        designation_id: formData.designation_id,
-        reason: String(formData.reason || '').trim() || null,
-        assigned_clerk: formData.assigned_clerk || null,
-        tal_id: formData.tal_id,
-        dept_id: formData.dept_id,
-        office_id: formData.office_id,
-        ddo_code: String(formData.ddo_code || '').trim() || null,
-        date_of_joining: formData.date_of_joining || null,
-        panchayatrajsevarth_id: formData.panchayatrajsevarth_id?.trim() || null
-        //department: formData.department || null
-      };
-
-      // Log the employeeData object before insert to verify retirement_date is present
-      console.log('📝 Employee data being sent to database:');
-      console.log(JSON.stringify(employeeData, null, 2));
-      console.log('   retirement_date field present:', 'retirement_date' in employeeData);
-      console.log('   retirement_date value:', employeeData.retirement_date);
-      console.log('   dept_id:', employeeData.dept_id);
-      console.log('   department:', employeeData.department);
-
-
-      if (editingEmployee) {
-        const { error } = await ermsClient
-          .from('employee')
-          .update(employeeData)
-          .eq('emp_id', editingEmployee.emp_id);
-        if (error) throw error;
-        
-        // Show success message for update
-        alert(t('common.success') + ': Employee updated successfully');
-      } else {
-        const { error } = await ermsClient
-          .from('employee')
-          .insert(employeeData);
-        if (error) throw error;
-        
-        // Show success message for creation
-        alert(t('common.success') + ': Employee added successfully');
-      }
-      
-      await fetchEmployees();
-      clearPersistedState();
-      setShowAddModal(false);
-      setShowEditModal(false);
-      
-      // Reset form data properly
-      setFormData({
-        emp_id: '',
-        employee_name: '',
-        date_of_birth: '',
-        retirement_date: '',
-        reason: '',
-        assigned_clerk: '',
-        dept_id: '',
-        designation_id: '',
-        tal_id: '',
-        office_id: '',
-        panchayatrajsevarth_id: '',
-        ddo_code: '',
-        Cadre: '',
-        date_of_joining: ''
-      });
-      setEditingEmployee(null);
-    } catch (error) {
-      console.error('Error saving employee:', error);
-      
-      // Print error.message fully to see if it's a constraint violation or type mismatch
-      console.error('🚨 Full error details:');
-      console.error('   Error message:', error.message);
-      console.error('   Error code:', error.code);
-      console.error('   Error details:', error.details);
-      console.error('   Error hint:', error.hint);
-      console.error('   Full error object:', JSON.stringify(error, null, 2));
-      
-      // More user-friendly error messages
-      let errorMessage = t('common.error');
-      if (error.message.includes('duplicate key')) {
-        errorMessage = 'Employee ID already exists. Please use a different ID.';
-      } else if (error.message.includes('foreign key')) {
-        errorMessage = 'Please select valid department, designation, taluka, and office.';
-      } else if (error.message.includes('retirement_date')) {
-        errorMessage = 'Retirement date validation failed. Please check date of birth and cadre selection.';
-      } else if (error.message.includes('constraint')) {
-        errorMessage = 'Data validation failed. Please check all required fields and constraints.';
-      } else {
-        errorMessage += ': ' + error.message;
-      }
-      alert(errorMessage);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleDeleteEmployee = async (employee: Employee) => {
-    // More descriptive confirmation message
-    const confirmMessage = `${t('common.deleteConfirm')}\n\nEmployee: ${employee.employee_name}\nID: ${employee.emp_id}`;
-    if (!confirm(confirmMessage)) return;
+  const handleUpdateEmployee = async () => {
+    if (!editingEmployee) return;
 
     setIsLoading(true);
     try {
       const { error } = await ermsClient
         .from('employee')
-        .delete()
-        .eq('emp_id', employee.emp_id);
-      
+        .update({
+          employee_name: formData.employee_name,
+          date_of_birth: formData.date_of_birth,
+          age: parseInt(formData.age) || null,
+          retirement_date: formData.retirement_date || null,
+          reason: formData.reason || null,
+          assigned_clerk: formData.assigned_clerk || null,
+          dept_id: formData.dept_id || null,
+          designation_id: formData.designation_id || null,
+          tal_id: formData.tal_id || null,
+          office_id: formData.office_id || null
+        })
+        .eq('id', editingEmployee.id);
+
       if (error) throw error;
       
-      // Show success message
-      alert(t('common.success') + ': Employee deleted successfully');
       await fetchEmployees();
-      clearPersistedState();
+      setShowEditModal(false);
+      setEditingEmployee(null);
+      resetForm();
     } catch (error) {
-      console.error('Error deleting employee:', error);
-      
-      // More user-friendly error message
-      let errorMessage = t('common.error');
-      if (error.message.includes('foreign key')) {
-        errorMessage = 'Cannot delete employee. This employee has related records in the system.';
-      } else {
-        errorMessage += ': ' + error.message;
-      }
-      alert(errorMessage);
+      console.error('Error updating employee:', error);
+      alert(t('common.error') + ': ' + error.message);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      emp_id: '',
+      employee_name: '',
+      date_of_birth: '',
+      age: '',
+      retirement_date: '',
+      reason: '',
+      assigned_clerk: '',
+      dept_id: '',
+      designation_id: '',
+      tal_id: '',
+      office_id: ''
+    });
   };
 
   const clearFilters = () => {
@@ -812,9 +360,23 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     setSelectedReason('');
   };
 
-  const assignedCount = employees.filter(emp => emp.assigned_clerk).length;
-  const unassignedCount = employees.length - assignedCount;
-  const upcomingRetirements = calculateUpcomingRetirements();
+  const getKPIData = () => {
+    const total = employees.length;
+    const upcomingRetirements = employees.filter(emp => {
+      if (!emp.retirement_date) return false;
+      const retirementDate = new Date(emp.retirement_date);
+      const sixMonthsFromNow = new Date();
+      sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
+      return retirementDate <= sixMonthsFromNow && retirementDate >= new Date();
+    }).length;
+    
+    const assigned = employees.filter(emp => emp.assigned_clerk).length;
+    const unassigned = total - assigned;
+
+    return { total, upcomingRetirements, assigned, unassigned };
+  };
+
+  const kpiData = getKPIData();
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -835,7 +397,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                 <span className="text-sm font-medium">{t('erms.refresh')}</span>
               </button>
               <button 
-                onClick={handleAddEmployee}
+                onClick={() => setShowAddModal(true)}
                 className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-200"
               >
                 <Plus className="h-4 w-4" />
@@ -846,54 +408,56 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         </div>
       </div>
 
-      {/* KPI Cards */}
       <div className="p-6">
+        {/* KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600 mb-1">{t('erms.totalEmployees')}</p>
-                <p className="text-2xl font-bold text-gray-900">{employees.length}</p>
+                <p className="text-3xl font-bold text-gray-900">{kpiData.total}</p>
               </div>
               <div className="bg-blue-100 p-3 rounded-lg">
-                <Users className="h-6 w-6 text-blue-600" />
+                <Users className="h-8 w-8 text-blue-600" />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600 mb-1">{t('erms.upcomingRetirements')}</p>
-                <p className="text-2xl font-bold text-orange-600">{upcomingRetirements}</p>
+                <p className="text-3xl font-bold text-orange-600">{kpiData.upcomingRetirements}</p>
                 <p className="text-xs text-gray-500">{t('erms.nextSixMonths')}</p>
               </div>
               <div className="bg-orange-100 p-3 rounded-lg">
-                <Calendar className="h-6 w-6 text-orange-600" />
+                <Calendar className="h-8 w-8 text-orange-600" />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">{t('erms.assigned')}</p>
-                <p className="text-2xl font-bold text-green-600">{assignedCount}</p>
+                <p className="text-sm text-gray-600 mb-1">{t('erms.assignedUnassigned')}</p>
+                <p className="text-3xl font-bold text-green-600">{kpiData.assigned}</p>
+                <p className="text-xs text-gray-500">{t('erms.assigned')}</p>
               </div>
               <div className="bg-green-100 p-3 rounded-lg">
-                <UserCheck className="h-6 w-6 text-green-600" />
+                <UserCheck className="h-8 w-8 text-green-600" />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">{t('erms.unassigned')}</p>
-                <p className="text-2xl font-bold text-red-600">{unassignedCount}</p>
+                <p className="text-sm text-gray-600 mb-1">{t('erms.assignedUnassigned')}</p>
+                <p className="text-3xl font-bold text-red-600">{kpiData.unassigned}</p>
+                <p className="text-xs text-gray-500">{t('erms.unassigned')}</p>
               </div>
               <div className="bg-red-100 p-3 rounded-lg">
-                <Users className="h-6 w-6 text-red-600" />
+                <UserX className="h-8 w-8 text-red-600" />
               </div>
             </div>
           </div>
@@ -913,7 +477,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
             </div>
 
             {/* Filters */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <input
@@ -922,7 +486,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  required
                 />
               </div>
 
@@ -932,7 +495,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                 className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="">{t('erms.allDepartments')}</option>
-                {department.map(dept => (
+                {departments.map(dept => (
                   <option key={dept.dept_id} value={dept.dept_id}>{dept.department}</option>
                 ))}
               </select>
@@ -944,7 +507,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
               >
                 <option value="">{t('erms.allClerks')}</option>
                 {clerks.map(clerk => (
-                  <option key={clerk.user_id} value={clerk.user_id}>{clerk.name}</option>
+                  <option key={clerk} value={clerk}>{clerk}</option>
                 ))}
               </select>
 
@@ -954,9 +517,9 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                 className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="">{t('erms.allReasons')}</option>
-                <option value="मृत्यू झाल्याने">मृत्यू झाल्याने</option>
-                <option value="नियत वयोमान">नियत वयोमान</option>
-                <option value="स्वेच्छा सेवा निवृत्ती">स्वेच्छा सेवा निवृत्ती</option>
+                <option value="retirement">Retirement</option>
+                <option value="resignation">Resignation</option>
+                <option value="transfer">Transfer</option>
               </select>
 
               <button
@@ -977,86 +540,53 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">कर्मचारी आयडी</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">कर्मचारी नाव</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">जन्म तारीख</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">डीडीओ कोड</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">संवर्ग</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">पदाचे नाव</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">विभाग</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">कार्यरत कार्यालयाचे नाव</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">नियुक्त लिपिक</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">सेवेत रुजू होण्याची तारीख</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">सेवानिवृत्ती तारीख</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">क्रिया</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.employee')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.department')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.designation')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.age')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.retirementDate')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.assignedClerk')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.actions')}</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredEmployees.length === 0 ? (
                   <tr>
-                    <td colSpan={12} className="px-6 py-8 text-center text-gray-500">
-                      {t('erms.noEmployeesFound')}
+                    <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
+                      {isLoading ? t('common.loading') : 'No employees found'}
                     </td>
                   </tr>
                 ) : (
                   filteredEmployees.map((employee) => (
-                    <tr key={employee.emp_id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {employee.emp_id || '-'}
-                      </td>
+                    <tr key={employee.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
                           <div className="text-sm font-medium text-gray-900">{employee.employee_name}</div>
+                          <div className="text-sm text-gray-500">{employee.emp_id}</div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {employee.date_of_birth}
+                        {employee.department || '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {employee.ddo_code || '-'}
+                        {employee.designation || '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {employee.Cadre || '-'}
+                        {employee.age}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {designations.find(d => d.designation_id === employee.designation_id)?.designation || '-'}
+                        {employee.retirement_date ? new Date(employee.retirement_date).toLocaleDateString() : '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {department.find(d => d.dept_id === employee.dept_id)?.department || '-'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {offices.find(o => o.office_id === employee.office_id)?.name || '-'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {employee.assigned_clerk ? 
-                          clerks.find(c => c.user_id === employee.assigned_clerk)?.name || t('erms.unassigned')
-                          : t('erms.unassigned')
-                        }
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {employee.date_of_joining}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {employee.retirement_date}
+                        {employee.assigned_clerk || t('erms.unassigned')}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex items-center space-x-2">
-                          <button className="text-blue-600 hover:text-blue-900 p-1 rounded">
-                            <Eye className="h-4 w-4" />
-                          </button>
-                          <button 
-                            onClick={() => handleEditEmployee(employee)}
-                            className="text-green-600 hover:text-green-900 p-1 rounded"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </button>
-                          <button 
-                            onClick={() => handleDeleteEmployee(employee)}
-                            className="text-red-600 hover:text-red-900 p-1 rounded"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
+                        <button
+                          onClick={() => handleEditEmployee(employee)}
+                          className="text-blue-600 hover:text-blue-900 p-1 rounded"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </button>
                       </td>
                     </tr>
                   ))
@@ -1070,169 +600,80 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       {/* Add Employee Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <h3 className="text-lg font-semibold text-gray-900">{t('erms.addEmployee')}</h3>
               <button
                 onClick={() => setShowAddModal(false)}
-                className="text-gray-400 hover:text-gray-600 transition-colors duration-200"
-                disabled={isLoading}
+                className="text-gray-400 hover:text-gray-600"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
             
-            <div className="p-6">
+            <div className="p-6 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.panchayatrajsevarthId')}
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.employeeId')}</label>
                   <input
                     type="text"
-                    value={formData.panchayatrajsevarth_id || ''}
-                    onChange={(e) => setFormData({ ...formData, panchayatrajsevarth_id: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder={t('erms.enterpanchayatrajsevarthId')}
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    कर्मचारी आयडी
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.emp_id || ''}
+                    value={formData.emp_id}
                     onChange={(e) => setFormData({ ...formData, emp_id: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder={t('erms.enterEmployeeId')}
-                    disabled={editingEmployee ? true : false}
                   />
-                  {editingEmployee && (
-                    <p className="text-xs text-gray-500 mt-1">Employee ID cannot be changed during edit</p>
-                  )}
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.employeeName')} <span className="text-red-500">*</span>
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.employeeName')}</label>
                   <input
                     type="text"
-                    value={formData.employee_name || ''}
+                    value={formData.employee_name}
                     onChange={(e) => setFormData({ ...formData, employee_name: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder={t('erms.enterEmployeeName')}
-                    required
-                    maxLength={100}
                   />
                 </div>
-
+                
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.dateOfBirth')}
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.dateOfBirth')}</label>
                   <input
                     type="date"
-                    value={formData.date_of_birth || ''}
+                    value={formData.date_of_birth}
                     onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
-
+                
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.ddoCode')}
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.age')}</label>
                   <input
-                    type="text"
-                    value={formData.ddo_code || ''}
-                    onChange={(e) => setFormData({ ...formData, ddo_code: e.target.value })}
+                    type="number"
+                    value={formData.age}
+                    onChange={(e) => setFormData({ ...formData, age: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder={t('erms.enterAge')}
                   />
                 </div>
-
+                
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.Cadre')} <span className="text-red-500">*</span>
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.department')}</label>
                   <select
-                      value={formData.Cadre}
-                      onChange={(e) => setFormData({ ...formData, Cadre: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      required
-                    >
-                      <option value="">Select Cadre</option>
-                      <option value="C">C</option>
-                      <option value="D">D</option>
-                   </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.dateOfJoining')}
-                  </label>
-                  <input
-                    type="date"
-                    value={formData.date_of_joining || ''}
-                    onChange={(e) => setFormData({ ...formData, date_of_joining: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.retirementDate')} (Auto-calculated)
-                  </label>
-                  <input
-                    type="date"
-                    value={calculateRetirementDate(formData.date_of_birth, formData.Cadre) || ''}
-                    readOnly
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
-                    title="Retirement date is auto-calculated based on date of birth and Cadre"
-                    disabled
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.retirementReason')}
-                  </label>
-                  <select
-                    value={formData.reason || ''}
-                    onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="">{t('erms.selectReason')}</option>
-                    <option value="मृत्यू झाल्याने">मृत्यू झाल्याने</option>
-                    <option value="नियत वयोमान">नियत वयोमान</option>
-                    <option value="स्वेच्छा सेवा निवृत्ती">स्वेच्छा सेवा निवृत्ती</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.department')}
-                  </label>
-                  <select
-                    value={formData.dept_id || ''}
+                    value={formData.dept_id}
                     onChange={(e) => setFormData({ ...formData, dept_id: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="">{t('erms.selectDepartment')}</option>
-                    {department.map(dept => (
+                    {departments.map(dept => (
                       <option key={dept.dept_id} value={dept.dept_id}>{dept.department}</option>
                     ))}
                   </select>
                 </div>
-
+                
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.designation')}
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.designation')}</label>
                   <select
-                    value={formData.designation_id || ''}
+                    value={formData.designation_id}
                     onChange={(e) => setFormData({ ...formData, designation_id: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
@@ -1242,13 +683,11 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     ))}
                   </select>
                 </div>
-
+                
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.taluka')}
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.taluka')}</label>
                   <select
-                    value={formData.tal_id || ''}
+                    value={formData.tal_id}
                     onChange={(e) => setFormData({ ...formData, tal_id: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
@@ -1258,13 +697,11 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     ))}
                   </select>
                 </div>
-
+                
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.office')}
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.office')}</label>
                   <select
-                    value={formData.office_id || ''}
+                    value={formData.office_id}
                     onChange={(e) => setFormData({ ...formData, office_id: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
@@ -1274,58 +711,57 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     ))}
                   </select>
                 </div>
-
+                
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.assignedClerk')}
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.retirementDate')}</label>
+                  <input
+                    type="date"
+                    value={formData.retirement_date}
+                    onChange={(e) => setFormData({ ...formData, retirement_date: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.retirementReason')}</label>
                   <select
-                    value={formData.assigned_clerk || ''}
-                    onChange={(e) => setFormData({ ...formData, assigned_clerk: e.target.value })}
+                    value={formData.reason}
+                    onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
-                    <option value="">{t('erms.selectClerk')}</option>
-                    {clerks.map(clerk => (
-                      <option key={clerk.user_id} value={clerk.user_id}>{clerk.name}</option>
-                    ))}
+                    <option value="">{t('erms.selectReason')}</option>
+                    <option value="retirement">Retirement</option>
+                    <option value="resignation">Resignation</option>
+                    <option value="transfer">Transfer</option>
                   </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.assignedClerk')}</label>
+                  <input
+                    type="text"
+                    value={formData.assigned_clerk}
+                    onChange={(e) => setFormData({ ...formData, assigned_clerk: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder={t('erms.enterClerkName')}
+                  />
                 </div>
               </div>
             </div>
             
             <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200">
               <button
-                onClick={() => {
-                  clearPersistedState(); // Add this line
-                  setShowAddModal(false);
-                  setEditingEmployee(null);
-                  setFormData({
-                    panchayatrajsevarth_id: '',
-                    emp_id: '',
-                    employee_name: '',
-                    date_of_birth: '',
-                    ddo_code: '',
-                    Cadre: '',
-                    date_of_joining: '',
-                    retirement_date: '',
-                    retirement_reason: '',
-                    department: '',
-                    designation: '',
-                    taluka: '',
-                    office: '', 
-                    assigned_clerk: ''
-                  });
-                }}
+                onClick={() => setShowAddModal(false)}
                 className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200"
               >
                 {t('common.cancel')}
               </button>
               <button
-                onClick={handleSaveEmployee}
+                onClick={handleAddEmployee}
                 disabled={isLoading}
                 className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 disabled:opacity-50"
               >
-                {isLoading ? t('common.saving') : t('common.save')}
+                {isLoading ? t('erms.adding') : t('common.add')}
               </button>
             </div>
           </div>
@@ -1335,171 +771,77 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       {/* Edit Employee Modal */}
       {showEditModal && editingEmployee && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <h3 className="text-lg font-semibold text-gray-900">{t('erms.editEmployee')}</h3>
               <button
                 onClick={() => setShowEditModal(false)}
-                className="text-gray-400 hover:text-gray-600 transition-colors duration-200"
-                disabled={isLoading}
+                className="text-gray-400 hover:text-gray-600"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
             
-            <div className="p-6">
+            <div className="p-6 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.panchayatrajsevarthId')}
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.employeeId')}</label>
                   <input
                     type="text"
-                    value={formData.panchayatrajsevarth_id || ''}
-                    onChange={(e) => setFormData({ ...formData, panchayatrajsevarth_id: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.employeeIdInternal')}
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.emp_id || ''}
-                    onChange={(e) => setFormData({ ...formData, emp_id: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
+                    value={formData.emp_id}
                     disabled
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500"
                   />
-                  <p className="text-xs text-gray-500 mt-1">Employee ID cannot be changed during edit</p>
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.employeeName')} <span className="text-red-500">*</span>
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.employeeName')}</label>
                   <input
                     type="text"
-                    value={formData.employee_name || ''}
+                    value={formData.employee_name}
                     onChange={(e) => setFormData({ ...formData, employee_name: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
-                    maxLength={100}
                   />
                 </div>
-
+                
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.dateOfBirth')}
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.dateOfBirth')}</label>
                   <input
                     type="date"
-                    value={formData.date_of_birth || ''}
+                    value={formData.date_of_birth}
                     onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
-
+                
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.ddoCode')}
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.age')}</label>
                   <input
-                    type="text"
-                    value={formData.ddo_code || ''}
-                    onChange={(e) => setFormData({ ...formData, ddo_code: e.target.value })}
+                    type="number"
+                    value={formData.age}
+                    onChange={(e) => setFormData({ ...formData, age: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
-
+                
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.Cadre')} <span className="text-red-500">*</span>
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.department')}</label>
                   <select
-                    value={formData.Cadre || ''}
-                    onChange={(e) => setFormData({ ...formData, Cadre: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
-                  >
-                   <option value="">Select Cadre</option>
-                   <option value="C">C</option>
-                   <option value="D">D</option>
-                  </select>
-                  {formData.Cadre && (
-                    <p className="text-xs text-gray-500 mt-1">
-                    Currently selected Cadre: <span className="font-semibold">{formData.Cadre}</span>
-                    </p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.dateOfJoining')}
-                  </label>
-                  <input
-                    type="date"
-                    value={formData.date_of_joining || ''}
-                    onChange={(e) => setFormData({ ...formData, date_of_joining: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.retirementDate')}
-                  </label>
-                  <input
-                    type="date"
-                    value={calculateRetirementDate(formData.date_of_birth, formData.Cadre) || ''}
-                    readOnly
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
-                    title="Retirement date is auto-calculated based on date of birth and Cadre"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Auto-calculated: Cadre C = 58 years, Cadre D = 60 years (last day of month)
-                  </p>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.retirementReason')}
-                  </label>
-                  <select
-                    value={formData.reason || ''}
-                    onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="">{t('erms.selectReason')}</option>
-                    <option value="मृत्यू झाल्याने">मृत्यू झाल्याने</option>
-                    <option value="नियत वयोमान">नियत वयोमान</option>
-                    <option value="स्वेच्छा सेवा निवृत्ती">स्वेच्छा सेवा निवृत्ती</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.department')}
-                  </label>
-                  <select
-                    value={formData.dept_id || ''}
+                    value={formData.dept_id}
                     onChange={(e) => setFormData({ ...formData, dept_id: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="">{t('erms.selectDepartment')}</option>
-                    {department.map(dept => (
+                    {departments.map(dept => (
                       <option key={dept.dept_id} value={dept.dept_id}>{dept.department}</option>
                     ))}
                   </select>
                 </div>
-
+                
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.designation')}
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.designation')}</label>
                   <select
-                    value={formData.designation_id || ''}
+                    value={formData.designation_id}
                     onChange={(e) => setFormData({ ...formData, designation_id: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
@@ -1509,13 +851,11 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     ))}
                   </select>
                 </div>
-
+                
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.taluka')}
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.taluka')}</label>
                   <select
-                    value={formData.tal_id || ''}
+                    value={formData.tal_id}
                     onChange={(e) => setFormData({ ...formData, tal_id: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
@@ -1525,13 +865,11 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     ))}
                   </select>
                 </div>
-
+                
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.office')}
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.office')}</label>
                   <select
-                    value={formData.office_id || ''}
+                    value={formData.office_id}
                     onChange={(e) => setFormData({ ...formData, office_id: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
@@ -1541,21 +879,39 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     ))}
                   </select>
                 </div>
-
+                
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.assignedClerk')}
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.retirementDate')}</label>
+                  <input
+                    type="date"
+                    value={formData.retirement_date}
+                    onChange={(e) => setFormData({ ...formData, retirement_date: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.retirementReason')}</label>
                   <select
-                    value={formData.assigned_clerk || ''}
-                    onChange={(e) => setFormData({ ...formData, assigned_clerk: e.target.value })}
+                    value={formData.reason}
+                    onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
-                    <option value="">{t('erms.selectClerk')}</option>
-                    {clerks.map(clerk => (
-                      <option key={clerk.user_id} value={clerk.user_id}>{clerk.name}</option>
-                    ))}
+                    <option value="">{t('erms.selectReason')}</option>
+                    <option value="retirement">Retirement</option>
+                    <option value="resignation">Resignation</option>
+                    <option value="transfer">Transfer</option>
                   </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.assignedClerk')}</label>
+                  <input
+                    type="text"
+                    value={formData.assigned_clerk}
+                    onChange={(e) => setFormData({ ...formData, assigned_clerk: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
                 </div>
               </div>
             </div>
@@ -1568,11 +924,11 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                 {t('common.cancel')}
               </button>
               <button
-                onClick={handleSaveEmployee}
+                onClick={handleUpdateEmployee}
                 disabled={isLoading}
                 className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 disabled:opacity-50"
               >
-                {isLoading ? t('common.saving') : t('common.save')}
+                {isLoading ? t('erms.updating') : t('erms.updateEmployee')}
               </button>
             </div>
           </div>
