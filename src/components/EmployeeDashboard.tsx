@@ -91,10 +91,18 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
   // Form state
   const [formData, setFormData] = useState({
     emp_id: '',
+    panchayatrajsevarth_id: '',
     employee_name: '',
+    ddo_code: '',
     date_of_birth: '',
+    cadre: '',
     age: '',
+    post_name: '',
     retirement_date: '',
+    date_of_joining: '',
+    date_of_service_expiry: '',
+    appointing_department: '',
+    working_office_name: '',
     reason: '',
     assigned_clerk: '',
     dept_id: '',
@@ -261,10 +269,18 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         .from('employee')
         .insert({
           emp_id: formData.emp_id,
+          panchayatrajsevarth_id: formData.panchayatrajsevarth_id || null,
           employee_name: formData.employee_name,
+          ddo_code: formData.ddo_code || null,
           date_of_birth: formData.date_of_birth,
+          cadre: formData.cadre || null,
           age: parseInt(formData.age) || null,
+          post_name: formData.post_name || null,
           retirement_date: formData.retirement_date || null,
+          date_of_joining: formData.date_of_joining || null,
+          date_of_service_expiry: formData.date_of_service_expiry || null,
+          appointing_department: formData.appointing_department || null,
+          working_office_name: formData.working_office_name || null,
           reason: formData.reason || null,
           assigned_clerk: formData.assigned_clerk || null,
           dept_id: formData.dept_id || null,
@@ -290,10 +306,18 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     setEditingEmployee(employee);
     setFormData({
       emp_id: employee.emp_id,
+      panchayatrajsevarth_id: employee.panchayatrajsevarth_id || '',
       employee_name: employee.employee_name,
+      ddo_code: employee.ddo_code || '',
       date_of_birth: employee.date_of_birth.split('T')[0],
+      cadre: employee.cadre || '',
       age: employee.age.toString(),
+      post_name: employee.post_name || '',
       retirement_date: employee.retirement_date ? employee.retirement_date.split('T')[0] : '',
+      date_of_joining: employee.date_of_joining ? employee.date_of_joining.split('T')[0] : '',
+      date_of_service_expiry: employee.date_of_service_expiry ? employee.date_of_service_expiry.split('T')[0] : '',
+      appointing_department: employee.appointing_department || '',
+      working_office_name: employee.working_office_name || '',
       reason: employee.reason || '',
       assigned_clerk: employee.assigned_clerk || '',
       dept_id: employee.dept_id || '',
@@ -312,10 +336,18 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       const { error } = await ermsClient
         .from('employee')
         .update({
+          panchayatrajsevarth_id: formData.panchayatrajsevarth_id || null,
           employee_name: formData.employee_name,
+          ddo_code: formData.ddo_code || null,
           date_of_birth: formData.date_of_birth,
+          cadre: formData.cadre || null,
           age: parseInt(formData.age) || null,
+          post_name: formData.post_name || null,
           retirement_date: formData.retirement_date || null,
+          date_of_joining: formData.date_of_joining || null,
+          date_of_service_expiry: formData.date_of_service_expiry || null,
+          appointing_department: formData.appointing_department || null,
+          working_office_name: formData.working_office_name || null,
           reason: formData.reason || null,
           assigned_clerk: formData.assigned_clerk || null,
           dept_id: formData.dept_id || null,
@@ -342,10 +374,18 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
   const resetForm = () => {
     setFormData({
       emp_id: '',
+      panchayatrajsevarth_id: '',
       employee_name: '',
+      ddo_code: '',
       date_of_birth: '',
+      cadre: '',
       age: '',
+      post_name: '',
       retirement_date: '',
+      date_of_joining: '',
+      date_of_service_expiry: '',
+      appointing_department: '',
+      working_office_name: '',
       reason: '',
       assigned_clerk: '',
       dept_id: '',
@@ -614,13 +654,24 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.employeeId')}</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.employeeIdInternal')}</label>
               <input
                 type="text"
                 value={formData.emp_id}
                 onChange={(e) => setFormData({ ...formData, emp_id: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder={t('erms.enterEmployeeId')}
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.panchayatrajsevarthId')}</label>
+              <input
+                type="text"
+                value={formData.panchayatrajsevarth_id || ''}
+                onChange={(e) => setFormData({ ...formData, panchayatrajsevarth_id: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Enter PANCHAYATRAJSEVARTH ID"
               />
             </div>
             
@@ -636,6 +687,17 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
             </div>
             
             <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.ddoCode')}</label>
+              <input
+                type="text"
+                value={formData.ddo_code || ''}
+                onChange={(e) => setFormData({ ...formData, ddo_code: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Enter DDO CODE"
+              />
+            </div>
+            
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.dateOfBirth')}</label>
               <input
                 type="date"
@@ -646,13 +708,39 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.age')}</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.cadre')}</label>
+              <select
+                value={formData.cadre || ''}
+                onChange={(e) => setFormData({ ...formData, cadre: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">Select Cadre</option>
+                <option value="Class I">Class I</option>
+                <option value="Class II">Class II</option>
+                <option value="Class III">Class III</option>
+                <option value="Class IV">Class IV</option>
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.age')} (Auto-calculated)</label>
               <input
                 type="number"
                 value={formData.age}
-                onChange={(e) => setFormData({ ...formData, age: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                disabled
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500"
                 placeholder={t('erms.enterAge')}
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.postName')}</label>
+              <input
+                type="text"
+                value={formData.post_name || ''}
+                onChange={(e) => setFormData({ ...formData, post_name: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder={t('erms.enterPostName')}
               />
             </div>
             
@@ -671,6 +759,17 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
             </div>
             
             <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.appointingDepartment')}</label>
+              <input
+                type="text"
+                value={formData.appointing_department || ''}
+                onChange={(e) => setFormData({ ...formData, appointing_department: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder={t('erms.enterAppointingDepartment')}
+              />
+            </div>
+            
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.designation')}</label>
               <select
                 value={formData.designation_id}
@@ -682,6 +781,17 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   <option key={designation.designation_id} value={designation.designation_id}>{designation.designation}</option>
                 ))}
               </select>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.workingOfficeName')}</label>
+              <input
+                type="text"
+                value={formData.working_office_name || ''}
+                onChange={(e) => setFormData({ ...formData, working_office_name: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder={t('erms.enterWorkingOfficeName')}
+              />
             </div>
             
             <div>
@@ -699,6 +809,16 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
             </div>
             
             <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.dateOfJoining')}</label>
+              <input
+                type="date"
+                value={formData.date_of_joining || ''}
+                onChange={(e) => setFormData({ ...formData, date_of_joining: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.office')}</label>
               <select
                 value={formData.office_id}
@@ -710,6 +830,16 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   <option key={office.office_id} value={office.office_id}>{office.name}</option>
                 ))}
               </select>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.dateOfServiceExpiry')}</label>
+              <input
+                type="date"
+                value={formData.date_of_service_expiry || ''}
+                onChange={(e) => setFormData({ ...formData, date_of_service_expiry: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
             </div>
             
             <div>
@@ -738,13 +868,16 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.assignedClerk')}</label>
-              <input
-                type="text"
+              <select
                 value={formData.assigned_clerk}
                 onChange={(e) => setFormData({ ...formData, assigned_clerk: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder={t('erms.enterClerkName')}
-              />
+              >
+                <option value="">{t('erms.selectClerk')}</option>
+                {clerks.map(clerk => (
+                  <option key={clerk} value={clerk}>{clerk}</option>
+                ))}
+              </select>
             </div>
           </div>
           
