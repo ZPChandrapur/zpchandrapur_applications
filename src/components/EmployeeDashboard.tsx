@@ -375,22 +375,22 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     setFormData({
       emp_id: '',
       panchayatrajsevarth_id: '',
-      panchayatrajsevarth_id: '',
       employee_name: '',
-      ddo_code: '',
       ddo_code: '',
       date_of_birth: '',
       cadre: '',
-      cadre: '',
       age: '',
       post_name: '',
-      post_name: '',
-      retirement_date: '',
-      date_of_joining: '',
-      date_of_service_expiry: '',
-      date_of_service_expiry: '',
+      dept_id: '',
       appointing_department: '',
+      designation: '',
       working_office_name: '',
+      tal_id: '',
+      date_of_joining: '',
+      office_id: '',
+      date_of_service_expiry: '',
+      retirement_date: '',
+      reason: '',
       assigned_clerk: ''
     });
   };
@@ -466,31 +466,31 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 mb-1">{t('erms.assignedUnassigned')}</p>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">कर्मचारी आयडी</label>
+              <p className="text-3xl font-bold text-red-600">{kpiData.unassigned}</p>
               <p className="text-xs text-gray-500">{t('erms.unassigned')}</p>
             </div>
             <div className="bg-red-100 p-3 rounded-lg">
               <UserX className="h-8 w-8 text-red-600" />
             </div>
-                            placeholder="कर्मचारी आयडी टाका"
+          </div>
         </div>
       </div>
 
       {/* Employee Records Table */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-                          <label className="block text-sm font-medium text-gray-700 mb-2">कर्मचारी नाव</label>
+        <div className="p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900">{t('erms.employeeRecords')}</h3>
-                            value={formData.employee_name}
-                            onChange={(e) => setFormData({ ...formData, employee_name: e.target.value })}
+            <div className="flex items-center space-x-3">
+              <button className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200">
                 <Download className="h-4 w-4" />
-                            placeholder="कर्मचारी नाव टाका"
+                <span className="text-sm font-medium">Export</span>
               </button>
             </div>
           </div>
 
           {/* Filters */}
-                          <label className="block text-sm font-medium text-gray-700 mb-2">जन्म तारीख</label>
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <input
@@ -505,25 +505,25 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
             <select
               value={selectedDepartment}
               onChange={(e) => setSelectedDepartment(e.target.value)}
-                          <label className="block text-sm font-medium text-gray-700 mb-2">वय</label>
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="">{t('erms.allDepartments')}</option>
               {departments.map(dept => (
                 <option key={dept.dept_id} value={dept.dept_id}>{dept.department}</option>
               ))}
-                            placeholder="वय टाका"
+            </select>
 
             <select
               value={selectedClerk}
               onChange={(e) => setSelectedClerk(e.target.value)}
-                          <label className="block text-sm font-medium text-gray-700 mb-2">विभाग</label>
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="">{t('erms.allClerks')}</option>
               {clerks.map(clerk => (
                 <option key={clerk} value={clerk}>{clerk}</option>
               ))}
             </select>
-                            <option value="">विभाग निवडा</option>
+
             <select
               value={selectedReason}
               onChange={(e) => setSelectedReason(e.target.value)}
@@ -531,14 +531,14 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
             >
               <option value="">{t('erms.allReasons')}</option>
               <option value="retirement">Retirement</option>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">पदनाम</label>
+              <option value="resignation">Resignation</option>
               <option value="transfer">Transfer</option>
             </select>
 
             <button
               onClick={clearFilters}
               className="flex items-center justify-center space-x-2 px-3 py-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
-                            <option value="">पदनाम निवडा</option>
+            >
               <X className="h-4 w-4" />
               <span className="text-sm">{t('erms.clearFilters')}</span>
             </button>
@@ -548,14 +548,14 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
             {t('erms.showingEmployees', { filtered: filteredEmployees.length, total: employees.length })}
           </p>
         </div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">तालुका</label>
+
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.employee')}</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.department')}</th>
-                            <option value="">तालुका निवडा</option>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.designation')}</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.age')}</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.retirementDate')}</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.assignedClerk')}</th>
@@ -563,156 +563,19 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-                          <label className="block text-sm font-medium text-gray-700 mb-2">कार्यालय</label>
+              {filteredEmployees.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
                     {isLoading ? t('common.loading') : 'No employees found'}
                   </td>
                 </tr>
               ) : (
-                            <option value="">कार्यालय निवडा</option>
+                filteredEmployees.map((employee) => (
                   <tr key={employee.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
                         <div className="text-sm font-medium text-gray-900">{employee.employee_name}</div>
                         <div className="text-sm text-gray-500">{employee.emp_id}</div>
-                        
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">सेवानिवृत्ती तारीख</label>
-                          <input
-                            type="date"
-                            value={formData.retirement_date}
-                            onChange={(e) => setFormData({ ...formData, retirement_date: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          />
-                        </div>
-                        
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">सेवानिवृत्ती कारण</label>
-                          <select
-                            value={formData.reason}
-                            onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          >
-                            <option value="">कारण निवडा</option>
-                            <option value="वयोमर्यादा">वयोमर्यादा</option>
-                            <option value="स्वैच्छिक">स्वैच्छिक</option>
-                            <option value="वैद्यकीय">वैद्यकीय</option>
-                            <option value="मृत्यू">मृत्यू</option>
-                          </select>
-                        </div>
-                        
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">नियुक्त लिपिक</label>
-                          <select
-                            value={formData.assigned_clerk}
-                            onChange={(e) => setFormData({ ...formData, assigned_clerk: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          >
-                            <option value="">लिपिक निवडा</option>
-                            {clerks.map(clerk => (
-                              <option key={clerk.user_id} value={clerk.name}>
-                                {clerk.name}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-                      
-                      {/* Additional Fields Section */}
-                      <div className="mt-8">
-                        <h4 className="text-lg font-semibold text-gray-900 mb-4">अतिरिक्त माहिती</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">पंचायतराजसेवार्थ आयडी</label>
-                            <input
-                              type="text"
-                              value={formData.panchayatrajsevarth_id}
-                              onChange={(e) => setFormData({ ...formData, panchayatrajsevarth_id: e.target.value })}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                              placeholder="पंचायतराजसेवार्थ आयडी टाका"
-                            />
-                          </div>
-                          
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">डीडीओ कोड</label>
-                            <input
-                              type="text"
-                              value={formData.ddo_code}
-                              onChange={(e) => setFormData({ ...formData, ddo_code: e.target.value })}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                              placeholder="डीडीओ कोड टाका"
-                            />
-                          </div>
-                          
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">संवर्ग</label>
-                            <select
-                              value={formData.cadre}
-                              onChange={(e) => setFormData({ ...formData, cadre: e.target.value })}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            >
-                              <option value="">संवर्ग निवडा</option>
-                              <option value="Class I">Class I</option>
-                              <option value="Class II">Class II</option>
-                              <option value="Class III">Class III</option>
-                              <option value="Class IV">Class IV</option>
-                            </select>
-                          </div>
-                          
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">पदाचे नाव</label>
-                            <input
-                              type="text"
-                              value={formData.post_name}
-                              onChange={(e) => setFormData({ ...formData, post_name: e.target.value })}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                              placeholder="पदाचे नाव टाका"
-                            />
-                          </div>
-                          
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">नियुक्ती करणारा विभाग</label>
-                            <input
-                              type="text"
-                              value={formData.appointing_department}
-                              onChange={(e) => setFormData({ ...formData, appointing_department: e.target.value })}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                              placeholder="नियुक्ती करणारा विभाग टाका"
-                            />
-                          </div>
-                          
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">कार्यरत कार्यालयाचे नाव</label>
-                            <input
-                              type="text"
-                              value={formData.working_office_name}
-                              onChange={(e) => setFormData({ ...formData, working_office_name: e.target.value })}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                              placeholder="कार्यरत कार्यालयाचे नाव टाका"
-                            />
-                          </div>
-                          
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">सेवेत रुजू होण्याची तारीख</label>
-                            <input
-                              type="date"
-                              value={formData.date_of_joining}
-                              onChange={(e) => setFormData({ ...formData, date_of_joining: e.target.value })}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            />
-                          </div>
-                          
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">सेवा समाप्तीची तारीख</label>
-                            <input
-                              type="date"
-                              value={formData.date_of_service_expiry}
-                              onChange={(e) => setFormData({ ...formData, date_of_service_expiry: e.target.value })}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            />
-                          </div>
-                        </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -791,51 +654,29 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.employeeIdInternal')}</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">कर्मचारी आयडी</label>
               <input
                 type="text"
                 value={formData.emp_id}
                 onChange={(e) => setFormData({ ...formData, emp_id: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder={t('erms.enterEmployeeId')}
+                placeholder="कर्मचारी आयडी टाका"
               />
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.panchayatrajsevarthId')}</label>
-              <input
-                type="text"
-                value={formData.panchayatrajsevarth_id || ''}
-                onChange={(e) => setFormData({ ...formData, panchayatrajsevarth_id: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Enter PANCHAYATRAJSEVARTH ID"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.employeeName')}</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">कर्मचारी नाव</label>
               <input
                 type="text"
                 value={formData.employee_name}
                 onChange={(e) => setFormData({ ...formData, employee_name: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder={t('erms.enterEmployeeName')}
+                placeholder="कर्मचारी नाव टाका"
               />
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.ddoCode')}</label>
-              <input
-                type="text"
-                value={formData.ddo_code || ''}
-                onChange={(e) => setFormData({ ...formData, ddo_code: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Enter DDO CODE"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.dateOfBirth')}</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">जन्म तारीख</label>
               <input
                 type="date"
                 value={formData.date_of_birth}
@@ -845,50 +686,24 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.cadre')}</label>
-              <select
-                value={formData.cadre || ''}
-                onChange={(e) => setFormData({ ...formData, cadre: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="">Select Cadre</option>
-                <option value="Class I">Class I</option>
-                <option value="Class II">Class II</option>
-                <option value="Class III">Class III</option>
-                <option value="Class IV">Class IV</option>
-              </select>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.age')} (Auto-calculated)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">वय</label>
               <input
                 type="number"
                 value={formData.age}
-                disabled
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500"
-                placeholder={t('erms.enterAge')}
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.postName')}</label>
-              <input
-                type="text"
-                value={formData.post_name || ''}
-                onChange={(e) => setFormData({ ...formData, post_name: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, age: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder={t('erms.enterPostName')}
+                placeholder="वय टाका"
               />
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.department')}</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">विभाग</label>
               <select
                 value={formData.dept_id}
                 onChange={(e) => setFormData({ ...formData, dept_id: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="">{t('erms.selectDepartment')}</option>
+                <option value="">विभाग निवडा</option>
                 {departments.map(dept => (
                   <option key={dept.dept_id} value={dept.dept_id}>{dept.department}</option>
                 ))}
@@ -896,24 +711,13 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.appointingDepartment')}</label>
-              <input
-                type="text"
-                value={formData.appointing_department || ''}
-                onChange={(e) => setFormData({ ...formData, appointing_department: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder={t('erms.enterAppointingDepartment')}
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.designation')}</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">पदनाम</label>
               <select
                 value={formData.designation_id}
                 onChange={(e) => setFormData({ ...formData, designation_id: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="">{t('erms.selectDesignation')}</option>
+                <option value="">पदनाम निवडा</option>
                 {designations.map(designation => (
                   <option key={designation.designation_id} value={designation.designation_id}>{designation.designation}</option>
                 ))}
@@ -921,24 +725,13 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.workingOfficeName')}</label>
-              <input
-                type="text"
-                value={formData.working_office_name || ''}
-                onChange={(e) => setFormData({ ...formData, working_office_name: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder={t('erms.enterWorkingOfficeName')}
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.taluka')}</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">तालुका</label>
               <select
                 value={formData.tal_id}
                 onChange={(e) => setFormData({ ...formData, tal_id: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="">{t('erms.selectTaluka')}</option>
+                <option value="">तालुका निवडा</option>
                 {talukas.map(taluka => (
                   <option key={taluka.tal_id} value={taluka.tal_id}>{taluka.name}</option>
                 ))}
@@ -946,23 +739,13 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.dateOfJoining')}</label>
-              <input
-                type="date"
-                value={formData.date_of_joining || ''}
-                onChange={(e) => setFormData({ ...formData, date_of_joining: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.office')}</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">कार्यालय</label>
               <select
                 value={formData.office_id}
                 onChange={(e) => setFormData({ ...formData, office_id: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="">{t('erms.selectOffice')}</option>
+                <option value="">कार्यालय निवडा</option>
                 {offices.map(office => (
                   <option key={office.office_id} value={office.office_id}>{office.name}</option>
                 ))}
@@ -970,17 +753,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.dateOfServiceExpiry')}</label>
-              <input
-                type="date"
-                value={formData.date_of_service_expiry || ''}
-                onChange={(e) => setFormData({ ...formData, date_of_service_expiry: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.retirementDate')}</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">सेवानिवृत्ती तारीख</label>
               <input
                 type="date"
                 value={formData.retirement_date}
@@ -990,31 +763,130 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.retirementReason')}</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">सेवानिवृत्ती कारण</label>
               <select
                 value={formData.reason}
                 onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="">{t('erms.selectReason')}</option>
-                <option value="retirement">Retirement</option>
-                <option value="resignation">Resignation</option>
-                <option value="transfer">Transfer</option>
+                <option value="">कारण निवडा</option>
+                <option value="वयोमर्यादा">वयोमर्यादा</option>
+                <option value="स्वैच्छिक">स्वैच्छिक</option>
+                <option value="वैद्यकीय">वैद्यकीय</option>
+                <option value="मृत्यू">मृत्यू</option>
               </select>
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.assignedClerk')}</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">नियुक्त लिपिक</label>
               <select
                 value={formData.assigned_clerk}
                 onChange={(e) => setFormData({ ...formData, assigned_clerk: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="">{t('erms.selectClerk')}</option>
+                <option value="">लिपिक निवडा</option>
                 {clerks.map(clerk => (
-                  <option key={clerk} value={clerk}>{clerk}</option>
+                  <option key={clerk.user_id} value={clerk.name}>
+                    {clerk.name}
+                  </option>
                 ))}
               </select>
+            </div>
+          </div>
+          
+          {/* Additional Fields Section */}
+          <div className="mt-8">
+            <h4 className="text-lg font-semibold text-gray-900 mb-4">अतिरिक्त माहिती</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">पंचायतराजसेवार्थ आयडी</label>
+                <input
+                  type="text"
+                  value={formData.panchayatrajsevarth_id}
+                  onChange={(e) => setFormData({ ...formData, panchayatrajsevarth_id: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="पंचायतराजसेवार्थ आयडी टाका"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">डीडीओ कोड</label>
+                <input
+                  type="text"
+                  value={formData.ddo_code}
+                  onChange={(e) => setFormData({ ...formData, ddo_code: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="डीडीओ कोड टाका"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">संवर्ग</label>
+                <select
+                  value={formData.cadre}
+                  onChange={(e) => setFormData({ ...formData, cadre: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">संवर्ग निवडा</option>
+                  <option value="Class I">Class I</option>
+                  <option value="Class II">Class II</option>
+                  <option value="Class III">Class III</option>
+                  <option value="Class IV">Class IV</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">पदाचे नाव</label>
+                <input
+                  type="text"
+                  value={formData.post_name}
+                  onChange={(e) => setFormData({ ...formData, post_name: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="पदाचे नाव टाका"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">नियुक्ती करणारा विभाग</label>
+                <input
+                  type="text"
+                  value={formData.appointing_department}
+                  onChange={(e) => setFormData({ ...formData, appointing_department: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="नियुक्ती करणारा विभाग टाका"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">कार्यरत कार्यालयाचे नाव</label>
+                <input
+                  type="text"
+                  value={formData.working_office_name}
+                  onChange={(e) => setFormData({ ...formData, working_office_name: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="कार्यरत कार्यालयाचे नाव टाका"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">सेवेत रुजू होण्याची तारीख</label>
+                <input
+                  type="date"
+                  value={formData.date_of_joining}
+                  onChange={(e) => setFormData({ ...formData, date_of_joining: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">सेवा समाप्तीची तारीख</label>
+                <input
+                  type="date"
+                  value={formData.date_of_service_expiry}
+                  onChange={(e) => setFormData({ ...formData, date_of_service_expiry: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
             </div>
           </div>
           
@@ -1037,6 +909,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       </div>
     </div>
   );
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
