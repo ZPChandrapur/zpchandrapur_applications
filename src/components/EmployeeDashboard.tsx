@@ -753,14 +753,14 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
               onClick={resetForm}
               className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200"
             >
-              Reset Form
+              {t('common.cancel')}
             </button>
             <button
               onClick={handleAddEmployee}
               disabled={isLoading}
               className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 disabled:opacity-50"
             >
-              {isLoading ? t('erms.adding') : t('common.add')}
+              {isLoading ? t('erms.adding') : t('erms.addEmployee')}
             </button>
           </div>
         </div>
@@ -815,15 +815,17 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                 }`}
               >
                 <Plus className="h-4 w-4" />
-                <span>➕ Add Employee</span>
+                <span>{t('erms.addEmployee')}</span>
               </button>
             </nav>
           </div>
         </div>
 
         {/* Tab Content */}
-        {activeTab === 'employees' && renderEmployeesTab()}
-        {activeTab === 'addEmployee' && renderAddEmployeeTab()}
+        <div className="p-6">
+          {activeTab === 'employees' && renderEmployeesTab()}
+          {activeTab === 'addEmployee' && renderAddEmployeeTab()}
+        </div>
       </div>
 
       {/* Add Employee Modal */}
