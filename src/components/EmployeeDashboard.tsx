@@ -911,26 +911,29 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         {/* Employee Records Table */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
           <div className="px-6 py-4 border-b border-gray-200">
-                <div className="flex items-center space-x-3">
-                  <select
-                    value={recordsPerPage}
-                    onChange={(e) => {
-                      setRecordsPerPage(Number(e.target.value));
-                      setCurrentPage(1);
-                    }}
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                  >
-                    <option value={20}>20 per page</option>
-                    <option value={50}>50 per page</option>
-                    <option value={100}>100 per page</option>
-                  </select>
-                  <button 
-                    onClick={fetchEmployees}
-                    className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
-                  >
-                    <RefreshCw className="h-4 w-4" />
-                    <span className="text-sm font-medium">{t('erms.refresh')}</span>
-                  </button>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <select
+                  value={recordsPerPage}
+                  onChange={(e) => {
+                    setRecordsPerPage(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                >
+                  <option value={20}>20 per page</option>
+                  <option value={50}>50 per page</option>
+                  <option value={100}>100 per page</option>
+                </select>
+                <button 
+                  onClick={fetchEmployees}
+                  className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                  <span className="text-sm font-medium">{t('erms.refresh')}</span>
+                </button>
+              </div>
+              <div className="text-sm text-gray-500">
                 Showing {startIndex + 1}-{Math.min(endIndex, filteredEmployees.length)} of {filteredEmployees.length} employees
               </div>
             </div>
@@ -1137,7 +1140,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
           )}
         </div>
       </div>
-    </div>
 
       {/* Add Employee Modal */}
       {showAddModal && (
@@ -1165,25 +1167,21 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     value={formData.panchayatrajsevarth_id || ''}
                     onChange={(e) => setFormData({ ...formData, panchayatrajsevarth_id: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder={t('erms.enterpanchayatrajsevarthId')}
                   />
                 </div>
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    कर्मचारी आयडी
+                    {t('erms.employeeIdInternal')} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     value={formData.emp_id || ''}
                     onChange={(e) => setFormData({ ...formData, emp_id: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder={t('erms.enterEmployeeId')}
-                    disabled={editingEmployee ? true : false}
+                    required
+                    maxLength={50}
                   />
-                  {editingEmployee && (
-                    <p className="text-xs text-gray-500 mt-1">Employee ID cannot be changed during edit</p>
-                  )}
                 </div>
                 
                 <div>
@@ -1195,7 +1193,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     value={formData.employee_name || ''}
                     onChange={(e) => setFormData({ ...formData, employee_name: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder={t('erms.enterEmployeeName')}
                     required
                     maxLength={100}
                   />
@@ -1203,13 +1200,14 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.dateOfBirth')}
+                    {t('erms.dateOfBirth')} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="date"
                     value={formData.date_of_birth || ''}
                     onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required
                   />
                 </div>
 
@@ -1230,15 +1228,20 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     {t('erms.Cadre')} <span className="text-red-500">*</span>
                   </label>
                   <select
-                      value={formData.Cadre}
-                      onChange={(e) => setFormData({ ...formData, Cadre: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      required
-                    >
-                      <option value="">Select Cadre</option>
-                      <option value="C">C</option>
-                      <option value="D">D</option>
-                   </select>
+                    value={formData.Cadre || ''}
+                    onChange={(e) => setFormData({ ...formData, Cadre: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required
+                  >
+                   <option value="">Select Cadre</option>
+                   <option value="C">C</option>
+                   <option value="D">D</option>
+                  </select>
+                  {formData.Cadre && (
+                    <p className="text-xs text-gray-500 mt-1">
+                    Currently selected Cadre: <span className="font-semibold">{formData.Cadre}</span>
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -1255,16 +1258,18 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.retirementDate')} (Auto-calculated)
+                    {t('erms.retirementDate')}
                   </label>
                   <input
                     type="date"
                     value={calculateRetirementDate(formData.date_of_birth, formData.Cadre) || ''}
                     readOnly
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
                     title="Retirement date is auto-calculated based on date of birth and Cadre"
-                    disabled
                   />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Auto-calculated: Cadre C = 58 years, Cadre D = 60 years (last day of month)
+                  </p>
                 </div>
 
                 <div>
@@ -1367,27 +1372,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
             
             <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200">
               <button
-                onClick={() => {
-                  clearPersistedState(); // Add this line
-                  setShowAddModal(false);
-                  setEditingEmployee(null);
-                  setFormData({
-                    panchayatrajsevarth_id: '',
-                    emp_id: '',
-                    employee_name: '',
-                    date_of_birth: '',
-                    ddo_code: '',
-                    Cadre: '',
-                    date_of_joining: '',
-                    retirement_date: '',
-                    retirement_reason: '',
-                    department: '',
-                    designation: '',
-                    taluka: '',
-                    office: '', 
-                    assigned_clerk: ''
-                  });
-                }}
+                onClick={() => setShowAddModal(false)}
                 className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200"
               >
                 {t('common.cancel')}
