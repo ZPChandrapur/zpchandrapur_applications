@@ -576,18 +576,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
       type: t('systems.pesa.webApplication'),
       mobileOnly: false
     },
-    {
-      id: 'workflow',
-      name: 'Workflow Management',
-      fullName: 'Workflow Management System',
-      description: 'Track and manage workflow progress across departments',
-      icon: Activity,
-      color: 'bg-gradient-to-br from-rose-300 via-pink-400 to-red-500',
-      hoverColor: 'hover:from-rose-200 hover:via-pink-300 hover:to-red-400',
-      headerColor: 'bg-gradient-to-r from-rose-300 to-red-400',
-      type: 'Web Application',
-      mobileOnly: false
-    }
   ];
 
   // Filter systems based on device type
