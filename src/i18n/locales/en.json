@@ -355,9 +355,9 @@
     "enterOfficeId": "Enter office ID",
     "enterOfficeName": "Enter office name",
     "createdDate": "Created Date",
-    "retirementProgressStatus":"सेवानिवृत्ती प्रगती",
-    "payCommissionStatus": "वेतन आयोग प्रगती",
-    "groupInsuranceStatus":"गट विमा प्रगती",
+    "retirementProgressStatus":"Retirement Progress Status",
+    "payCommissionStatus": "PayCommission Status"",
+    "groupInsuranceStatus":"GroupInsurance Status",
     "actions": "Actions",
     "departments": {
       "आरोग्य विभाग": "Health Department",
