@@ -182,7 +182,72 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
   const [isInitialized, setIsInitialized] = useState(false);
 
   // Form state
-  const [formData, setFormData] = useState<Partial<Employee>>(initialModalState.formData);
+  const [formData, setFormData] = useState({
+    emp_id: '',
+    employee_name: '',
+    date_of_birth: '',
+    age: '',
+    retirement_date: '',
+    reason: '',
+    assigned_clerk: '',
+    department: '',
+    designation: '',
+    taluka: '',
+    office: '',
+    panchayatrajsevarth_id: '',
+    ddo_code: '',
+    cadre: '',
+    date_of_joining: ''
+  });
+
+  // Calculate age when date of birth changes
+  useEffect(() => {
+    if (formData.date_of_birth) {
+      const birthDate = new Date(formData.date_of_birth);
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+      
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      
+      setFormData(prev => ({ ...prev, age: age.toString() }));
+      
+      // Calculate retirement date based on cadre
+      calculateRetirementDate(birthDate, formData.cadre);
+    }
+  }, [formData.date_of_birth, formData.cadre]);
+
+  // Calculate retirement date when cadre changes
+  useEffect(() => {
+    if (formData.date_of_birth && formData.cadre) {
+      const birthDate = new Date(formData.date_of_birth);
+      calculateRetirementDate(birthDate, formData.cadre);
+    }
+  }, [formData.cadre, formData.date_of_birth]);
+
+  const calculateRetirementDate = (birthDate: Date, cadre: string) => {
+    if (!birthDate || !cadre) return;
+    
+    const retirementDate = new Date(birthDate);
+    
+    // Set retirement age based on cadre
+    if (cadre === 'C') {
+      retirementDate.setFullYear(birthDate.getFullYear() + 58);
+    } else if (cadre === 'D') {
+      retirementDate.setFullYear(birthDate.getFullYear() + 60);
+      // Set to last day of birth month
+      retirementDate.setMonth(birthDate.getMonth() + 1, 0);
+    } else {
+      // Default to 60 years for other cadres
+      retirementDate.setFullYear(birthDate.getFullYear() + 60);
+      retirementDate.setMonth(birthDate.getMonth() + 1, 0);
+    }
+    
+    const formattedDate = retirementDate.toISOString().split('T')[0];
+    setFormData(prev => ({ ...prev, retirement_date: formattedDate }));
+  };
 
   // Save modal state to localStorage
   const saveModalState = (modalState: {
@@ -793,6 +858,26 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     setSelectedReason('');
   };
 
+  const resetForm = () => {
+    setFormData({
+      emp_id: '',
+      employee_name: '',
+      date_of_birth: '',
+      age: '',
+      retirement_date: '',
+      reason: '',
+      assigned_clerk: '',
+      department: '',
+      designation: '',
+      taluka: '',
+      office: '',
+      panchayatrajsevarth_id: '',
+      ddo_code: '',
+      cadre: '',
+      date_of_joining: ''
+    });
+  };
+
   const assignedCount = employees.filter(emp => emp.assigned_clerk).length;
   const unassignedCount = employees.length - assignedCount;
   const upcomingRetirements = calculateUpcomingRetirements();
@@ -1209,9 +1294,13 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   <input
                     type="date"
                     value={formData.retirement_date}
-                    onChange={(e) => setFormData({ ...formData, retirement_date: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    readOnly
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
+                    title="Auto-calculated based on date of birth and cadre"
                   />
+                  <p className="text-xs text-blue-600 mt-1">
+                    Auto-calculated: Cadre C = 58 years, Cadre D = 60 years (last day of month)
+                  </p>
                 </div>
                 
                 <div>
@@ -1284,40 +1373,14 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                       <option value="Class II">Class II</option>
                       <option value="Class III">Class III</option>
                       <option value="Class IV">Class IV</option>
+                      <option value="C">C</option>
+                      <option value="D">D</option>
                     </select>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.postName')}</label>
-                    <input
-                      type="text"
-                      value={formData.post_name}
-                      onChange={(e) => setFormData({ ...formData, post_name: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder={t('erms.enterPostName')}
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.appointingDepartment')}</label>
-                    <input
-                      type="text"
-                      value={formData.appointing_department}
-                      onChange={(e) => setFormData({ ...formData, appointing_department: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder={t('erms.enterAppointingDepartment')}
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.workingOfficeName')}</label>
-                    <input
-                      type="text"
-                      value={formData.working_office_name}
-                      onChange={(e) => setFormData({ ...formData, working_office_name: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder={t('erms.enterWorkingOfficeName')}
-                    />
+                    {formData.cadre && (
+                      <p className="text-xs text-blue-600 mt-1">
+                        Currently selected Cadre: {formData.cadre}
+                      </p>
+                    )}
                   </div>
                   
                   <div>
@@ -1326,16 +1389,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                       type="date"
                       value={formData.date_of_joining}
                       onChange={(e) => setFormData({ ...formData, date_of_joining: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.dateOfServiceExpiry')}</label>
-                    <input
-                      type="date"
-                      value={formData.date_of_service_expiry}
-                      onChange={(e) => setFormData({ ...formData, date_of_service_expiry: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
@@ -1362,11 +1415,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                       panchayatrajsevarth_id: '',
                       ddo_code: '',
                       cadre: '',
-                      post_name: '',
-                      appointing_department: '',
-                      working_office_name: '',
-                      date_of_joining: '',
-                      date_of_service_expiry: ''
+                      date_of_joining: ''
                     });
                   }}
                   className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200"
