@@ -300,8 +300,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
     return { total, upcomingRetirements, assigned, unassigned };
   };
 
-      cadre: 'C',
-      date_of_joining: ''
+  const handleAddEmployee = () => {
     setFormData({ cadre: 'C' });
     setEditingEmployee(null);
     setShowAddModal(true);
@@ -595,6 +594,9 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {employee.gender || '-'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {employee.date_of_joining ? new Date(employee.date_of_joining).toLocaleDateString() : '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {employee.designation}
