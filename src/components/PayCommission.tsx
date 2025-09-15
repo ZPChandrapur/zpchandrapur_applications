@@ -107,7 +107,7 @@ export const PayCommission: React.FC<PayCommissionProps> = ({ user }) => {
   const fetchPayCommissionRecords = async () => {
     try {
       const { data, error } = await ermsClient
-        .from('pay_comission')
+        .from('pay_commission')
         .select(`
           id,
           emp_id,
