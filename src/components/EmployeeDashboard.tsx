@@ -1137,7 +1137,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
           )}
           </div>
         </div>
-      </div>
+    
 
         {/* Add Employee Modal */}
         {showAddModal && (
