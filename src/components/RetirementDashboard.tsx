@@ -241,15 +241,15 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
         // Calculate statuses based on actual data from respective tables
         const calculatedRetirementProgressStatus = progressRecord 
           ? calculateRetirementProgressStatus(progressRecord)
-          : 'प्रलंबित';
+          : 'pending';
 
         const calculatedPayCommissionStatus = payCommissionRecord 
           ? calculatePayCommissionStatus(payCommissionRecord)
-          : 'प्रलंबित';
+          : 'pending';
 
         const calculatedGroupInsuranceStatus = groupInsuranceRecord 
           ? calculateGroupInsuranceStatus(groupInsuranceRecord)
-          : 'प्रलंबित';
+          : 'pending';
 
         return {
           ...record,
@@ -353,6 +353,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
   };
 
   const getProgressStatus = (employee: RetirementEmployee) => {
+    // Only include actual data fields, not status fields
     const progressFields = [
       employee.date_of_submission,
       employee.department_submitted,
@@ -364,10 +365,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
       employee.date_of_actual_benefit_provided_for_medical_allowance_if_applic,
       employee.date_of_benefit_provided_for_hometown_travel_allowance_if_appli,
       employee.date_of_actual_benefit_provided_for_pending_travel_allowance_if,
-      employee.government_decision_march_31_2023,
-      employee.retirement_progress_status,
-      employee.pay_commission_status,
-      employee.group_insurance_status
+      employee.government_decision_march_31_2023
     ];
 
     const filledFields = progressFields.filter(field => field && field.trim() !== '').length;
@@ -530,6 +528,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
   };
 
   const getCompletionPercentage = (employee: RetirementEmployee) => {
+    // Only include actual data fields, not status fields
     const progressFields = [
       employee.date_of_submission,
       employee.department_submitted,
@@ -541,10 +540,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
       employee.date_of_actual_benefit_provided_for_medical_allowance_if_applic,
       employee.date_of_benefit_provided_for_hometown_travel_allowance_if_appli,
       employee.date_of_actual_benefit_provided_for_pending_travel_allowance_if,
-      employee.government_decision_march_31_2023,
-      employee.retirement_progress_status,
-      employee.pay_commission_status,
-      employee.group_insurance_status
+      employee.government_decision_march_31_2023
     ];
     const filledFields = progressFields.filter(field => field && field.trim() !== '').length;
     return Math.round((filledFields / progressFields.length) * 100);
