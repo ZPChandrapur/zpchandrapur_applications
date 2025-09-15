@@ -338,6 +338,9 @@
     "assignedVsUnassignedEmployees": "नियुक्त विरुद्ध अनियुक्त कर्मचारी",
     "assigned": "नियुक्त",
     "employeeRetirementCountByReason": "कारणानुसार कर्मचारी सेवानिवृत्ती संख्या",
+    "retirementProgressStatus":"सेवानिवृत्ती प्रगती",
+    "payCommissionStatus": "वेतन आयोग प्रगती",
+    "groupInsuranceStatus":"गट विमा प्रगती",
     "showingTopResults": "शीर्ष {{count}} निकाल दाखवत आहे",
     "departments": {
       "आरोग्य विभाग": "आरोग्य विभाग",
