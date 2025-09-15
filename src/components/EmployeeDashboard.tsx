@@ -327,8 +327,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     };
     
     const handleStorageChange = (e: StorageEvent) => {
-  )
-}state' && persistenceEnabled) {
+      if (e.key === 'erms-employee-modal-state' && persistenceEnabled) {
         loadPersistedState();
       }
     };
@@ -1436,6 +1435,17 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <h3 className="text-lg font-semibold text-gray-900">{t('erms.addEmployee')}</h3>
               <button
+                onClick={() => setShowAddModal(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors duration-200"
+                disabled={isLoading}
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Edit Employee Modal */}
       {showEditModal && editingEmployee && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
