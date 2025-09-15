@@ -109,28 +109,6 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
     date_of_joining: ''
   });
 
-  const calculateAgeAndRetirement = (birthDate: string) => {
-    if (!birthDate) return { age: '', retirementDate: '' };
-    
-    const birth = new Date(birthDate);
-    const today = new Date();
-    
-    // Calculate age
-    let age = today.getFullYear() - birth.getFullYear();
-    const monthDiff = today.getMonth() - birth.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-      age--;
-    }
-    
-    // Calculate retirement date (58 years from birth date for cadre C)
-    const retirementDate = new Date(birth.getFullYear() + 58, birth.getMonth(), birth.getDate());
-    
-    return {
-      age: age.toString(),
-      retirementDate: retirementDate.toISOString().split('T')[0]
-    };
-  };
-
   useEffect(() => {
     fetchAllData();
   }, []);
@@ -577,14 +555,14 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
                 className="flex items-center justify-center space-x-2 px-3 py-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
               >
                 <X className="h-4 w-4" />
-                <span className="text-sm">{t('erms.clearFilters')}</span>
-              </button>
-            </div>
-
-            <p className="text-sm text-gray-500">
-              {t('erms.showingEmployees', { filtered: filteredEmployees.length, total: employees.length })}
-            </p>
-          </div>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">कर्मचारी</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">लिंग</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">वय</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">सेवेत रुजू होण्याची तारीख</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">सेवानिवृत्ती तारीख</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">शालार्थ आयडी</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">शिक्षक प्रकार</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">क्रिया</th>
 
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -597,7 +575,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Shalarth ID</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Teacher Type</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.age')}</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.assignedClerk')}</th>
+                    {isLoading ? 'कर्मचारी लोड करत आहे...' : 'शिक्षण विभागातील कर्मचारी सापडले नाहीत'}
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.actions')}</th>
                 </tr>
               </thead>
