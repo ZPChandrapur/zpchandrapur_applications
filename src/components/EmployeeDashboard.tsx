@@ -215,21 +215,22 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       setFormData(prev => ({ ...prev, age: age.toString() }));
       
       // Calculate retirement date based on cadre
-      calculateRetirementDate(birthDate, formData.cadre);
+      const retirementDate = calculateRetirementDate(formData.date_of_birth, formData.cadre);
+      if (retirementDate) {
+        setFormData(prev => ({ ...prev, retirement_date: retirementDate }));
+      }
     }
   }, [formData.date_of_birth, formData.cadre]);
 
   // Calculate retirement date when cadre changes
   useEffect(() => {
     if (formData.date_of_birth && formData.cadre) {
-      const birthDate = new Date(formData.date_of_birth);
-      calculateRetirementDate(birthDate, formData.cadre);
+      const retirementDate = calculateRetirementDate(formData.date_of_birth, formData.cadre);
+      if (retirementDate) {
+        setFormData(prev => ({ ...prev, retirement_date: retirementDate }));
+      }
     }
   }, [formData.cadre, formData.date_of_birth]);
-
-    const formattedDate = retirementDate.toISOString().split('T')[0];
-    setFormData(prev => ({ ...prev, retirement_date: formattedDate }));
-  };
 
   // Save modal state to localStorage
   const saveModalState = (modalState: {
