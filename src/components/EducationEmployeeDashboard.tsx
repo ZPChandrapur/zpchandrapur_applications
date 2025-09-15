@@ -45,6 +45,7 @@ interface EducationEmployee {
   teacher_type?: string;
   teacher_is_active?: boolean;
   cadre?: string;
+  date_of_joining?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -104,7 +105,8 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
   
   // Form data
   const [formData, setFormData] = useState<Partial<EducationEmployee>>({
-    cadre: 'C' // Fixed as C
+    cadre: 'C',
+    date_of_joining: ''
   });
 
   useEffect(() => {
