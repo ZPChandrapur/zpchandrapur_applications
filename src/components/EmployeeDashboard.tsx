@@ -227,24 +227,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     }
   }, [formData.cadre, formData.date_of_birth]);
 
-  const calculateRetirementDate = (birthDate: Date, cadre: string) => {
-    if (!birthDate || !cadre) return;
-    
-    const retirementDate = new Date(birthDate);
-    
-    // Set retirement age based on cadre
-    if (cadre === 'C') {
-      retirementDate.setFullYear(birthDate.getFullYear() + 58);
-    } else if (cadre === 'D') {
-      retirementDate.setFullYear(birthDate.getFullYear() + 60);
-      // Set to last day of birth month
-      retirementDate.setMonth(birthDate.getMonth() + 1, 0);
-    } else {
-      // Default to 60 years for other cadres
-      retirementDate.setFullYear(birthDate.getFullYear() + 60);
-      retirementDate.setMonth(birthDate.getMonth() + 1, 0);
-    }
-    
     const formattedDate = retirementDate.toISOString().split('T')[0];
     setFormData(prev => ({ ...prev, retirement_date: formattedDate }));
   };
