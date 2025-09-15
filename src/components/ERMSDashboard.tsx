@@ -17,7 +17,6 @@ import {
 } from 'lucide-react';
 import { OrganizationSetup } from './OrganizationSetup';
 import { EmployeeDashboard } from './EmployeeDashboard';
-import { EducationEmployeeDashboard } from './EducationEmployeeDashboard';
 import { RetirementDashboard } from './RetirementDashboard';
 import { RetirementTracker } from './RetirementTracker';
 import { InstructionsDashboard } from './InstructionsDashboard';
@@ -205,14 +204,6 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, onBack }) =>
       hoverColor: 'hover:bg-blue-600'
     },
     {
-      id: 'education-employee-dashboard',
-      name: 'Education Employee Dashboard',
-      description: 'Manage education department employee records',
-      icon: Users,
-      color: 'bg-indigo-500',
-      hoverColor: 'hover:bg-indigo-600'
-    },
-    {
       id: 'organization-setup',
       name: t('erms.organizationSetup'),
       description: t('erms.organizationSetupDesc'),
@@ -276,8 +267,6 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, onBack }) =>
     switch (activeModule) {
       case 'employee-dashboard':
         return <EmployeeDashboard onBack={handleBackToMain} />;
-      case 'education-employee-dashboard':
-        return <EducationEmployeeDashboard onBack={handleBackToMain} />;
       case 'organization-setup':
         return <OrganizationSetup onBack={handleBackToMain} />;
       case 'retirement-dashboard':

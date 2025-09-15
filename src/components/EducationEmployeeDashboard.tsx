@@ -376,9 +376,18 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
       <div className="bg-white shadow-sm border-b border-gray-200">
         <div className="px-6 py-4">
           <div className="flex items-center justify-between">
-            <div>
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={onBack}
+                className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                <span className="text-sm">Back to General</span>
+              </button>
+              <div>
               <h1 className="text-2xl font-bold text-gray-900">Education Department Employees</h1>
               <p className="text-sm text-gray-500 mt-1">Manage education department employee records and analytics</p>
+              </div>
             </div>
             <div className="flex items-center space-x-3">
               <button 

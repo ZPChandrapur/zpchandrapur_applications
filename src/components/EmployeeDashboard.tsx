@@ -16,6 +16,7 @@ import {
   Download
 } from 'lucide-react';
 import { ermsClient, supabase } from '../lib/supabase';
+import { EducationEmployeeDashboard } from './EducationEmployeeDashboard';
 import { usePermissions } from '../hooks/usePermissions';
 
 interface EmployeeDashboardProps {
@@ -73,6 +74,7 @@ interface ClerkData {
 
 export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) => {
   const { t } = useTranslation();
+  const [activeTab, setActiveTab] = useState<'general' | 'education'>('general');
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState('');
@@ -825,6 +827,11 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
   const unassignedCount = employees.length - assignedCount;
   const upcomingRetirements = calculateUpcomingRetirements();
 
+  // If education tab is selected, render the education component
+  if (activeTab === 'education') {
+    return <EducationEmployeeDashboard onBack={() => setActiveTab('general')} />;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -851,6 +858,32 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                 <span className="text-sm font-medium">{t('erms.addEmployee')}</span>
               </button>
             </div>
+          </div>
+          
+          {/* Tabs */}
+          <div className="mt-4">
+            <nav className="flex space-x-8">
+              <button
+                onClick={() => setActiveTab('general')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
+                  activeTab === 'general'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                General Employees
+              </button>
+              <button
+                onClick={() => setActiveTab('education')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
+                  activeTab === 'education'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Education Department
+              </button>
+            </nav>
           </div>
         </div>
       </div>
