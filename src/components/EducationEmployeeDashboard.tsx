@@ -118,6 +118,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
       fetchEmployees();
     }
   }, [educationDeptId]);
+  
   useEffect(() => {
     filterEmployees();
     setCurrentPage(1);
@@ -159,6 +160,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
       console.error('Error fetching education department ID:', error);
     }
   };
+  
   const fetchEmployees = async () => {
     if (!educationDeptId) return;
     
@@ -301,7 +303,10 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
   };
 
   const handleAddEmployee = () => {
-    setFormData({ cadre: 'C' });
+    setFormData({
+      cadre: 'C',
+      date_of_joining: ''
+    });
     setEditingEmployee(null);
     setShowAddModal(true);
   };
@@ -322,6 +327,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
       alert('Education department ID not found');
       return;
     }
+    
     setIsLoading(true);
     try {
       const employeeData = {
@@ -417,8 +423,8 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
                 <span className="text-sm">Back to General</span>
               </button>
               <div>
-              <h1 className="text-2xl font-bold text-gray-900">Education Department Employees</h1>
-              <p className="text-sm text-gray-500 mt-1">Manage education department employee records and analytics</p>
+                <h1 className="text-2xl font-bold text-gray-900">Education Department Employees</h1>
+                <p className="text-sm text-gray-500 mt-1">Manage education department employee records and analytics</p>
               </div>
             </div>
             <div className="flex items-center space-x-3">
