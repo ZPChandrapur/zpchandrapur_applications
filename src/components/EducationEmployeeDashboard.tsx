@@ -109,6 +109,28 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
     date_of_joining: ''
   });
 
+  const calculateAgeAndRetirement = (birthDate: string) => {
+    if (!birthDate) return { age: '', retirementDate: '' };
+    
+    const birth = new Date(birthDate);
+    const today = new Date();
+    
+    // Calculate age
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    
+    // Calculate retirement date (58 years from birth date for cadre C)
+    const retirementDate = new Date(birth.getFullYear() + 58, birth.getMonth(), birth.getDate());
+    
+    return {
+      age: age.toString(),
+      retirementDate: retirementDate.toISOString().split('T')[0]
+    };
+  };
+
   useEffect(() => {
     fetchAllData();
   }, []);
