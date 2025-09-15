@@ -21,6 +21,34 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
       'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
     },
   },
+  // Override fetch to mask sensitive data in logs
+  global: {
+    fetch: (url, options = {}) => {
+      // Create a copy of options for logging
+      const logOptions = { ...options };
+      
+      // Mask sensitive data in request body for logging
+      if (logOptions.body) {
+        try {
+          const body = JSON.parse(logOptions.body as string);
+          if (body.password) {
+            const maskedBody = { ...body, password: '***MASKED***' };
+            console.log('🔐 Supabase request (masked):', { url, body: maskedBody });
+          }
+        } catch (e) {
+          // If body is not JSON, just log the URL
+          console.log('🔐 Supabase request:', { url });
+        }
+      }
+      
+      // Make the actual request with original options
+      return fetch(url, options);
+    },
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    },
+  },
 });
 
 // ERMS-specific client for erms schema

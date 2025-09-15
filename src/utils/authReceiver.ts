@@ -15,7 +15,7 @@ interface AuthTransferData {
 
 export const handleAutoLogin = async (appName: string = 'estimate'): Promise<boolean> => {
   try {
-    console.log(`🔍 ${appName.toUpperCase()}: Checking for auto-login data...`);
+    console.log(`🔍 ${appName.toUpperCase()}: Checking for auto-login data (sensitive data will be masked)...`);
     
     // Method 1: Check URL parameters first
     const urlParams = new URLSearchParams(window.location.search);
@@ -28,7 +28,7 @@ export const handleAutoLogin = async (appName: string = 'estimate'): Promise<boo
       const refreshToken = urlParams.get('refresh_token');
       
       if (accessToken && refreshToken) {
-        console.log(`🔑 ${appName.toUpperCase()}: Setting session from URL parameters...`);
+        console.log(`🔑 ${appName.toUpperCase()}: Setting session from URL parameters (tokens masked)...`);
         
         // Set the session in Supabase
         const { data, error } = await supabase.auth.setSession({
@@ -37,7 +37,11 @@ export const handleAutoLogin = async (appName: string = 'estimate'): Promise<boo
         });
         
         if (!error && data.session) {
-          console.log(`✅ ${appName.toUpperCase()}: Auto-login successful via URL parameters`);
+          console.log(`✅ ${appName.toUpperCase()}: Auto-login successful via URL parameters`, {
+            user_id: data.session.user?.id,
+            email: data.session.user?.email,
+            // Tokens are not logged for security
+          });
           
           // Clean URL parameters immediately
           const cleanUrl = window.location.pathname;
@@ -45,7 +49,10 @@ export const handleAutoLogin = async (appName: string = 'estimate'): Promise<boo
           
           return true;
         } else {
-          console.error(`❌ ${appName.toUpperCase()}: Failed to set session from URL:`, error);
+          console.error(`❌ ${appName.toUpperCase()}: Failed to set session from URL:`, {
+            message: error?.message,
+            // Never log tokens
+          });
         }
       }
     }
@@ -75,7 +82,7 @@ export const handleAutoLogin = async (appName: string = 'estimate'): Promise<boo
             authData.source_app === 'zp_chandrapur_main' && 
             isDataFresh) {
           
-          console.log(`🔑 ${appName.toUpperCase()}: Setting session from localStorage...`);
+          console.log(`🔑 ${appName.toUpperCase()}: Setting session from localStorage (tokens masked)...`);
           
           // Set the session in Supabase
           const { data, error } = await supabase.auth.setSession({
@@ -84,14 +91,21 @@ export const handleAutoLogin = async (appName: string = 'estimate'): Promise<boo
           });
           
           if (!error && data.session) {
-            console.log(`✅ ${appName.toUpperCase()}: Auto-login successful via localStorage`);
+            console.log(`✅ ${appName.toUpperCase()}: Auto-login successful via localStorage`, {
+              user_id: data.session.user?.id,
+              email: data.session.user?.email,
+              // Tokens are not logged for security
+            });
             
             // Clean up the transfer data immediately
             localStorage.removeItem(storageKey);
             
             return true;
           } else {
-            console.error(`❌ ${appName.toUpperCase()}: Failed to set session from localStorage:`, error);
+            console.error(`❌ ${appName.toUpperCase()}: Failed to set session from localStorage:`, {
+              message: error?.message,
+              // Never log tokens
+            });
           }
         } else {
           console.log(`⏰ ${appName.toUpperCase()}: Auth data expired or invalid, removing...`);

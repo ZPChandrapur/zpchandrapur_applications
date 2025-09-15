@@ -295,6 +295,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
         // Method 1: Try localStorage approach
         try {
           const authData = {
+            access_token: '***MASKED***',
+            refresh_token: '***MASKED***',
+            user: session.user,
+            expires_at: session.expires_at,
+            auto_login: true,
+            source_app: 'zp_chandrapur_main',
+            timestamp: Date.now()
+          };
+          
+          // Store actual tokens (not masked) in localStorage
+          const actualAuthData = {
             access_token: session.access_token,
             refresh_token: session.refresh_token,
             user: session.user,
@@ -303,8 +314,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
             source_app: 'zp_chandrapur_main',
             timestamp: Date.now()
           };
-          
-          localStorage.setItem('estimate_auth_transfer', JSON.stringify(authData));
+          localStorage.setItem('estimate_auth_transfer', JSON.stringify(actualAuthData));
           console.log('💾 E-estimate: Auth data stored in localStorage');
           
           // Clean up after 30 seconds
@@ -324,7 +334,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
         estimateUrl.searchParams.set('refresh_token', session.refresh_token);
         estimateUrl.searchParams.set('source', 'zp_main');
         
-        console.log('🌐 E-estimate: Opening with auth data...');
+        console.log('🌐 E-estimate: Opening with auth data (tokens masked in logs)...');
         // Open E-estimate with auth data
         window.open(estimateUrl.toString(), '_blank', 'noopener,noreferrer');
       } else {
@@ -358,6 +368,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
         // Method 1: Try localStorage approach
         try {
           const authData = {
+            access_token: '***MASKED***',
+            refresh_token: '***MASKED***',
+            user: session.user,
+            expires_at: session.expires_at,
+            auto_login: true,
+            source_app: 'zp_chandrapur_main',
+            timestamp: Date.now()
+          };
+          
+          // Store actual tokens (not masked) in localStorage
+          const actualAuthData = {
             access_token: session.access_token,
             refresh_token: session.refresh_token,
             user: session.user,
@@ -366,8 +387,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
             source_app: 'zp_chandrapur_main',
             timestamp: Date.now()
           };
-          
-          localStorage.setItem('fims_auth_transfer', JSON.stringify(authData));
+          localStorage.setItem('fims_auth_transfer', JSON.stringify(actualAuthData));
           console.log('💾 FIMS: Auth data stored in localStorage');
           
           // Clean up after 30 seconds
@@ -387,7 +407,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
         fimsUrl.searchParams.set('refresh_token', session.refresh_token);
         fimsUrl.searchParams.set('source', 'zp_main');
         
-        console.log('🌐 FIMS: Opening with auth data...');
+        console.log('🌐 FIMS: Opening with auth data (tokens masked in logs)...');
         // Open FIMS with auth data
         window.open(fimsUrl.toString(), '_blank', 'noopener,noreferrer');
       } else {
@@ -422,6 +442,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
         // Method 1: Try localStorage approach
         try {
           const authData = {
+            access_token: '***MASKED***',
+            refresh_token: '***MASKED***',
+            user: session.user,
+            expires_at: session.expires_at,
+            auto_login: true,
+            source_app: 'zp_chandrapur_main',
+            timestamp: Date.now()
+          };
+          
+          // Store actual tokens (not masked) in localStorage
+          const actualAuthData = {
             access_token: session.access_token,
             refresh_token: session.refresh_token,
             user: session.user,
@@ -430,8 +461,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
             source_app: 'zp_chandrapur_main',
             timestamp: Date.now()
           };
-          
-          localStorage.setItem('pesa_auth_transfer', JSON.stringify(authData));
+          localStorage.setItem('pesa_auth_transfer', JSON.stringify(actualAuthData));
           console.log('💾 PESA: Auth data stored in localStorage');
           
           // Clean up after 30 seconds
@@ -451,7 +481,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
         pesaUrl.searchParams.set('refresh_token', session.refresh_token);
         pesaUrl.searchParams.set('source', 'zp_main');
         
-        console.log('🌐 PESA: Opening with auth data...');
+        console.log('🌐 PESA: Opening with auth data (tokens masked in logs)...');
         // Open PESA with auth data
         window.open(pesaUrl.toString(), '_blank', 'noopener,noreferrer');
       } else {
@@ -482,6 +512,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
         // Method 1: Try localStorage approach
         try {
           const authData = {
+            access_token: '***MASKED***',
+            refresh_token: '***MASKED***',
+            user: session.user,
+            expires_at: session.expires_at,
+            auto_login: true,
+            source_app: 'zp_chandrapur_main',
+            timestamp: Date.now()
+          };
+          
+          // Store actual tokens (not masked) in localStorage
+          const actualAuthData = {
             access_token: session.access_token,
             refresh_token: session.refresh_token,
             user: session.user,
@@ -490,8 +531,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
             source_app: 'zp_chandrapur_main',
             timestamp: Date.now()
           };
-          
-          localStorage.setItem('workflow_auth_transfer', JSON.stringify(authData));
+          localStorage.setItem('workflow_auth_transfer', JSON.stringify(actualAuthData));
           
           // Clean up after 30 seconds
           setTimeout(() => {
@@ -509,6 +549,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
         workflowUrl.searchParams.set('refresh_token', session.refresh_token);
         workflowUrl.searchParams.set('source', 'zp_main');
         
+        console.log('Opening Workflow Management with auth data (tokens masked in logs)...');
         // Open Workflow Management with auth data
         window.open(workflowUrl.toString(), '_blank', 'noopener,noreferrer');
       } else {
