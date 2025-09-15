@@ -227,6 +227,10 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     }
   }, [formData.cadre, formData.date_of_birth]);
 
+    const formattedDate = retirementDate.toISOString().split('T')[0];
+    setFormData(prev => ({ ...prev, retirement_date: formattedDate }));
+  };
+
   // Save modal state to localStorage
   const saveModalState = (modalState: {
     showAddModal: boolean;
@@ -797,7 +801,9 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
 
   const handleDeleteEmployee = async (employee: Employee) => {
     // More descriptive confirmation message
-    const confirmMessage = `${t('common.deleteConfirm')}\n\nEmployee: ${employee.employee_name}\nID: ${employee.emp_id}`;
+    const confirmMessage = `${t('common.deleteConfirm
+  }
+}')}\n\nEmployee: ${employee.employee_name}\nID: ${employee.emp_id}`;
     if (!confirm(confirmMessage)) return;
 
     setIsLoading(true);
