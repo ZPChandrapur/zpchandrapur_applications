@@ -127,8 +127,8 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
       columns: [
         { column_name: 'emp_id', display_name: t('erms.employeeId'), data_type: 'text' },
         { column_name: 'employee_name', display_name: t('erms.employeeName'), data_type: 'text' },
-        { column_name: 'birth_certificate', display_name: t('retirementTracker.birthCertificate'), data_type: 'text' },
-        { column_name: 'birth_doc_submitted', display_name: t('retirementTracker.birthDocSubmitted'), data_type: 'text' },
+        { column_name: 'birth_certificate_submitted', display_name: t('retirementTracker.birthCertificate'), data_type: 'text' },
+        { column_name: 'birth_document_submitted', display_name: t('retirementTracker.birthDocSubmitted'), data_type: 'text' },
         { column_name: 'medical_certificate', display_name: t('retirementTracker.medicalCertificate'), data_type: 'text' },
         { column_name: 'nomination', display_name: t('retirementTracker.nomination'), data_type: 'text' },
         { column_name: 'permanent_registration', display_name: t('retirementTracker.permanentRegistration'), data_type: 'text' },
