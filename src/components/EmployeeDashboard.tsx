@@ -327,10 +327,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     };
     
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'erms-employee-modal-
-      )
-    }
-  }
   )
 }state' && persistenceEnabled) {
         loadPersistedState();
