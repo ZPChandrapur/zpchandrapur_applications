@@ -160,7 +160,7 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
       ]
     },
     {
-      table_name: 'pay_comission',
+      table_name: 'pay_commission',
       display_name: t('customReports.payCommission', 'Pay Commission Records'),
       icon: TrendingUp,
       columns: [
