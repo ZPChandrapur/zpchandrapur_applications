@@ -73,7 +73,7 @@ interface ClerkData {
 
 export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) => {
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'addEmployee'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' ;
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState('');
