@@ -415,8 +415,8 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
         <div className="px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <button
-                onClick={onBack}
+              <h1 className="text-2xl font-bold text-gray-900">शिक्षण विभाग कर्मचारी</h1>
+              <p className="text-sm text-gray-500 mt-1">शिक्षण विभाग कर्मचारी रेकॉर्ड आणि विश्लेषण व्यवस्थापित करा</p>
                 className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
               >
                 <ChevronLeft className="h-4 w-4" />
@@ -433,14 +433,14 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
                 className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
               >
                 <RefreshCw className="h-4 w-4" />
-                <span className="text-sm font-medium">{t('erms.refresh')}</span>
+                <span className="text-sm font-medium">रिफ्रेश</span>
               </button>
               <button 
                 onClick={handleAddEmployee}
                 className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-200"
               >
                 <Plus className="h-4 w-4" />
-                <span className="text-sm font-medium">{t('erms.addEmployee')}</span>
+                <span className="text-sm font-medium">कर्मचारी जोडा</span>
               </button>
             </div>
           </div>
