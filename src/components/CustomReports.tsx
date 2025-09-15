@@ -79,6 +79,7 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
   const [joins, setJoins] = useState<any[]>([]);
   const [reportName, setReportName] = useState('');
   const [reportDescription, setReportDescription] = useState('');
+  const [availableColumns, setAvailableColumns] = useState<{[key: string]: ColumnInfo[]}>({});
   
   // Data States
   const [availableTables, setAvailableTables] = useState<TableInfo[]>([]);
@@ -88,6 +89,18 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
     fetchAvailableTables();
     fetchSavedTemplates();
   }, []);
+
+  useEffect(() => {
+    // Update available columns when tables are selected
+    const columnsMap: {[key: string]: ColumnInfo[]} = {};
+    selectedTables.forEach(tableName => {
+      const table = availableTables.find(t => t.table_name === tableName);
+      if (table) {
+        columnsMap[tableName] = table.columns;
+      }
+    });
+    setAvailableColumns(columnsMap);
+  }, [selectedTables, availableTables]);
 
   const tableDefinitions: TableInfo[] = [
     {
@@ -102,7 +115,37 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
         { column_name: 'reason', display_name: t('erms.retirementReason'), data_type: 'text' },
         { column_name: 'assigned_clerk', display_name: t('erms.assignedClerk'), data_type: 'text' },
         { column_name: 'dept_id', display_name: t('erms.departmentId'), data_type: 'text' },
-        { column_name: 'office_id', display_name: t('erms.officeId'), data_type: 'text' }
+        { column_name: 'office_id', display_name: t('erms.officeId'), data_type: 'text' },
+        { column_name: 'department', display_name: t('erms.department'), data_type: 'text' },
+        { column_name: 'designation', display_name: t('erms.designation'), data_type: 'text' }
+      ]
+    },
+    {
+      table_name: 'pay_commission',
+      display_name: t('customReports.payCommission', 'Pay Commission Records'),
+      icon: TrendingUp,
+      columns: [
+        { column_name: 'emp_id', display_name: t('erms.employeeId'), data_type: 'text' },
+        { column_name: 'employee_name', display_name: t('erms.employeeName'), data_type: 'text' },
+        { column_name: 'fourth_pay_comission', display_name: t('customReports.fourthPayCommission', '4th Pay Commission'), data_type: 'text' },
+        { column_name: 'fifth_pay_comission', display_name: t('customReports.fifthPayCommission', '5th Pay Commission'), data_type: 'text' },
+        { column_name: 'sixth_pay_comission', display_name: t('customReports.sixthPayCommission', '6th Pay Commission'), data_type: 'text' },
+        { column_name: 'seventh_pay_comission', display_name: t('customReports.seventhPayCommission', '7th Pay Commission'), data_type: 'text' },
+        { column_name: 'comments', display_name: 'Comments', data_type: 'text' }
+      ]
+    },
+    {
+      table_name: 'group_insurance',
+      display_name: t('customReports.groupInsurance', 'Group Insurance Records'),
+      icon: Users,
+      columns: [
+        { column_name: 'emp_id', display_name: t('erms.employeeId'), data_type: 'text' },
+        { column_name: 'employee_name', display_name: t('erms.employeeName'), data_type: 'text' },
+        { column_name: 'year_1990', display_name: t('customReports.year1990', '1990 Year'), data_type: 'text' },
+        { column_name: 'year_2003', display_name: t('customReports.year2003', '2003 Year'), data_type: 'text' },
+        { column_name: 'year_2010', display_name: t('customReports.year2010', '2010 Year'), data_type: 'text' },
+        { column_name: 'year_2020', display_name: t('customReports.year2020', '2020 Year'), data_type: 'text' },
+        { column_name: 'overall_comments', display_name: 'Overall Comments', data_type: 'text' }
       ]
     },
     {
@@ -116,7 +159,9 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
         { column_name: 'date_of_submission', display_name: t('erms.dateOfSubmission'), data_type: 'date' },
         { column_name: 'type_of_pension', display_name: t('erms.typeOfPension'), data_type: 'text' },
         { column_name: 'department', display_name: t('erms.department'), data_type: 'text' },
-        { column_name: 'designation', display_name: t('erms.designation'), data_type: 'text' }
+        { column_name: 'designation', display_name: t('erms.designation'), data_type: 'text' },
+        { column_name: 'retirement_date', display_name: t('erms.retirementDate'), data_type: 'date' },
+        { column_name: 'age', display_name: t('erms.age'), data_type: 'number' }
       ]
     },
     {
@@ -158,32 +203,6 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
         { column_name: 'name', display_name: t('erms.talukaName'), data_type: 'text' },
         { column_name: 'created_at', display_name: t('erms.createdDate'), data_type: 'date' }
       ]
-    },
-    {
-      table_name: 'pay_commission',
-      display_name: t('customReports.payCommission', 'Pay Commission Records'),
-      icon: TrendingUp,
-      columns: [
-        { column_name: 'emp_id', display_name: t('erms.employeeId'), data_type: 'text' },
-        { column_name: 'employee_name', display_name: t('erms.employeeName'), data_type: 'text' },
-        { column_name: 'fourth_pay_comission', display_name: t('customReports.fourthPayCommission', '4th Pay Commission'), data_type: 'text' },
-        { column_name: 'fifth_pay_comission', display_name: t('customReports.fifthPayCommission', '5th Pay Commission'), data_type: 'text' },
-        { column_name: 'sixth_pay_comission', display_name: t('customReports.sixthPayCommission', '6th Pay Commission'), data_type: 'text' },
-        { column_name: 'seventh_pay_comission', display_name: t('customReports.seventhPayCommission', '7th Pay Commission'), data_type: 'text' }
-      ]
-    },
-    {
-      table_name: 'group_insurance',
-      display_name: t('customReports.groupInsurance', 'Group Insurance Records'),
-      icon: Users,
-      columns: [
-        { column_name: 'emp_id', display_name: t('erms.employeeId'), data_type: 'text' },
-        { column_name: 'employee_name', display_name: t('erms.employeeName'), data_type: 'text' },
-        { column_name: 'year_1990', display_name: t('customReports.year1990', '1990 Year'), data_type: 'text' },
-        { column_name: 'year_2003', display_name: t('customReports.year2003', '2003 Year'), data_type: 'text' },
-        { column_name: 'year_2010', display_name: t('customReports.year2010', '2010 Year'), data_type: 'text' },
-        { column_name: 'year_2020', display_name: t('customReports.year2020', '2020 Year'), data_type: 'text' }
-      ]
     }
   ];
 
@@ -214,46 +233,140 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
 
     setIsLoading(true);
     try {
-      // Remove table prefixes from column names for the select query
+      let query;
+      let data;
+      
+      if (selectedTables.length === 1) {
+        // Single table query
+        const cleanColumns = selectedColumns.map(col => {
+          const parts = col.split('.');
+          return parts.length > 1 ? parts[1] : col;
+        });
+        
+        query = ermsClient.from(selectedTables[0]).select(cleanColumns.join(', '));
+        
+        // Apply filters if any
+        filters.forEach(filter => {
+          if (filter.column && filter.operator && filter.value) {
+            const cleanFilterColumn = filter.column.includes('.') ? 
+              filter.column.split('.')[1] : filter.column;
+            
+            switch (filter.operator) {
+              case 'eq':
+                query = query.eq(cleanFilterColumn, filter.value);
+                break;
+              case 'neq':
+                query = query.neq(cleanFilterColumn, filter.value);
+                break;
+              case 'gt':
+                query = query.gt(cleanFilterColumn, filter.value);
+                break;
+              case 'lt':
+                query = query.lt(cleanFilterColumn, filter.value);
+                break;
+              case 'like':
+                query = query.ilike(cleanFilterColumn, `%${filter.value}%`);
+                break;
+            }
+          }
+        });
+
+        const result = await query.limit(1000);
+        if (result.error) throw result.error;
+        data = result.data;
+        
+      } else if (selectedTables.length === 2) {
+        // Two table join - implement common joins
+        const [table1, table2] = selectedTables;
+        
+        // Define common join relationships
+        const joinRelationships = {
+          'employee-pay_commission': {
+            table1: 'employee',
+            table2: 'pay_commission', 
+            joinKey: 'emp_id'
+          },
+          'employee-group_insurance': {
+            table1: 'employee',
+            table2: 'group_insurance',
+            joinKey: 'emp_id'
+          },
+          'employee-employee_retirement': {
+            table1: 'employee',
+            table2: 'employee_retirement',
+            joinKey: 'emp_id'
+          },
+          'pay_commission-group_insurance': {
+            table1: 'pay_commission',
+            table2: 'group_insurance',
+            joinKey: 'emp_id'
+          }
+        };
+        
+        const joinKey = `${table1}-${table2}`;
+        const reverseJoinKey = `${table2}-${table1}`;
+        const relationship = joinRelationships[joinKey] || joinRelationships[reverseJoinKey];
+        
+        if (relationship) {
+          // Build select string with table prefixes
+          const selectColumns = selectedColumns.map(col => {
+            const [tableName, columnName] = col.split('.');
+            return `${tableName}!inner(${columnName})`;
+          });
+          
+          // Use the first table as the base and join with the second
+          const baseTable = relationship.table1;
+          const joinTable = relationship.table2;
+          
+          // Create a more specific select query for joins
+          const baseColumns = selectedColumns
+            .filter(col => col.startsWith(`${baseTable}.`))
+            .map(col => col.split('.')[1]);
+          
+          const joinColumns = selectedColumns
+            .filter(col => col.startsWith(`${joinTable}.`))
+            .map(col => col.split('.')[1]);
+          
+          if (baseColumns.length > 0 && joinColumns.length > 0) {
+            const selectString = [
+              ...baseColumns,
+              `${joinTable}!inner(${joinColumns.join(',')})`
+            ].join(',');
+            
+            query = ermsClient.from(baseTable).select(selectString);
+            
+            const result = await query.limit(1000);
+            if (result.error) throw result.error;
+            
+            // Flatten the joined data
+            data = result.data?.map(row => {
+              const flatRow = { ...row };
+              if (row[joinTable] && Array.isArray(row[joinTable]) && row[joinTable].length > 0) {
+                // Take the first joined record
+                Object.assign(flatRow, row[joinTable][0]);
+              } else if (row[joinTable] && !Array.isArray(row[joinTable])) {
+                Object.assign(flatRow, row[joinTable]);
+              }
+              delete flatRow[joinTable];
+              return flatRow;
+            }) || [];
+          } else {
+            throw new Error('Please select columns from both tables for joining');
+          }
+        } else {
+          throw new Error(`Join relationship not defined between ${table1} and ${table2}`);
+        }
+      } else {
+        throw new Error('Multi-table joins (more than 2 tables) are not supported yet');
+      }
+
+      // Set the column names for display
       const cleanColumns = selectedColumns.map(col => {
         const parts = col.split('.');
         return parts.length > 1 ? parts[1] : col;
       });
       
-      let query = ermsClient.from(selectedTables[0]).select(cleanColumns.join(', '));
-      
-      // Apply filters if any
-      filters.forEach(filter => {
-        if (filter.column && filter.operator && filter.value) {
-          // Clean the filter column name too
-          const cleanFilterColumn = filter.column.includes('.') ? 
-            filter.column.split('.')[1] : filter.column;
-          
-          switch (filter.operator) {
-            case 'eq':
-              query = query.eq(cleanFilterColumn, filter.value);
-              break;
-            case 'neq':
-              query = query.neq(cleanFilterColumn, filter.value);
-              break;
-            case 'gt':
-              query = query.gt(cleanFilterColumn, filter.value);
-              break;
-            case 'lt':
-              query = query.lt(cleanFilterColumn, filter.value);
-              break;
-            case 'like':
-              query = query.ilike(cleanFilterColumn, `%${filter.value}%`);
-              break;
-          }
-        }
-      });
-
-      const { data, error } = await query.limit(1000);
-      
-      if (error) throw error;
-      
-      setReportData(data || []);
+      setReportData(data);
       setReportColumns(cleanColumns);
       setActiveTab('results');
     } catch (error) {
@@ -320,6 +433,28 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
 
   const removeFilter = (index: number) => {
     setFilters(filters.filter((_, i) => i !== index));
+  };
+
+  const addJoin = () => {
+    if (selectedTables.length >= 2) {
+      setJoins([...joins, { 
+        table1: selectedTables[0], 
+        table2: selectedTables[1], 
+        joinType: 'inner',
+        table1Column: '',
+        table2Column: ''
+      }]);
+    }
+  };
+
+  const updateJoin = (index: number, field: string, value: string) => {
+    const newJoins = [...joins];
+    newJoins[index] = { ...newJoins[index], [field]: value };
+    setJoins(newJoins);
+  };
+
+  const removeJoin = (index: number) => {
+    setJoins(joins.filter((_, i) => i !== index));
   };
 
   const renderBarChart = () => {
@@ -627,6 +762,98 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
                     </div>
                   )}
                 </div>
+
+                {/* Table Joins */}
+                {selectedTables.length >= 2 && (
+                  <div>
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold text-gray-900">Table Joins</h3>
+                      <button
+                        onClick={addJoin}
+                        className="flex items-center space-x-2 px-3 py-2 text-teal-600 hover:bg-teal-50 rounded-lg transition-all duration-200"
+                      >
+                        <Plus className="h-4 w-4" />
+                        <span className="text-sm">Add Join</span>
+                      </button>
+                    </div>
+                    
+                    {selectedTables.length === 2 && (
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Database className="h-4 w-4 text-blue-600" />
+                          <span className="text-sm font-medium text-blue-800">Automatic Join Available</span>
+                        </div>
+                        <p className="text-sm text-blue-700">
+                          Tables "{selectedTables[0]}" and "{selectedTables[1]}" can be automatically joined using employee ID (emp_id).
+                          Select columns from both tables and click "Generate Report" to see the joined data.
+                        </p>
+                      </div>
+                    )}
+                    
+                    {joins.length > 0 && (
+                      <div className="space-y-3">
+                        {joins.map((join, index) => (
+                          <div key={index} className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg">
+                            <select
+                              value={join.table1}
+                              onChange={(e) => updateJoin(index, 'table1', e.target.value)}
+                              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                            >
+                              {selectedTables.map((table) => (
+                                <option key={table} value={table}>{table}</option>
+                              ))}
+                            </select>
+                            
+                            <select
+                              value={join.table1Column}
+                              onChange={(e) => updateJoin(index, 'table1Column', e.target.value)}
+                              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                            >
+                              <option value="">Select Column</option>
+                              {availableColumns[join.table1]?.map((column) => (
+                                <option key={column.column_name} value={column.column_name}>
+                                  {column.display_name}
+                                </option>
+                              ))}
+                            </select>
+                            
+                            <span className="text-sm text-gray-500">=</span>
+                            
+                            <select
+                              value={join.table2}
+                              onChange={(e) => updateJoin(index, 'table2', e.target.value)}
+                              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                            >
+                              {selectedTables.map((table) => (
+                                <option key={table} value={table}>{table}</option>
+                              ))}
+                            </select>
+                            
+                            <select
+                              value={join.table2Column}
+                              onChange={(e) => updateJoin(index, 'table2Column', e.target.value)}
+                              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                            >
+                              <option value="">Select Column</option>
+                              {availableColumns[join.table2]?.map((column) => (
+                                <option key={column.column_name} value={column.column_name}>
+                                  {column.display_name}
+                                </option>
+                              ))}
+                            </select>
+                            
+                            <button
+                              onClick={() => removeJoin(index)}
+                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Action Buttons */}
                 <div className="flex items-center justify-between pt-6 border-t border-gray-200">
