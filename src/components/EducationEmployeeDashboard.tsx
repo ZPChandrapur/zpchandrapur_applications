@@ -550,15 +550,16 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
                 <option value="वैद्यकीय">वैद्यकीय</option>
               </select>
 
-              <button
-                onClick={clearFilters}
-                className="flex items-center justify-center space-x-2 px-3 py-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
-              >
-                <X className="h-4 w-4" />
-                <span className="text-sm">Clear</span>
-              </button>
-            </div>
-          </div>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">कर्मचारी</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">इंग्रजी नाव</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">लिंग</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">पदनाम</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">शालार्थ आयडी</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">शिक्षक प्रकार</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">वय</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">सेवानिवृत्ती तारीख</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">नियुक्त लिपिक</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">क्रिया</th>
 
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -570,8 +571,8 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.designation')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Shalarth ID</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Teacher Type</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.age')}</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.assignedClerk')}</th>
+                  <td colSpan={10} className="px-6 py-8 text-center text-gray-500">
+                    {isLoading ? 'कर्मचारी लोड करत आहे...' : 'कोणतेही कर्मचारी सापडले नाहीत'}
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.actions')}</th>
                 </tr>
               </thead>
@@ -580,6 +581,9 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
                   <tr>
                     <td colSpan={9} className="px-6 py-8 text-center text-gray-500">
                       {isLoading ? 'Loading employees...' : 'No employees found'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {employee.assigned_clerk || 'अनियुक्त'}
                     </td>
                   </tr>
                 ) : (
