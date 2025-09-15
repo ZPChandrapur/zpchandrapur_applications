@@ -15,8 +15,14 @@ function App() {
     // Check if user is already signed in
     const checkUser = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        setUser(user);
+        const { data: { user }, error } = await supabase.auth.getUser();
+        if (error) {
+          console.error('Session validation error:', error);
+          await supabase.auth.signOut();
+          setUser(null);
+        } else {
+          setUser(user);
+        }
       } catch (error) {
         console.error('Error checking user:', error);
         // Clear stale session data if JWT is invalid
