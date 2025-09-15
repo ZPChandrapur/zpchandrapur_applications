@@ -219,7 +219,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
 
       // Fetch pay commission data
       const { data: payCommissionData, error: payCommissionError } = await ermsClient
-        .from('pay_comission')
+        .from('pay_commission')
         .select('*');
       
       if (payCommissionError) console.warn('Error fetching pay commission:', payCommissionError);
