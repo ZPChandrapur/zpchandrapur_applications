@@ -38,14 +38,6 @@ export const SignInForm: React.FC<SignInFormProps> = ({ onSignInSuccess }) => {
     e.preventDefault();
     setError('');
     
-    // Create a masked version for logging
-    const maskedCredentials = {
-      email: email,
-      password: '***MASKED***'
-    };
-    
-    console.log('🔐 Sign in attempt with credentials:', maskedCredentials);
-    
     // Check if Supabase is configured
     if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
       setError('Application configuration error. Please contact your administrator.');
@@ -71,38 +63,28 @@ export const SignInForm: React.FC<SignInFormProps> = ({ onSignInSuccess }) => {
     setIsLoading(true);
 
     try {
-      // Note: Supabase client handles the actual API call internally
-      // We cannot mask the network request itself as it's handled by the Supabase SDK
+      // Note: The network request will show the password in browser dev tools
+      // This is unavoidable with client-side authentication
+      console.log('🔐 Attempting sign in for user:', email);
+      
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (signInError) {
-        console.error('🚫 Sign in failed:', {
-          message: signInError.message,
-          email: email,
-          // Never log the actual password
-        });
+        console.error('🚫 Sign in failed for user:', email, 'Error:', signInError.message);
         if (signInError.message.includes('Failed to fetch')) {
           setError('Unable to connect to authentication server. Please check your internet connection and try again.');
         } else {
           setError(signInError.message);
         }
       } else if (data.user) {
-        console.log('✅ Sign in successful for user:', {
-          id: data.user.id,
-          email: data.user.email,
-          // Never log session tokens
-        });
+        console.log('✅ Sign in successful for user:', data.user.email);
         onSignInSuccess();
       }
     } catch (err) {
-      console.error('❌ Unexpected sign in error:', {
-        message: err.message,
-        email: email,
-        // Never log the actual password or tokens
-      });
+      console.error('❌ Unexpected sign in error for user:', email, 'Error:', err.message);
       if (err.message && err.message.includes('Failed to fetch')) {
         setError('Network connection error. Please check your internet connection and try again.');
       } else {
