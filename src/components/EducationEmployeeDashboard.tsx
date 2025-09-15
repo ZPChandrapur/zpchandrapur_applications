@@ -415,8 +415,8 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
         <div className="px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <h1 className="text-2xl font-bold text-gray-900">शिक्षण विभाग कर्मचारी</h1>
-              <p className="text-sm text-gray-500 mt-1">शिक्षण विभाग कर्मचारी रेकॉर्ड आणि विश्लेषण व्यवस्थापित करा</p>
+              <button
+                onClick={onBack}
                 className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
               >
                 <ChevronLeft className="h-4 w-4" />
@@ -554,16 +554,11 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
                 onClick={clearFilters}
                 className="flex items-center justify-center space-x-2 px-3 py-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
               >
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">कर्मचारी</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">इंग्रजी नाव</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">लिंग</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">पदनाम</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">शालार्थ आयडी</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">शिक्षक प्रकार</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">वय</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">सेवानिवृत्ती तारीख</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">नियुक्त लिपिक</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">क्रिया</th>
+                <X className="h-4 w-4" />
+                <span className="text-sm">{t('common.clear')}</span>
+              </button>
+            </div>
+          </div>
 
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -575,8 +570,8 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.designation')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Shalarth ID</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Teacher Type</th>
-                  <td colSpan={10} className="px-6 py-8 text-center text-gray-500">
-                    {isLoading ? 'कर्मचारी लोड करत आहे...' : 'कोणतेही कर्मचारी सापडले नाहीत'}
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.age')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.assignedClerk')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('erms.actions')}</th>
                 </tr>
               </thead>
@@ -615,10 +610,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
                         {employee.age || '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {employee.retirement_date ? new Date(employee.retirement_date).toLocaleDateString('hi-IN') : '-'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {employee.assigned_clerk || 'अनियुक्त'}
+                        {employee.assigned_clerk || t('erms.unassigned')}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex items-center space-x-2">
@@ -698,7 +690,9 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">Add Education Department Employee</h3>
+              <h3 className="text-lg font-semibold text-gray-900">
+                {editingEmployee ? 'कर्मचारी संपादित करा' : 'नवीन कर्मचारी जोडा'}
+              </h3>
               <button
                 onClick={() => setShowAddModal(false)}
                 className="text-gray-400 hover:text-gray-600"
@@ -710,7 +704,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
             <div className="p-6 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.employeeId')}</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">कर्मचारी आयडी *</label>
                   <input
                     type="text"
                     value={formData.emp_id || ''}
@@ -722,7 +716,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.employeeName')}</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">कर्मचारी नाव *</label>
                   <input
                     type="text"
                     value={formData.employee_name || ''}
@@ -734,7 +728,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Employee Name (English)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">कर्मचारी नाव (इंग्रजी) *</label>
                   <input
                     type="text"
                     value={formData.employee_name_en || ''}
@@ -745,21 +739,62 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Gender</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">लिंग *</label>
                   <select
                     value={formData.gender || ''}
                     onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
-                    <option value="">Select Gender</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Other">Other</option>
+                    <option value="">लिंग निवडा</option>
+                    <option value="Male">पुरुष</option>
+                    <option value="Female">महिला</option>
+                    <option value="Other">इतर</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Shalarth ID</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">जन्म तारीख *</label>
+                  <input
+                    type="date"
+                    value={formData.date_of_birth ? formData.date_of_birth.split('T')[0] : ''}
+                    onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">वय (स्वयंचलित)</label>
+                  <input
+                    type="number"
+                    value={formData.age || ''}
+                    onChange={(e) => setFormData({ ...formData, age: parseInt(e.target.value) || null })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder={t('erms.enterAge')}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">सेवेत रुजू होण्याची तारीख *</label>
+                  <input
+                    type="date"
+                    value={formData.date_of_joining ? formData.date_of_joining.split('T')[0] : ''}
+                    onChange={(e) => setFormData({ ...formData, date_of_joining: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">सेवानिवृत्ती तारीख (स्वयंचलित)</label>
+                  <input
+                    type="date"
+                    value={formData.retirement_date ? formData.retirement_date.split('T')[0] : ''}
+                    onChange={(e) => setFormData({ ...formData, retirement_date: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">शालार्थ आयडी *</label>
                   <input
                     type="text"
                     value={formData.shalarth_id || ''}
@@ -770,66 +805,67 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Cast Category</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">जात श्रेणी *</label>
                   <select
                     value={formData.cast_category || ''}
                     onChange={(e) => setFormData({ ...formData, cast_category: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
-                    <option value="">Select Cast Category</option>
-                    <option value="General">General</option>
-                    <option value="OBC">OBC</option>
-                    <option value="SC">SC</option>
-                    <option value="ST">ST</option>
-                    <option value="NT">NT</option>
+                    <option value="">जात श्रेणी निवडा</option>
+                    <option value="General">सामान्य</option>
+                    <option value="OBC">ओबीसी</option>
+                    <option value="SC">अनुसूचित जाती</option>
+                    <option value="ST">अनुसूचित जमाती</option>
+                    <option value="NT">भटक्या विमुक्त जाती</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Appointment Caste Category</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">नियुक्ती जात श्रेणी *</label>
                   <select
                     value={formData.appointment_caste_category || ''}
                     onChange={(e) => setFormData({ ...formData, appointment_caste_category: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
-                    <option value="">Select Appointment Caste Category</option>
-                    <option value="General">General</option>
-                    <option value="OBC">OBC</option>
-                    <option value="SC">SC</option>
-                    <option value="ST">ST</option>
-                    <option value="NT">NT</option>
+                    <option value="">नियुक्ती जात श्रेणी निवडा</option>
+                    <option value="General">सामान्य</option>
+                    <option value="OBC">ओबीसी</option>
+                    <option value="SC">अनुसूचित जाती</option>
+                    <option value="ST">अनुसूचित जमाती</option>
+                    <option value="NT">भटक्या विमुक्त जाती</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Teacher Type</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">शिक्षक प्रकार *</label>
                   <select
                     value={formData.teacher_type || ''}
                     onChange={(e) => setFormData({ ...formData, teacher_type: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
-                    <option value="">Select Teacher Type</option>
-                    <option value="Primary">Primary</option>
-                    <option value="Secondary">Secondary</option>
-                    <option value="Higher Secondary">Higher Secondary</option>
-                    <option value="Special">Special</option>
+                    <option value="">शिक्षक प्रकार निवडा</option>
+                    <option value="Primary">प्राथमिक</option>
+                    <option value="Secondary">माध्यमिक</option>
+                    <option value="Higher Secondary">उच्च माध्यमिक</option>
+                    <option value="Special">विशेष</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Teacher Active Status</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">शिक्षक सक्रिय स्थिती *</label>
                   <select
                     value={formData.teacher_is_active ? 'true' : 'false'}
                     onChange={(e) => setFormData({ ...formData, teacher_is_active: e.target.value === 'true' })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
-                    <option value="true">Active</option>
-                    <option value="false">Inactive</option>
+                    <option value="">स्थिती निवडा</option>
+                    <option value="Active">सक्रिय</option>
+                    <option value="Inactive">निष्क्रिय</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Cadre</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">संवर्ग (निश्चित)</label>
                   <input
                     type="text"
                     value="C"
@@ -853,27 +889,6 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
                       </option>
                     ))}
                   </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.age')}</label>
-                  <input
-                    type="number"
-                    value={formData.age || ''}
-                    onChange={(e) => setFormData({ ...formData, age: parseInt(e.target.value) || null })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder={t('erms.enterAge')}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.dateOfBirth')}</label>
-                  <input
-                    type="date"
-                    value={formData.date_of_birth ? formData.date_of_birth.split('T')[0] : ''}
-                    onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
                 </div>
 
                 <div>
@@ -931,14 +946,14 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
                 onClick={() => setShowAddModal(false)}
                 className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200"
               >
-                {t('common.cancel')}
+                रद्द करा
               </button>
               <button
                 onClick={handleSaveEmployee}
                 disabled={isLoading}
                 className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 disabled:opacity-50"
               >
-                {isLoading ? t('common.saving') : t('common.save')}
+                {isLoading ? 'जतन करत आहे...' : (editingEmployee ? 'कर्मचारी अपडेट करा' : 'कर्मचारी जोडा')}
               </button>
             </div>
           </div>
