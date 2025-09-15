@@ -277,7 +277,7 @@ export const PayCommission: React.FC<PayCommissionProps> = ({ user }) => {
       const newStatus = getProgressStatus(editingRecord);
       
       const { error } = await ermsClient
-        .from('pay_comission')
+        .from('pay_commission')
         .update({
           fourth_pay_comission: editingRecord.fourth_pay_comission,
           fifth_pay_comission: editingRecord.fifth_pay_comission,
