@@ -227,10 +227,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     }
   }, [formData.cadre, formData.date_of_birth]);
 
-    const formattedDate = retirementDate.toISOString().split('T')[0];
-    setFormData(prev => ({ ...prev, retirement_date: formattedDate }));
-  };
-
   // Save modal state to localStorage
   const saveModalState = (modalState: {
     showAddModal: boolean;
