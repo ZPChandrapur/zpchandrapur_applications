@@ -241,15 +241,15 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
         // Calculate statuses based on actual data from respective tables
         const calculatedRetirementProgressStatus = progressRecord 
           ? calculateRetirementProgressStatus(progressRecord)
-          : 'pending';
+          : 'प्रलंबित';
 
         const calculatedPayCommissionStatus = payCommissionRecord 
           ? calculatePayCommissionStatus(payCommissionRecord)
-          : 'pending';
+          : 'प्रलंबित';
 
         const calculatedGroupInsuranceStatus = groupInsuranceRecord 
           ? calculateGroupInsuranceStatus(groupInsuranceRecord)
-          : 'pending';
+          : 'प्रलंबित';
 
         return {
           ...record,
