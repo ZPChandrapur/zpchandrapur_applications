@@ -300,7 +300,8 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
     return { total, upcomingRetirements, assigned, unassigned };
   };
 
-  const handleAddEmployee = () => {
+      cadre: 'C',
+      date_of_joining: ''
     setFormData({ cadre: 'C' });
     setEditingEmployee(null);
     setShowAddModal(true);
