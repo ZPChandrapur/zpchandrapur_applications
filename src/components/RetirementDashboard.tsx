@@ -539,10 +539,12 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
       employee.date_of_actual_benefit_provided_for_leave_encashment,
       employee.date_of_actual_benefit_provided_for_medical_allowance_if_applic,
       employee.date_of_benefit_provided_for_hometown_travel_allowance_if_appli,
-      employee.date_of_actual_benefit_provided_for_pending_travel_allowance_if,
-      employee.government_decision_march_31_2023
-    ];
-    const filledFields = progressFields.filter(field => field && field.trim() !== '').length;
+    const filledFields = progressFields.filter(field => 
+      field && 
+      field.trim() !== '' && 
+      field !== 'pending' && 
+      field !== 'प्रलंबित'
+    ).length;
     return Math.round((filledFields / progressFields.length) * 100);
   };
 
