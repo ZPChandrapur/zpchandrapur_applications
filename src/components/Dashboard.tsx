@@ -760,7 +760,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
             {/* Logo and Title */}
             <div className="flex items-center space-x-3">
               <img 
-                src="public/Zpchandrapurlogo.png" 
+                src="Zpchandrapurlogo.png" 
                 alt="ZP Chandrapur Logo" 
                 className="h-12 w-12 object-contain rounded-2xl shadow-lg"
               />
