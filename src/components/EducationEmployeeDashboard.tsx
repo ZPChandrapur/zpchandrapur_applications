@@ -31,7 +31,7 @@ interface EducationEmployee {
   gender?: string;
   age: number | null;
   date_of_birth: string | null;
-  department: string;
+  dept_id: string;
   designation: string;
   taluka: string | null;
   office: string | null;
@@ -85,6 +85,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
   const [talukas, setTalukas] = useState<Taluka[]>([]);
   const [offices, setOffices] = useState<Office[]>([]);
   const [clerks, setClerks] = useState<ClerkData[]>([]);
+  const [educationDeptId, setEducationDeptId] = useState<string>('');
   
   // Filter states
   const [searchTerm, setSearchTerm] = useState('');
@@ -111,6 +112,11 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
   }, []);
 
   useEffect(() => {
+    if (educationDeptId) {
+      fetchEmployees();
+    }
+  }, [educationDeptId]);
+  useEffect(() => {
     filterEmployees();
     setCurrentPage(1);
   }, [employees, searchTerm, selectedDepartment, selectedClerk, selectedReason]);
@@ -118,6 +124,8 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
   const fetchAllData = async () => {
     setIsLoading(true);
     try {
+      // First fetch the education department ID
+      await fetchEducationDeptId();
       await Promise.all([
         fetchEmployees(),
         fetchDepartments(),
@@ -133,12 +141,30 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
     }
   };
 
+  const fetchEducationDeptId = async () => {
+    try {
+      const { data, error } = await ermsClient
+        .from('department')
+        .select('dept_id')
+        .eq('department', 'शिक्षण विभाग')
+        .single();
+      
+      if (error) throw error;
+      if (data) {
+        setEducationDeptId(data.dept_id);
+      }
+    } catch (error) {
+      console.error('Error fetching education department ID:', error);
+    }
+  };
   const fetchEmployees = async () => {
+    if (!educationDeptId) return;
+    
     try {
       const { data, error } = await ermsClient
         .from('employee')
         .select('*')
-        .eq('department', 'शिक्षण विभाग') // Filter for Education Department
+        .eq('dept_id', educationDeptId) // Filter for Education Department
         .order('employee_name');
       
       if (error) throw error;
@@ -290,11 +316,15 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
       return;
     }
 
+    if (!educationDeptId) {
+      alert('Education department ID not found');
+      return;
+    }
     setIsLoading(true);
     try {
       const employeeData = {
         ...formData,
-        department: 'शिक्षण विभाग', // Always set to Education Department
+        dept_id: educationDeptId, // Always set to Education Department ID
         cadre: 'C', // Always set to C
         updated_at: new Date().toISOString()
       };
