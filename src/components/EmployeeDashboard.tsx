@@ -326,20 +326,12 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       }
     };
     
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'erms-employee-modal-state' && persistenceEnabled) {
-        loadPersistedState();
-      }
-    };
-    
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('beforeunload', handleBeforeUnload);
-    window.addEventListener('storage', handleStorageChange);
     
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('beforeunload', handleBeforeUnload);
-      window.removeEventListener('storage', handleStorageChange);
     };
   }, []);
 
