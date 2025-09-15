@@ -801,9 +801,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
 
   const handleDeleteEmployee = async (employee: Employee) => {
     // More descriptive confirmation message
-    const confirmMessage = `${t('common.deleteConfirm
-  }
-}')}\n\nEmployee: ${employee.employee_name}\nID: ${employee.emp_id}`;
+    const confirmMessage = `${t('common.deleteConfirm')}\n\nEmployee: ${employee.employee_name}\nID: ${employee.emp_id}`;
     if (!confirm(confirmMessage)) return;
 
     setIsLoading(true);
