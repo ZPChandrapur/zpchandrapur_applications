@@ -1294,10 +1294,9 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="">{t('erms.selectReason')}</option>
-                    <option value="Age">Age</option>
-                    <option value="Voluntary">Voluntary</option>
-                    <option value="Medical">Medical</option>
-                    <option value="Other">Other</option>
+                    <option value="मृत्यू झाल्याने">मृत्यू झाल्याने</option>
+                    <option value="नियत वयोमान">नियत वयोमान</option>
+                    <option value="स्वेच्छा सेवा निवृत्ती">स्वेच्छा सेवा निवृत्ती</option>
                   </select>
                 </div>
                 
