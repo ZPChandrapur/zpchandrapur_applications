@@ -46,6 +46,26 @@ interface Employee {
 }
 
 interface Department {
+  dept_id: string;
+  department: string;
+}
+
+interface Designation {
+  designation_id: string;
+  designation: string;
+}
+
+interface Taluka {
+  tal_id: string;
+  name: string;
+}
+
+interface Office {
+  office_id: string;
+  name: string;
+}
+
+interface Department {
   dept_id: bigint;
   department: string;
 }
@@ -83,6 +103,13 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
   
   // Modal persistence state management
   const getInitialModalState = () => {
+  
+  // Data states for dropdowns
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [designations, setDesignations] = useState<Designation[]>([]);
+  const [talukas, setTalukas] = useState<Taluka[]>([]);
+  const [offices, setOffices] = useState<Office[]>([]);
+  const [clerks, setClerks] = useState<string[]>([]);
     try {
       const savedModalState = localStorage.getItem('erms-employee-modal-state');
       if (savedModalState) {
@@ -277,7 +304,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('beforeunload', handleBeforeUnload);
       window.removeEventListener('storage', handleStorageChange);
-    };
+    fetchAllData();
   }, []);
 
   // Save current state to localStorage
@@ -393,6 +420,24 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
   }, [employees, searchTerm, selectedDepartment, selectedClerk, selectedReason, selectedCadre]);
 
   const fetchAllData = async () => {
+  const fetchAllData = async () => {
+    setIsLoading(true);
+    try {
+      await Promise.all([
+        fetchEmployees(),
+        fetchDepartments(),
+        fetchDesignations(),
+        fetchTalukas(),
+        fetchOffices(),
+        fetchClerks()
+      ]);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
     setIsLoading(true);
     try {
       await Promise.all([
@@ -411,7 +456,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
   };
 
   const fetchEmployees = async () => {
-    try {
       console.log('🔍 Fetching employees from erms.employee table...');
       const { data, error } = await ermsClient
         .from('employee')
@@ -424,11 +468,75 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
           assigned_clerk,
           dept_id,
           designation_id,
-          tal_id,
-          office_id,
           Cadre,
           ddo_code,
           panchayatrajsevarth_id,
+  const fetchDepartments = async () => {
+    try {
+      const { data, error } = await ermsClient
+        .from('department')
+        .select('dept_id, department')
+        .order('department');
+      
+      if (error) throw error;
+      setDepartments(data || []);
+    } catch (error) {
+      console.error('Error fetching departments:', error);
+    }
+  };
+
+  const fetchDesignations = async () => {
+    try {
+      const { data, error } = await ermsClient
+        .from('designations')
+        .select('designation_id, designation')
+        .order('designation');
+      
+      if (error) throw error;
+      setDesignations(data || []);
+    } catch (error) {
+      console.error('Error fetching designations:', error);
+    }
+  };
+
+  const fetchTalukas = async () => {
+    try {
+      const { data, error } = await ermsClient
+        .from('talukas')
+        .select('tal_id, name')
+        .order('name');
+      
+      if (error) throw error;
+      setTalukas(data || []);
+    } catch (error) {
+      console.error('Error fetching talukas:', error);
+    }
+  };
+
+  const fetchOffices = async () => {
+    try {
+      const { data, error } = await ermsClient
+        .from('office_locations')
+        .select('office_id, name')
+        .order('name');
+      
+      if (error) throw error;
+      setOffices(data || []);
+    } catch (error) {
+      console.error('Error fetching offices:', error);
+    }
+  };
+
+  const fetchClerks = async () => {
+    try {
+      // Get unique clerk names from employees
+      const uniqueClerks = [...new Set(employees.map(emp => emp.assigned_clerk).filter(Boolean))];
+      setClerks(uniqueClerks);
+    } catch (error) {
+      console.error('Error fetching clerks:', error);
+    }
+  };
+
           date_of_joining,
           created_at,
           updated_at
