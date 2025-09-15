@@ -65,26 +65,6 @@ interface Office {
   name: string;
 }
 
-interface Department {
-  dept_id: bigint;
-  department: string;
-}
-
-interface Designation {
-  designation_id: string;
-  designation: string;
-}
-
-interface Taluka {
-  tal_id: string;
-  name: string;
-}
-
-interface Office {
-  office_id: string;
-  name: string;
-}
-
 interface ClerkData {
   user_id: string;
   name: string;
@@ -103,13 +83,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
   
   // Modal persistence state management
   const getInitialModalState = () => {
-  
-  // Data states for dropdowns
-  const [departments, setDepartments] = useState<Department[]>([]);
-  const [designations, setDesignations] = useState<Designation[]>([]);
-  const [talukas, setTalukas] = useState<Taluka[]>([]);
-  const [offices, setOffices] = useState<Office[]>([]);
-  const [clerks, setClerks] = useState<string[]>([]);
     try {
       const savedModalState = localStorage.getItem('erms-employee-modal-state');
       if (savedModalState) {
@@ -169,7 +142,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
   
   // Data states
   const [employees, setEmployees] = useState<Employee[]>([]);
-  const [department, setDepartments] = useState<Department[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
   const [designations, setDesignations] = useState<Designation[]>([]);
   const [talukas, setTalukas] = useState<Taluka[]>([]);
   const [offices, setOffices] = useState<Office[]>([]);
@@ -178,7 +151,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
 
   // Function to calculate retirement date based on date of birth and Cadre
   const calculateRetirementDate = (dateOfBirth: string, Cadre: string) => {
-    
+    if (!dateOfBirth) return null;
     if (!Cadre) return null;
     
     const birthDate = new Date(dateOfBirth);
@@ -304,7 +277,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('beforeunload', handleBeforeUnload);
       window.removeEventListener('storage', handleStorageChange);
-    fetchAllData();
+    };
   }, []);
 
   // Save current state to localStorage
@@ -420,24 +393,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
   }, [employees, searchTerm, selectedDepartment, selectedClerk, selectedReason, selectedCadre]);
 
   const fetchAllData = async () => {
-  const fetchAllData = async () => {
-    setIsLoading(true);
-    try {
-      await Promise.all([
-        fetchEmployees(),
-        fetchDepartments(),
-        fetchDesignations(),
-        fetchTalukas(),
-        fetchOffices(),
-        fetchClerks()
-      ]);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
     setIsLoading(true);
     try {
       await Promise.all([
@@ -456,6 +411,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
   };
 
   const fetchEmployees = async () => {
+    try {
       console.log('🔍 Fetching employees from erms.employee table...');
       const { data, error } = await ermsClient
         .from('employee')
@@ -471,72 +427,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
           Cadre,
           ddo_code,
           panchayatrajsevarth_id,
-  const fetchDepartments = async () => {
-    try {
-      const { data, error } = await ermsClient
-        .from('department')
-        .select('dept_id, department')
-        .order('department');
-      
-      if (error) throw error;
-      setDepartments(data || []);
-    } catch (error) {
-      console.error('Error fetching departments:', error);
-    }
-  };
-
-  const fetchDesignations = async () => {
-    try {
-      const { data, error } = await ermsClient
-        .from('designations')
-        .select('designation_id, designation')
-        .order('designation');
-      
-      if (error) throw error;
-      setDesignations(data || []);
-    } catch (error) {
-      console.error('Error fetching designations:', error);
-    }
-  };
-
-  const fetchTalukas = async () => {
-    try {
-      const { data, error } = await ermsClient
-        .from('talukas')
-        .select('tal_id, name')
-        .order('name');
-      
-      if (error) throw error;
-      setTalukas(data || []);
-    } catch (error) {
-      console.error('Error fetching talukas:', error);
-    }
-  };
-
-  const fetchOffices = async () => {
-    try {
-      const { data, error } = await ermsClient
-        .from('office_locations')
-        .select('office_id, name')
-        .order('name');
-      
-      if (error) throw error;
-      setOffices(data || []);
-    } catch (error) {
-      console.error('Error fetching offices:', error);
-    }
-  };
-
-  const fetchClerks = async () => {
-    try {
-      // Get unique clerk names from employees
-      const uniqueClerks = [...new Set(employees.map(emp => emp.assigned_clerk).filter(Boolean))];
-      setClerks(uniqueClerks);
-    } catch (error) {
-      console.error('Error fetching clerks:', error);
-    }
-  };
-
           date_of_joining,
           created_at,
           updated_at
@@ -678,7 +568,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     }).length;
   };
 
-
   const handleAddEmployee = () => {
     setEditingEmployee(null);
     // Reset form data completely
@@ -753,21 +642,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
 
     setIsLoading(true);
     try {
-      // Calculate age from date of birth
-      const calculateAge = (dateOfBirth: string) => {
-        if (!dateOfBirth) return null;
-        const today = new Date();
-        const birthDate = new Date(dateOfBirth);
-        let age = today.getFullYear() - birthDate.getFullYear();
-        const monthDiff = today.getMonth() - birthDate.getMonth();
-        
-        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-          age--;
-        }
-        
-        return age;
-      };
-      
       const calculatedAge = calculateAge(formData.date_of_birth);
       
       // Calculate retirement date based on cadre
@@ -777,7 +651,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       console.log('📊 Calculated values:');
       console.log('   Age:', calculatedAge);
       console.log('   Retirement Date:', calculatedRetirementDate);
-    
       
       // Calculate retirement date based on cadre
       const employeeData = {
@@ -806,7 +679,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       console.log('   retirement_date value:', employeeData.retirement_date);
       console.log('   dept_id:', employeeData.dept_id);
       console.log('   department:', employeeData.department);
-
 
       if (editingEmployee) {
         const { error } = await ermsClient
@@ -1071,7 +943,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                 className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="">{t('erms.allDepartments')}</option>
-                {department.map(dept => (
+                {departments.map(dept => (
                   <option key={dept.dept_id} value={dept.dept_id}>{dept.department}</option>
                 ))}
               </select>
@@ -1161,7 +1033,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                         {designations.find(d => d.designation_id === employee.designation_id)?.designation || '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {department.find(d => d.dept_id === employee.dept_id)?.department || '-'}
+                        {departments.find(d => d.dept_id === employee.dept_id)?.department || '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {offices.find(o => o.office_id === employee.office_id)?.name || '-'}
@@ -1280,7 +1152,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   >
                     <option value="">{t('erms.selectDepartment')}</option>
                     {departments.map(dept => (
-                      <option key={dept.id} value={dept.id}>{dept.department}</option>
+                      <option key={dept.dept_id} value={dept.dept_id}>{dept.department}</option>
                     ))}
                   </select>
                 </div>
@@ -1312,7 +1184,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   >
                     <option value="">{t('erms.selectTaluka')}</option>
                     {talukas.map(taluka => (
-                      <option key={taluka.id} value={taluka.id}>{taluka.name}</option>
+                      <option key={taluka.tal_id} value={taluka.tal_id}>{taluka.name}</option>
                     ))}
                   </select>
                 </div>
@@ -1326,7 +1198,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     required
                   >
                     <option value="">{t('erms.selectOffice')}</option>
-                    {officeLocations.map(office => (
+                    {offices.map(office => (
                       <option key={office.office_id} value={office.office_id}>{office.name}</option>
                     ))}
                   </select>
@@ -1668,7 +1540,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="">{t('erms.selectDepartment')}</option>
-                    {department.map(dept => (
+                    {departments.map(dept => (
                       <option key={dept.dept_id} value={dept.dept_id}>{dept.department}</option>
                     ))}
                   </select>
@@ -1935,7 +1807,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="">{t('erms.selectDepartment')}</option>
-                    {department.map(dept => (
+                    {departments.map(dept => (
                       <option key={dept.dept_id} value={dept.dept_id}>{dept.department}</option>
                     ))}
                   </select>
