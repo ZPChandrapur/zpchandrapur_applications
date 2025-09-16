@@ -178,21 +178,21 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
         console.log('📊 Total education employees:', count);
       }
       
-      // Fetch all records using range
+      // Fetch all records using range - ensure we get ALL records
       const { data, error } = await ermsClient
         .from('employee')
         .select('*')
         .eq('dept_id', educationDeptId) // Filter for Education Department
         .range(0, Math.max((count || 0) - 1, 4999))
         //.limit(5000)
-        .range(0, count ? count - 1 : 7000) // Fetch all records or up to 5000
+        .range(0, count ? count - 1 : 9999)
         .order('employee_name');
       
       if (error) {
         console.error('Error fetching employees:', error);
         throw error;
       }
-      console.log('✅ Employees fetched:', data?.length || 0);
+      console.log('✅ Employees fetched:', data?.length || 0, 'out of', count);
       setEmployees(data || []);
       setTotalEmployeeCount(count || data?.length || 0);
     } catch (error) {
