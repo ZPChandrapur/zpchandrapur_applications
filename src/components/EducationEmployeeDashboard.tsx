@@ -313,7 +313,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
   };
 
   const getKPIData = () => {
-    const total = filteredEmployees.length;
+    const total = filteredEmployees.count;
     const upcomingRetirements = filteredEmployees.filter(emp => {
       if (!emp.retirement_date) return false;
       const retirementDate = new Date(emp.retirement_date);
@@ -471,7 +471,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600 mb-1">{t('erms.totalEmployees')}</p>
-                <p className="text-3xl font-bold text-gray-900">{count}</p>
+                <p className="text-3xl font-bold text-gray-900">{kpiData.total}</p>
               </div>
               <div className="bg-blue-100 p-3 rounded-lg">
                 <Users className="h-8 w-8 text-blue-600" />
