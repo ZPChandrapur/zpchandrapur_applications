@@ -182,7 +182,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
         .from('employee')
         .select('*')
         .eq('dept_id', educationDeptId) // Filter for Education Department
-        .limit(5000)
+        //.limit(5000)
         .range(0, count ? count - 1 : 7000) // Fetch all records or up to 5000
         .order('employee_name');
       
