@@ -179,7 +179,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
       }
       
       // Fetch all records using range
-      const { count, error: countError } = await ermsClient
+      const { data, error } = await ermsClient
         .from('employee')
         .select('*', { count: 'exact', head: true })
         .eq('dept_id', educationDeptId);
@@ -196,12 +196,15 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
         .from('employee')
         .select('*')
         .eq('dept_id', educationDeptId) // Filter for Education Department
-        .range(0, Math.max(count - 1, 4999)) // Fetch all records, fallback to 5000
+        .range(0, Math.max((count || 0) - 1, 4999))
         //.limit(5000)
         .range(0, count ? count - 1 : 7000) // Fetch all records or up to 5000
         .order('employee_name');
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching employees:', error);
+        throw error;
+      console.log('✅ Employees fetched:', data?.length || 0);
       setEmployees(data || []);
       setTotalEmployeeCount(count || data?.length || 0);
     } catch (error) {
