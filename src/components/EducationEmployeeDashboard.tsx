@@ -313,7 +313,8 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
   };
 
   const getKPIData = () => {
-    const total = filteredEmployees.count;
+    //const total = filteredEmployees.length;
+    const total = fetchEmployees.count;
     const upcomingRetirements = filteredEmployees.filter(emp => {
       if (!emp.retirement_date) return false;
       const retirementDate = new Date(emp.retirement_date);
