@@ -95,6 +95,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
   const [selectedClerk, setSelectedClerk] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [recordsPerPage] = useState(20);
+  const [totalEmployeeCount, setTotalEmployeeCount] = useState(0);
   const [selectedReason, setSelectedReason] = useState('');
   
   // Modal states
@@ -165,6 +166,19 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
     
       
       // First get total count
+      // First get the total count
+      const { count, error: countError } = await ermsClient
+        .from('employee')
+        .select('*', { count: 'exact', head: true })
+        .eq('dept_id', educationDeptId);
+      
+      if (countError) {
+        console.error('❌ Error getting employee count:', countError);
+      } else {
+        console.log('📊 Total education employees:', count);
+      }
+      
+      // Fetch all records using range
       const { count, error: countError } = await ermsClient
         .from('employee')
         .select('*', { count: 'exact', head: true })
@@ -182,12 +196,14 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
         .from('employee')
         .select('*')
         .eq('dept_id', educationDeptId) // Filter for Education Department
+        .range(0, Math.max(count - 1, 4999)) // Fetch all records, fallback to 5000
         //.limit(5000)
         .range(0, count ? count - 1 : 7000) // Fetch all records or up to 5000
         .order('employee_name');
       
       if (error) throw error;
       setEmployees(data || []);
+      setTotalEmployeeCount(count || data?.length || 0);
     } catch (error) {
       console.error('Error fetching employees:', error);
     }
@@ -313,8 +329,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
   };
 
   const getKPIData = () => {
-    //const total = filteredEmployees.length;
-    const total = fetchEmployees.count;
+    const total = totalEmployeeCount; // Use the actual total count from database
     const upcomingRetirements = filteredEmployees.filter(emp => {
       if (!emp.retirement_date) return false;
       const retirementDate = new Date(emp.retirement_date);
@@ -323,7 +338,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
       return retirementDate <= sixMonthsFromNow;
     }).length;
     
-    const assigned = filteredEmployees.filter(emp => emp.assigned_clerk).length;
+    const assigned = employees.filter(emp => emp.assigned_clerk).length; // Use all employees, not filtered
     const unassigned = total - assigned;
 
     return { total, upcomingRetirements, assigned, unassigned };
