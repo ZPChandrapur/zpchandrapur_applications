@@ -104,7 +104,6 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
   const [editingEmployee, setEditingEmployee] = useState<EducationEmployee | null>(null);
   
   // Pagination
-  const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 20;
   
   // Form data
@@ -126,7 +125,6 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
   useEffect(() => {
     filterEmployees();
     setCurrentPage(1); // Reset to first page when filters change
-    setCurrentPage(1);
   }, [employees, searchTerm, selectedDepartment, selectedClerk, selectedReason]);
 
   const fetchAllData = async () => {
@@ -428,19 +426,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
     setSelectedReason('');
   };
 
-  const getPaginatedEmployees = () => {
-    const startIndex = (currentPage - 1) * recordsPerPage;
-    const endIndex = startIndex + recordsPerPage;
-    return filteredEmployees.slice(startIndex, endIndex);
-  };
-
-  const getTotalPages = () => {
-    return Math.ceil(filteredEmployees.length / recordsPerPage);
-  };
-
   const kpiData = getKPIData();
-  const paginatedEmployees = getPaginatedEmployees();
-  const totalPages = getTotalPages();
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -618,7 +604,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
                     </td>
                   </tr>
                 ) : (
-                  paginatedEmployees.map((employee) => {
+                  paginatedEmployees.map((employee) => (
                     <tr key={employee.emp_id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
@@ -675,64 +661,6 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
               </tbody>
             </table>
           </div>
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="px-6 py-4 border-t border-gray-200">
-              <div className="flex items-center justify-between">
-                <div className="text-sm text-gray-500">
-                  पृष्ठ {currentPage} / {totalPages} ({filteredEmployees.length} एकूण रेकॉर्ड)
-                </div>
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                    disabled={currentPage === 1}
-                    className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                    <span>मागील</span>
-                  </button>
-                  
-                  {/* Page numbers */}
-                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                    let pageNum;
-                    if (totalPages <= 5) {
-                      pageNum = i + 1;
-                    } else if (currentPage <= 3) {
-                      pageNum = i + 1;
-                    } else if (currentPage >= totalPages - 2) {
-                      pageNum = totalPages - 4 + i;
-                    } else {
-                      pageNum = currentPage - 2 + i;
-                    }
-                    
-                    return (
-                      <button
-                        key={pageNum}
-                        onClick={() => setCurrentPage(pageNum)}
-                        className={`px-3 py-1 text-sm border rounded-md ${
-                          currentPage === pageNum
-                            ? 'bg-blue-500 text-white border-blue-500'
-                            : 'border-gray-300 hover:bg-gray-50'
-                        }`}
-                      >
-                        {pageNum}
-                      </button>
-                    );
-                  })}
-                  
-                  <button
-                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                    disabled={currentPage === totalPages}
-                    className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1"
-                  >
-                    <span>पुढील</span>
-                    <ChevronRight className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* Pagination */}
           {totalPages > 1 && (
