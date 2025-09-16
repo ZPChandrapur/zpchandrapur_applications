@@ -183,9 +183,9 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
         .from('employee')
         .select('*')
         .eq('dept_id', educationDeptId) // Filter for Education Department
-        .range(0, Math.max((count || 0) - 1, 4999))
+        .range(0, Math.max((count || 0) - 1, 9999))
         //.limit(5000)
-        .range(0, count ? count - 1 : 9999)
+        //.range(0, count ? count - 1 : 9999)
         .order('employee_name');
       
       if (error) {
