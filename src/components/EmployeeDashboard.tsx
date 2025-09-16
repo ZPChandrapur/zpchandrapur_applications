@@ -416,6 +416,10 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
   const fetchEmployees = async () => {
     try {
       console.log('🔍 Fetching employees from erms.employee table...');
+      
+      // Define education department ID
+      const educationDeptId = 'DEPT001'; // Replace with actual education department ID
+      
       const { data, error } = await ermsClient
         .from('employee')
         .select(`
