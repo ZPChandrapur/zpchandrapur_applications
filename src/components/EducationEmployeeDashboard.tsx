@@ -164,7 +164,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
   const fetchEmployees = async () => {
     if (!educationDeptId) return;
     
-      
+    try {
       // First get total count
       // First get the total count
       const { count, error: countError } = await ermsClient
@@ -181,19 +181,6 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
       // Fetch all records using range
       const { data, error } = await ermsClient
         .from('employee')
-        .select('*', { count: 'exact', head: true })
-        .eq('dept_id', educationDeptId);
-      
-      if (countError) {
-        console.error('❌ Error getting count:', countError);
-      } else {
-        console.log(`📊 Total education employees: ${count}`);
-      }
-      
-      // Fetch all records using range
-    try {
-      const { data, error } = await ermsClient
-        .from('employee')
         .select('*')
         .eq('dept_id', educationDeptId) // Filter for Education Department
         .range(0, Math.max((count || 0) - 1, 4999))
@@ -204,6 +191,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
       if (error) {
         console.error('Error fetching employees:', error);
         throw error;
+      }
       console.log('✅ Employees fetched:', data?.length || 0);
       setEmployees(data || []);
       setTotalEmployeeCount(count || data?.length || 0);
@@ -540,7 +528,9 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
           <div className="px-6 py-4 border-b border-gray-200">
             <div className="flex items-center justify-between mb-4">
-              {filteredEmployees.length} पैकी {paginatedEmployees.length} कर्मचारी दाखवत आहे (पृष्ठ {currentPage} / {totalPages})
+              <div>
+                {filteredEmployees.length} पैकी {paginatedEmployees.length} कर्मचारी दाखवत आहे (पृष्ठ {currentPage} / {totalPages})
+              </div>
               <div className="flex items-center space-x-3">
                 <button className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200">
                   <Download className="h-4 w-4" />
