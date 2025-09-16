@@ -417,41 +417,82 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     try {
       console.log('🔍 Fetching employees from erms.employee table...');
       
-      // Define education department ID
-      const educationDeptId = 3; // Replace with actual education department ID
+      // First get the education department ID
+      const { data: educationDept, error: deptError } = await ermsClient
+        .from('department')
+        .select('dept_id')
+        .eq('department', 'शिक्षण विभाग')
+        .single();
       
-      const { data, error } = await ermsClient
+      if (deptError) {
+        console.warn('Could not find education department:', deptError);
+      }
+      
+      const educationDeptId = educationDept?.dept_id;
+      console.log('Education Department ID:', educationDeptId);
+      
+      // Get total count excluding education department
+      const countQuery = ermsClient
+        .from('employee')
+        .select('*', { count: 'exact', head: true });
+      
+      if (educationDeptId) {
+        countQuery.neq('dept_id', educationDeptId);
+      }
+      
+      const { count, error: countError } = await countQuery;
+      
+      if (countError) {
+        console.error('Error getting employee count:', countError);
+        throw countError;
+      }
+      
+      console.log('Total employees (excluding education):', count);
+      setTotalEmployeeCount(count || 0);
+      
+      // Fetch all records excluding education department
+      const dataQuery = ermsClient
         .from('employee')
         .select(`
           emp_id,
           employee_name,
+          employee_name_en,
+          age,
           date_of_birth,
           retirement_date,
-          reason,
+          retirement_reason,
           assigned_clerk,
+          date_of_assignment,
           dept_id,
-          designation_id,
+          designation,
           tal_id,
           office_id,
-          Cadre,
-          ddo_code,
           panchayatrajsevarth_id,
+          ddo_code,
+          cadre,
+          post_name,
+          appointing_department,
+          working_office_name,
           date_of_joining,
+          date_of_service_expiry,
           created_at,
           updated_at
         `)
-        //.eq('dept_id', 1)
-        .limit(5000)
-        .order('date_of_birth');
-       
-      if (error) {
-        console.error('❌ Error fetching employees:', error);
-        throw error;
+        .range(0, count ? count - 1 : 9999)
+        .order('employee_name');
+      
+      if (educationDeptId) {
+        dataQuery.neq('dept_id', educationDeptId);
       }
+      
+      const { data, error } = await dataQuery;
+      
+      // Define education department ID
+      const educationDeptId = 3; // Replace with actual education department ID
       
       console.log('✅ Raw employee data from database:', data);
       console.log('📊 Number of employees fetched:', data?.length || 0);
-      
+      console.log('✅ Employees fetched (excluding education):', data?.length || 0, 'out of', count);
       setEmployees(data || []);
       console.log('📋 Employees state updated with:', data?.length || 0, 'records');
     } catch (error) {
