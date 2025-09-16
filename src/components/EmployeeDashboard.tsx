@@ -469,7 +469,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
           office_id,
           panchayatrajsevarth_id,
           ddo_code,
-          cadre,
+          Cadre,
           post_name,
           appointing_department,
           working_office_name,
