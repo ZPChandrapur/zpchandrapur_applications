@@ -474,7 +474,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
           appointing_department,
           working_office_name,
           date_of_joining,
-          date_of_service_expiry,
+          --date_of_service_expiry,
           created_at,
           updated_at
         `)
