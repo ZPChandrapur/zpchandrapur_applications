@@ -440,7 +440,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
           created_at,
           updated_at
         `)
-        .neq('dept_id', educationDeptId)
+        .eq('dept_id', 1)
         .order('date_of_birth');
        
       if (error) {
