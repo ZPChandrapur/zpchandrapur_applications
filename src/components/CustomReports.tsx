@@ -376,7 +376,7 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
             
             query = ermsClient.from(baseTable).select(selectString);
             
-            const result = await query.limit(1000);
+            const result = await query;
             if (result.error) throw result.error;
             
             // Flatten the joined data
