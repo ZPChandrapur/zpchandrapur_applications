@@ -436,8 +436,9 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
           created_at,
           updated_at
         `)
+        .neq('dept_id', educationDeptId)
         .order('date_of_birth');
-      
+       
       if (error) {
         console.error('❌ Error fetching employees:', error);
         throw error;
