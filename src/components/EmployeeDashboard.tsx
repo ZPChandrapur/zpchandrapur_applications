@@ -470,7 +470,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
           panchayatrajsevarth_id,
           ddo_code,
           Cadre,
-          post_name,
+          //post_name,
           appointing_department,
           working_office_name,
           date_of_joining,
