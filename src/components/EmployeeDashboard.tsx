@@ -81,6 +81,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
   const [selectedClerk, setSelectedClerk] = useState('');
   const [selectedReason, setSelectedReason] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalEmployeeCount, setTotalEmployeeCount] = useState(0);
   const [recordsPerPage, setRecordsPerPage] = useState(20);
   const [selectedCadre, setSelectedCadre] = useState('');
   
