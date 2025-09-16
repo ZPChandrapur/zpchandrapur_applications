@@ -441,6 +441,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
           updated_at
         `)
         //.eq('dept_id', 1)
+        .limit(5000)
         .order('date_of_birth');
        
       if (error) {
