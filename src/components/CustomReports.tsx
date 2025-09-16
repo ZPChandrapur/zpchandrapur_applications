@@ -297,7 +297,7 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
           }
         });
 
-        const result = await query.limit(1000);
+        const result = await query;
         if (result.error) throw result.error;
         data = result.data;
         
