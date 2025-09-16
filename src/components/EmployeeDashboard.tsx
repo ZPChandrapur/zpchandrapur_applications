@@ -488,8 +488,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       const { data, error } = await dataQuery;
       
       // Define education department ID
-      const educationDeptId = 3; // Replace with actual education department ID
-      
       console.log('✅ Raw employee data from database:', data);
       console.log('📊 Number of employees fetched:', data?.length || 0);
       console.log('✅ Employees fetched (excluding education):', data?.length || 0, 'out of', count);
