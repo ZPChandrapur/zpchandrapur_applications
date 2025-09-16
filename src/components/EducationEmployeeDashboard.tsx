@@ -14,6 +14,8 @@ import {
   Trash2,
   X,
   ChevronLeft,
+  BarChart3,
+  ChevronLeft,
   ChevronRight
 } from 'lucide-react';
 import { ermsClient, supabase } from '../lib/supabase';
@@ -92,6 +94,8 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState('');
   const [selectedClerk, setSelectedClerk] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [recordsPerPage] = useState(20);
   const [selectedReason, setSelectedReason] = useState('');
   
   // Modal states
@@ -121,6 +125,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
   
   useEffect(() => {
     filterEmployees();
+    setCurrentPage(1); // Reset to first page when filters change
     setCurrentPage(1);
   }, [employees, searchTerm, selectedDepartment, selectedClerk, selectedReason]);
 
@@ -164,11 +169,26 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
   const fetchEmployees = async () => {
     if (!educationDeptId) return;
     
+      
+      // First get total count
+      const { count, error: countError } = await ermsClient
+        .from('employee')
+        .select('*', { count: 'exact', head: true })
+        .eq('dept_id', educationDeptId);
+      
+      if (countError) {
+        console.error('❌ Error getting count:', countError);
+      } else {
+        console.log(`📊 Total education employees: ${count}`);
+      }
+      
+      // Fetch all records using range
     try {
       const { data, error } = await ermsClient
         .from('employee')
         .select('*')
         .eq('dept_id', educationDeptId) // Filter for Education Department
+        .range(0, count ? count - 1 : 4999) // Fetch all records or up to 5000
         .order('employee_name');
       
       if (error) throw error;
@@ -286,6 +306,17 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
     setFilteredEmployees(filtered);
   };
 
+  // Pagination logic
+  const getPaginatedEmployees = () => {
+    const startIndex = (currentPage - 1) * recordsPerPage;
+    const endIndex = startIndex + recordsPerPage;
+    return filteredEmployees.slice(startIndex, endIndex);
+  };
+
+  const getTotalPages = () => {
+    return Math.ceil(filteredEmployees.length / recordsPerPage);
+  };
+
   const getKPIData = () => {
     const total = filteredEmployees.length;
     const upcomingRetirements = filteredEmployees.filter(emp => {
@@ -302,6 +333,8 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
     return { total, upcomingRetirements, assigned, unassigned };
   };
 
+  const paginatedEmployees = getPaginatedEmployees();
+  const totalPages = getTotalPages();
   const handleAddEmployee = () => {
     setFormData({
       cadre: 'C',
@@ -391,6 +424,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
     setSearchTerm('');
     setSelectedDepartment('');
     setSelectedClerk('');
+    setCurrentPage(1);
     setSelectedReason('');
   };
 
@@ -504,7 +538,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
           <div className="px-6 py-4 border-b border-gray-200">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Education Department Employee Records</h3>
+              {filteredEmployees.length} पैकी {paginatedEmployees.length} कर्मचारी दाखवत आहे (पृष्ठ {currentPage} / {totalPages})
               <div className="flex items-center space-x-3">
                 <button className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200">
                   <Download className="h-4 w-4" />
@@ -584,7 +618,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
                     </td>
                   </tr>
                 ) : (
-                  paginatedEmployees.map((employee) => (
+                  paginatedEmployees.map((employee) => {
                     <tr key={employee.emp_id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
@@ -641,6 +675,64 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
               </tbody>
             </table>
           </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="px-6 py-4 border-t border-gray-200">
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-500">
+                  पृष्ठ {currentPage} / {totalPages} ({filteredEmployees.length} एकूण रेकॉर्ड)
+                </div>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                    disabled={currentPage === 1}
+                    className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    <span>मागील</span>
+                  </button>
+                  
+                  {/* Page numbers */}
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum;
+                    if (totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (currentPage <= 3) {
+                      pageNum = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i;
+                    } else {
+                      pageNum = currentPage - 2 + i;
+                    }
+                    
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => setCurrentPage(pageNum)}
+                        className={`px-3 py-1 text-sm border rounded-md ${
+                          currentPage === pageNum
+                            ? 'bg-blue-500 text-white border-blue-500'
+                            : 'border-gray-300 hover:bg-gray-50'
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+                  
+                  <button
+                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                    disabled={currentPage === totalPages}
+                    className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1"
+                  >
+                    <span>पुढील</span>
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Pagination */}
           {totalPages > 1 && (
