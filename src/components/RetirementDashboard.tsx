@@ -335,7 +335,11 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
         .select(`
           user_id,
           name,
-          roles!inner(name)
+    
+    }
+  }
+  )
+}      roles!inner(name)
         `)
         .eq('roles.name', 'clerk')
         .not('name', 'is', null);
