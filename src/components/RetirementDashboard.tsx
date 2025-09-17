@@ -348,20 +348,6 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
     return monthData;
   }, [filteredEmployees, selectedMonth, selectedYear]);
 
-  const getDepartmentWiseData = useCallback(() => {
-    const deptCounts: { [key: string]: number } = {};
-    
-    filteredEmployees.forEach(emp => {
-      const dept = emp.department || 'Not Assigned';
-      deptCounts[dept] = (deptCounts[dept] || 0) + 1;
-    });
-
-    return Object.entries(deptCounts)
-      .map(([name, count]) => ({ name, count }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 10);
-  }, [filteredEmployees]);
-
   const getClerkWiseData = useCallback(() => {
     const clerkCounts: { [key: string]: number } = {};
     
