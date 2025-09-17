@@ -80,13 +80,14 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
   const [showViewModal, setShowViewModal] = useState(false);
   const [viewingEmployee, setViewingEmployee] = useState<RetirementEmployee | null>(null);
   
-  // Data states
+  const totalPages = useMemo(() => Math.ceil(filteredEmployees.length / employeesPerPage), [filteredEmployees.length, employeesPerPage]);
   const [retirementEmployees, setRetirementEmployees] = useState<RetirementEmployee[]>([]);
   const [clerks, setClerks] = useState<ClerkData[]>([]);
 
   // Helper function to calculate retirement progress status
   const calculateRetirementProgressStatus = (record: any) => {
     const progressFields = [
+    setCurrentPage(1);
       record.birth_certificate,
       record.birth_doc_submitted,
       record.medical_certificate,
@@ -170,11 +171,13 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
   // Initial data fetch - only run once on mount
   useEffect(() => {
     fetchAllData();
-  }, []); // Empty dependency array - only run on mount
+  }, []); // Empty dependency array - only run once on mount
 
-  const fetchAllData = useCallback(async () => {
+    setCurrentPage(1); // Reset to first page when filters change
+  }, [retirementEmployees, selectedDepartment, selectedStatus, selectedClerk, searchTerm]);
     if (isLoading) return; // Prevent multiple simultaneous calls
     
+    if (isLoading) return; // Prevent multiple simultaneous calls
     setIsLoading(true);
     try {
       await Promise.all([
@@ -321,6 +324,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
       setRetirementEmployees(employeesWithUpdatedStatus);
     } catch (error) {
       console.error('Error fetching retirement employees:', error);
+      setRetirementEmployees([]); // Set empty array on error to prevent undefined issues
     }
   }, []);
 
@@ -347,6 +351,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
       setClerks(clerksData);
     } catch (error) {
       console.error('Error fetching clerks:', error);
+      setClerks([]); // Set empty array on error
     }
   }, []);
 
@@ -1604,11 +1609,11 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
                 className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200"
               >
                 {t('common.edit')}
-              </button>
+  const dashboardStats = useMemo(() => calculateDashboardStats(), [retirementEmployees]);
             </div>
           </div>
-        </div>
+  const paginatedEmployees = useMemo(() => filteredEmployees.slice(
       )}
     </div>
-  );
+  ), [filteredEmployees, currentPage, employeesPerPage]);
 };
