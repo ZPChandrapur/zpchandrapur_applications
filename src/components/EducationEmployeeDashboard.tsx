@@ -40,7 +40,7 @@ interface EducationEmployee {
   retirement_reason: string | null;
   assigned_clerk: string | null;
   date_of_assignment: string | null;
-  shalarth_id?: string;
+  Shalarth_Id?: string;
   cast_category?: string;
   appointment_caste_category?: string;
   teacher_type?: string;
@@ -628,7 +628,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
                         {employee.designation}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {employee.shalarth_id || '-'}
+                        {employee.Shalarth_Id || '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {employee.teacher_type || '-'}
@@ -797,8 +797,8 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
                   <label className="block text-sm font-medium text-gray-700 mb-2">Shalarth ID</label>
                   <input
                     type="text"
-                    value={formData.shalarth_id || ''}
-                    onChange={(e) => setFormData({ ...formData, shalarth_id: e.target.value })}
+                    value={formData.Shalarth_Id || ''}
+                    onChange={(e) => setFormData({ ...formData, Shalarth_Id: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Enter Shalarth ID"
                   />
@@ -1056,8 +1056,8 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
                   <label className="block text-sm font-medium text-gray-700 mb-2">Shalarth ID</label>
                   <input
                     type="text"
-                    value={formData.shalarth_id || ''}
-                    onChange={(e) => setFormData({ ...formData, shalarth_id: e.target.value })}
+                    value={formData.Shalarth_Id || ''}
+                    onChange={(e) => setFormData({ ...formData, Shalarth_Id: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Enter Shalarth ID"
                   />
