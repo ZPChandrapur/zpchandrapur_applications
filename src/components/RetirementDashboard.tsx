@@ -79,10 +79,32 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
   const [activeTab, setActiveTab] = useState<'inProgress' | 'pending' | 'completed'>('inProgress');
   const [showViewModal, setShowViewModal] = useState(false);
   const [viewingEmployee, setViewingEmployee] = useState<RetirementEmployee | null>(null);
-  
-  const totalPages = useMemo(() => Math.ceil(filteredEmployees.length / employeesPerPage), [filteredEmployees.length, employeesPerPage]);
   const [retirementEmployees, setRetirementEmployees] = useState<RetirementEmployee[]>([]);
   const [clerks, setClerks] = useState<ClerkData[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [employeesPerPage] = useState(10);
+
+  const filteredEmployees = useMemo(() => {
+    let filtered = retirementEmployees;
+
+    // Role-based filtering
+    if (userRole === 'clerk' && userProfile?.name) {
+      // Clerk can only see their assigned employees
+      filtered = filtered.filter(emp => emp.assigned_clerk === userProfile.name);
+    }
+
+    // Clerk filter (for non-clerk users)
+    if (selectedClerk && userRole !== 'clerk') {
+      const selectedClerkName = clerks.find(c => c.user_id === selectedClerk)?.name;
+      if (selectedClerkName) {
+        filtered = filtered.filter(emp => emp.assigned_clerk === selectedClerkName);
+      }
+    }
+
+    return filtered;
+  }, [retirementEmployees, selectedClerk, userRole, userProfile, clerks]);
+
+  const totalPages = useMemo(() => Math.ceil(filteredEmployees.length / employeesPerPage), [filteredEmployees.length, employeesPerPage]);
 
   // Helper function to calculate retirement progress status
   const calculateRetirementProgressStatus = (record: any) => {
@@ -147,36 +169,18 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
     return 'in_progress';
   };
 
-  const filteredEmployees = useMemo(() => {
-    let filtered = retirementEmployees;
-
-    // Role-based filtering
-    if (userRole === 'clerk' && userProfile?.name) {
-      // Clerk can only see their assigned employees
-      filtered = filtered.filter(emp => emp.assigned_clerk === userProfile.name);
-    }
-
-    // Clerk filter (for non-clerk users)
-    if (selectedClerk && userRole !== 'clerk') {
-      const selectedClerkName = clerks.find(c => c.user_id === selectedClerk)?.name;
-      if (selectedClerkName) {
-        filtered = filtered.filter(emp => emp.assigned_clerk === selectedClerkName);
-      }
-    }
-
-    return filtered;
-  }, [retirementEmployees, selectedClerk, userRole, userProfile, clerks]);
-
   // Initial data fetch - only run once on mount
   useEffect(() => {
     fetchAllData();
   }, []); // Empty dependency array - only run once on mount
 
+  useEffect(() => {
     setCurrentPage(1); // Reset to first page when filters change
-  }, [retirementEmployees, selectedDepartment, selectedStatus, selectedClerk, searchTerm]);
+  }, [retirementEmployees, selectedClerk]);
+
+  const fetchAllData = useCallback(async () => {
     if (isLoading) return; // Prevent multiple simultaneous calls
     
-    if (isLoading) return; // Prevent multiple simultaneous calls
     setIsLoading(true);
     try {
       await Promise.all([
@@ -334,11 +338,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
         .select(`
           user_id,
           name,
-    
-    }
-  }
-  )
-}      roles!inner(name)
+          roles!inner(name)
         `)
         .eq('roles.name', 'clerk')
         .not('name', 'is', null);
@@ -1612,11 +1612,11 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
                 className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200"
               >
                 {t('common.edit')}
-  const dashboardStats = useMemo(() => calculateDashboardStats(), [retirementEmployees]);
+              </button>
             </div>
           </div>
-  const paginatedEmployees = useMemo(() => filteredEmployees.slice(
+        </div>
       )}
     </div>
-  ), [filteredEmployees, currentPage, employeesPerPage]);
+  );
 };
