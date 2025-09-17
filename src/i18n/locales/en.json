@@ -137,6 +137,7 @@
     "organizationSetup": "Organization Setup",
     "organizationSetupDesc": "Manage organizational structure and master data",
     "departments": "Departments",
+    "englishname": "English Name",
     "department": "Department",
     "departmentId": "Department ID",
     "departmentName": "Department Name",
