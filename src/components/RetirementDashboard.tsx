@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+```jsx
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { 
   Users,
@@ -146,21 +147,35 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
     if (filledFields === totalFields) return 'completed';
     return 'in_progress';
   };
-  const [filteredEmployees, setFilteredEmployees] = useState<RetirementEmployee[]>([]);
 
+  const filteredEmployees = useMemo(() => {
+    let filtered = retirementEmployees;
+
+    // Role-based filtering
+    if (userRole === 'clerk' && userProfile?.name) {
+      // Clerk can only see their assigned employees
+      filtered = filtered.filter(emp => emp.assigned_clerk === userProfile.name);
+    }
+
+    // Clerk filter (for non-clerk users)
+    if (selectedClerk && userRole !== 'clerk') {
+      const selectedClerkName = clerks.find(c => c.user_id === selectedClerk)?.name;
+      if (selectedClerkName) {
+        filtered = filtered.filter(emp => emp.assigned_clerk === selectedClerkName);
+      }
+    }
+
+    return filtered;
+  }, [retirementEmployees, selectedClerk, userRole, userProfile, clerks]);
+
+  // Initial data fetch - only run once on mount
   useEffect(() => {
     fetchAllData();
-  }, []);
+  }, []); // Empty dependency array - only run on mount
 
-  useEffect(() => {
-  fetchAllData();
-}, []);
-
-  useEffect(() => {
-    filterEmployees();
-  }, [retirementEmployees, selectedClerk, userRole, userProfile]);
-
-  const fetchAllData = async () => {
+  const fetchAllData = useCallback(async () => {
+    if (isLoading) return; // Prevent multiple simultaneous calls
+    
     setIsLoading(true);
     try {
       await Promise.all([
@@ -172,9 +187,9 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [isLoading]);
 
-  const fetchRetirementEmployees = async () => {
+  const fetchRetirementEmployees = useCallback(async () => {
     try {
       // Fetch retirement records with related data from all tables
       const { data: retirementData, error: retirementError } = await ermsClient
@@ -308,9 +323,9 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
     } catch (error) {
       console.error('Error fetching retirement employees:', error);
     }
-  };
+  }, []);
 
-  const fetchClerks = async () => {
+  const fetchClerks = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('user_roles')
@@ -334,27 +349,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
     } catch (error) {
       console.error('Error fetching clerks:', error);
     }
-  };
-
-  const filterEmployees = () => {
-    let filtered = retirementEmployees;
-
-    // Role-based filtering
-    if (userRole === 'clerk' && userProfile?.name) {
-      // Clerk can only see their assigned employees
-      filtered = filtered.filter(emp => emp.assigned_clerk === userProfile.name);
-    }
-
-    // Clerk filter (for non-clerk users)
-    if (selectedClerk && userRole !== 'clerk') {
-      const selectedClerkName = clerks.find(c => c.user_id === selectedClerk)?.name;
-      if (selectedClerkName) {
-        filtered = filtered.filter(emp => emp.assigned_clerk === selectedClerkName);
-      }
-    }
-
-    setFilteredEmployees(filtered);
-  };
+  }, []);
 
   const getProgressStatus = (employee: RetirementEmployee) => {
     // Only include actual data fields, not status fields
@@ -380,16 +375,16 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
     return 'processing';
   };
 
-  const getStatusCounts = () => {
+  const getStatusCounts = useCallback(() => {
     const total = filteredEmployees.length;
     const processing = filteredEmployees.filter(emp => getProgressStatus(emp) === 'processing').length;
     const completed = filteredEmployees.filter(emp => getProgressStatus(emp) === 'completed').length;
     const pending = filteredEmployees.filter(emp => getProgressStatus(emp) === 'pending').length;
 
     return { total, processing, completed, pending };
-  };
+  }, [filteredEmployees]);
 
-  const getMonthWiseData = () => {
+  const getMonthWiseData = useCallback(() => {
     // Get 6 months: 3 before selected month, selected month, 2 after selected month
     const monthData = [];
     for (let i = -3; i <= 2; i++) {
@@ -418,9 +413,9 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
     });
 
     return monthData;
-  };
+  }, [filteredEmployees, selectedMonth, selectedYear]);
 
-  const getDepartmentWiseData = () => {
+  const getDepartmentWiseData = useCallback(() => {
     const deptCounts: { [key: string]: number } = {};
     
     filteredEmployees.forEach(emp => {
@@ -432,9 +427,9 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
       .map(([name, count]) => ({ name, count }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 10);
-  };
+  }, [filteredEmployees]);
 
-  const getClerkWiseData = () => {
+  const getClerkWiseData = useCallback(() => {
     const clerkCounts: { [key: string]: number } = {};
     
     filteredEmployees.forEach(emp => {
@@ -446,9 +441,9 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
       .map(([name, count]) => ({ name, count }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 10);
-  };
+  }, [filteredEmployees]);
 
-  const getDesignationWiseData = () => {
+  const getDesignationWiseData = useCallback(() => {
     const designationCounts: { [key: string]: number } = {};
     
     filteredEmployees.forEach(emp => {
@@ -460,9 +455,9 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
       .map(([name, count]) => ({ name, count }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 10);
-  };
+  }, [filteredEmployees]);
 
-  const getTabFilteredEmployees = () => {
+  const getTabFilteredEmployees = useCallback(() => {
     if (activeTab === 'completed') {
       return filteredEmployees.filter(emp => getProgressStatus(emp) === 'completed');
     } else if (activeTab === 'pending') {
@@ -474,21 +469,20 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
       });
     }
     return filteredEmployees;
-  };
+  }, [activeTab, filteredEmployees]);
 
-  const handleEditEmployee = (employee: RetirementEmployee) => {
+  const handleEditEmployee = useCallback((employee: RetirementEmployee) => {
     setEditingEmployee(employee);
     setShowEditModal(true);
-  };
+  }, []);
 
-  const handleViewEmployee = (employee: RetirementEmployee) => {
+  const handleViewEmployee = useCallback((employee: RetirementEmployee) => {
     setViewingEmployee(employee);
     setShowViewModal(true);
-  };
+  }, []);
 
-  const handleUpdateEmployee = async () => {
+  const handleUpdateEmployee = useCallback(async () => {
     if (!editingEmployee) return;
-
     setIsLoading(true);
     try {
       // Calculate the new status based on the updated data
@@ -521,11 +515,11 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
       setEditingEmployee(null);
     } catch (error) {
       console.error('Error updating employee:', error);
-      alert(t('common.error') + ': ' + error.message);
+      alert(t('common.error') + ': ' + (error as Error).message);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [editingEmployee, t]);
 
   const getTabFilteredRecords = () => {
     return getTabFilteredEmployees();
@@ -555,7 +549,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
     return Math.round((filledFields / progressFields.length) * 100);
   };
 
-  const handleDownload = () => {
+  const handleDownload = useCallback(() => {
     try {
       const tabRecords = getTabFilteredRecords();
       
@@ -633,13 +627,13 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
           record.department_submitted || '',
           record.type_of_pension || '',
           record.date_of_pension_case_approval ? new Date(record.date_of_pension_case_approval).toLocaleDateString() : '',
-          record.group_insurance_benefit ? new Date(record.group_insurance_benefit).toLocaleDateString() : '',
-          record.gratuity_benefit ? new Date(record.gratuity_benefit).toLocaleDateString() : '',
-          record.leave_encashment_benefit ? new Date(record.leave_encashment_benefit).toLocaleDateString() : '',
-          record.medical_allowance_benefit ? new Date(record.medical_allowance_benefit).toLocaleDateString() : '',
-          record.hometown_travel_allowance ? new Date(record.hometown_travel_allowance).toLocaleDateString() : '',
-          record.pending_travel_allowance ? new Date(record.pending_travel_allowance).toLocaleDateString() : '',
-          record.government_decision_march_2023 || '',
+          record.date_of_actual_benefit_provided_for_group_insurance ? new Date(record.date_of_actual_benefit_provided_for_group_insurance).toLocaleDateString() : '',
+          record.date_of_benefit_provided_for_gratuity ? new Date(record.date_of_benefit_provided_for_gratuity).toLocaleDateString() : '',
+          record.date_of_actual_benefit_provided_for_leave_encashment ? new Date(record.date_of_actual_benefit_provided_for_leave_encashment).toLocaleDateString() : '',
+          record.date_of_actual_benefit_provided_for_medical_allowance_if_applic ? new Date(record.date_of_actual_benefit_provided_for_medical_allowance_if_applic).toLocaleDateString() : '',
+          record.date_of_benefit_provided_for_hometown_travel_allowance_if_appli ? new Date(record.date_of_benefit_provided_for_hometown_travel_allowance_if_appli).toLocaleDateString() : '',
+          record.date_of_actual_benefit_provided_for_pending_travel_allowance_if ? new Date(record.date_of_actual_benefit_provided_for_pending_travel_allowance_if).toLocaleDateString() : '',
+          record.government_decision_march_31_2023 || '',
           record.overall_comment || '',
           `${completionPercentage}%`,
           status
@@ -648,7 +642,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
       
       // Create CSV content
       const csvContent = [headers, ...csvData]
-        .map(row => row.map(field => `"${field}"`).join(','))
+        .map(row => row.map(field => `\"${field}\"`).join(','))
         .join('\n');
       
       // Create and download the file
@@ -674,7 +668,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
       console.error('Error downloading data:', error);
       alert(t('common.error') + ': Failed to download data');
     }
-  };
+  }, [activeTab, t, getTabFilteredRecords, getCompletionPercentage]);
 
   const statusCounts = getStatusCounts();
   const monthWiseData = getMonthWiseData();
@@ -714,9 +708,10 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
               )}
               <button 
                 onClick={fetchAllData}
-                className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
+                disabled={isLoading}
+                className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 disabled:opacity-50"
               >
-                <RefreshCw className="h-4 w-4" />
+                <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
                 <span className="text-sm font-medium">{t('erms.refresh')}</span>
               </button>
               <button 
@@ -1035,10 +1030,19 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {getTabFilteredEmployees().length === 0 ? (
+                {isLoading ? (
                   <tr>
                     <td colSpan={12} className="px-6 py-8 text-center text-gray-500">
-                      {isLoading ? t('erms.loadingRetirementData') : t('erms.noRetirementRecordsFound')}
+                      <div className="flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mr-3"></div>
+                        {t('erms.loadingRetirementData')}
+                      </div>
+                    </td>
+                  </tr>
+                ) : getTabFilteredEmployees().length === 0 ? (
+                  <tr>
+                    <td colSpan={12} className="px-6 py-8 text-center text-gray-500">
+                      {t('erms.noRetirementRecordsFound')}
                     </td>
                   </tr>
                 ) : (
@@ -1609,3 +1613,5 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
     </div>
   );
 };
+
+[1](https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/99450154/5dd189a4-952e-4af3-83b5-e26df1e374e7/paste.txt)
