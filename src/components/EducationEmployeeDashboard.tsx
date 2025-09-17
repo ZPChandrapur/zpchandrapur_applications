@@ -844,10 +844,9 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="">Select Teacher Type</option>
-                    <option value="Primary">Primary</option>
-                    <option value="Secondary">Secondary</option>
-                    <option value="Higher Secondary">Higher Secondary</option>
-                    <option value="Special">Special</option>
+                    <option value="Graduate">Graduate</option>
+                    <option value="Under Graduate">Under Graduate</option>
+                    <option value="Headmaster">Headmaster</option>
                   </select>
                 </div>
 
