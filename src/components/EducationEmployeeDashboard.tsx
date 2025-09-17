@@ -892,8 +892,8 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
                   >
                     <option value="">{t('erms.selectDesignation')}</option>
                     {designations.map(designation => (
-                      <option key={designations.designation_id} value={designation.designation}>
-                        {designation.designation}
+                      <option key={designations.designation_id} value={designations.designation}>
+                        {designations.designation}
                       </option>
                     ))}
                   </select>
