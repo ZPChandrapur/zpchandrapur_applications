@@ -290,7 +290,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
         emp.emp_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         emp.employee_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         emp.employee_name_en?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        emp.designation?.toLowerCase().includes(searchTerm.toLowerCase())
+        emp.designations?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
