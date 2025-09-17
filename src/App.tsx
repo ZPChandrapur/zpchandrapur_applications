@@ -19,7 +19,18 @@ function App() {
         setUser(user);
       } catch (error) {
         console.error('Error checking user:', error);
-        // Clear stale session data if JWT is invalid
+        
+        // Check if the error is related to invalid refresh token
+        const errorMessage = error?.message || '';
+        if (errorMessage.includes('Refresh Token Not Found') || 
+            errorMessage.includes('Invalid Refresh Token')) {
+          // Clear invalid session data and reload the application
+          await supabase.auth.signOut();
+          window.location.reload();
+          return;
+        }
+        
+        // For other errors, just clear the user state
         await supabase.auth.signOut();
         setUser(null);
       } finally {
