@@ -153,6 +153,10 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
   }, []);
 
   useEffect(() => {
+  fetchAllData();
+}, []);
+
+  useEffect(() => {
     filterEmployees();
   }, [retirementEmployees, selectedClerk, userRole, userProfile]);
 
