@@ -811,12 +811,17 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
                     onChange={(e) => setFormData({ ...formData, cast_category: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
-                    <option value="">Select Cast Category</option>
-                    <option value="General">General</option>
-                    <option value="OBC">OBC</option>
-                    <option value="SC">SC</option>
-                    <option value="ST">ST</option>
-                    <option value="NT">NT</option>
+                    <option value="">Select Appointment Caste Category</option>
+                    <option value="Open">Open</option>
+                    <option value="Scheduled Tribe">Scheduled Tribe</option>
+                    <option value="Other Backward Class">Other Backward Class</option>
+                    <option value="Scheduled Caste">Scheduled Caste</option>
+                    <option value="Nomadic Tribe (B)">Nomadic Tribe (B)</option>
+                    <option value="Special Backward Class">Special Backward Class</option>
+                    <option value="Vimukta Jati (A)">Vimukta Jati (A)</option>
+                    <option value="Nomadic Tribe (D)">Nomadic Tribe (D)</option>
+                    <option value="Economically Weaker Section">Economically Weaker Section</option>
+                    <option value="Special Backward Category (A)">Special Backward Category (A)</option>
                   </select>
                 </div>
 
