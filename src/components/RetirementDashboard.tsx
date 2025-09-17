@@ -87,7 +87,6 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
   // Helper function to calculate retirement progress status
   const calculateRetirementProgressStatus = (record: any) => {
     const progressFields = [
-    setCurrentPage(1);
       record.birth_certificate,
       record.birth_doc_submitted,
       record.medical_certificate,
