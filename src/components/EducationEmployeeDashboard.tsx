@@ -571,9 +571,9 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
                 className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="">{t('erms.allReasons')}</option>
-                <option value="वयमर्यादा">वयमर्यादा</option>
-                <option value="स्वैच्छिक">स्वैच्छिक</option>
-                <option value="वैद्यकीय">वैद्यकीय</option>
+                <option value="मृत्यू झाल्याने">मृत्यू झाल्याने</option>
+                <option value="नियत वयोमान">नियत वयोमान</option>
+                <option value="स्वेच्छा सेवा निवृत्ती">स्वेच्छा सेवा निवृत्ती</option>
               </select>
 
               <button
