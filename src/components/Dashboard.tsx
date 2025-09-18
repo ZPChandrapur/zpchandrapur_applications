@@ -211,7 +211,7 @@ interface DashboardProps {
 
 export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
   const { t } = useTranslation();
-  const { permissions, userRole, userProfile, isLoading: permissionsLoading } = usePermissions(user);
+  const { hasAccess, permissions, userRole, userProfile, isLoading: permissionsLoading } = usePermissions(user);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [selectedApp, setSelectedApp] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
