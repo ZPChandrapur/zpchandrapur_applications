@@ -1,4 +1,3 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import CryptoJS from 'npm:crypto-js@4.2.0'
 
@@ -8,7 +7,7 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
-serve(async (req) => {
+Deno.serve(async (req: Request) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -48,13 +47,13 @@ serve(async (req) => {
       )
     }
 
-    // Get Supabase environment variables
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+    // Get Supabase environment variables with fallbacks for WebContainer
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') || 'https://tvmqkondihsomlebizjj.supabase.co'
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('SUPABASE_ANON_KEY')
 
     if (!supabaseUrl || !supabaseServiceKey) {
       return new Response(
-        JSON.stringify({ error: 'Server configuration error' }),
+        JSON.stringify({ error: 'Server configuration error - missing environment variables' }),
         {
           status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -62,30 +61,21 @@ serve(async (req) => {
       )
     }
 
-    // Create Supabase admin client with service role key
-    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+    // Create Supabase client for authentication
+    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
       auth: {
         autoRefreshToken: false,
         persistSession: false
       }
     })
 
-    // First, verify user exists and password is correct by querying auth.users
-    const { data: userData, error: userError } = await supabaseAdmin.auth.admin.listUsers()
-    
-    if (userError) {
-      return new Response(
-        JSON.stringify({ error: 'Authentication service unavailable' }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
-      )
-    }
+    // Authenticate with decrypted password
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      email: email,
+      password: decryptedPassword,
+    })
 
-    // Find user by email
-    const user = userData.users.find(u => u.email === email)
-    if (!user) {
+    if (authError) {
       return new Response(
         JSON.stringify({ error: 'Invalid login credentials' }),
         {
@@ -95,37 +85,21 @@ serve(async (req) => {
       )
     }
 
-    // Create a session token for the user using admin API
-    const { data: sessionData, error: sessionError } = await supabaseAdmin.auth.admin.generateLink({
-      type: 'magiclink',
-      email: email,
-    })
-
-    if (sessionError) {
+    if (!authData.session || !authData.user) {
       return new Response(
-        JSON.stringify({ error: 'Failed to create session' }),
+        JSON.stringify({ error: 'Authentication failed - no session created' }),
         {
-          status: 500,
+          status: 401,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         }
       )
     }
 
-    // Create a proper session object
-    const session = {
-      access_token: sessionData.properties?.action_link?.split('#')[1]?.split('&')[0]?.split('=')[1] || 'temp_token',
-      refresh_token: 'temp_refresh_token',
-      expires_in: 3600,
-      expires_at: Math.floor(Date.now() / 1000) + 3600,
-      token_type: 'bearer',
-      user: user
-    }
-
     // Return session data
     return new Response(
       JSON.stringify({
-        session: session,
-        user: user,
+        session: authData.session,
+        user: authData.user,
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -134,7 +108,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Auth decrypt error:', error)
     return new Response(
-      JSON.stringify({ error: 'Authentication failed' }),
+      JSON.stringify({ error: 'Authentication failed - ' + error.message }),
       {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
