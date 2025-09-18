@@ -69,7 +69,6 @@ export const SessionTimeoutModal: React.FC<SessionTimeoutModalProps> = ({
             <p className="text-gray-700 mb-4">
               Your session will automatically expire in:
             </p>
-                    width: `${Math.max(0, (timeLeft / (1 * 60 * 1000)) * 100)}%`
               <div className="text-3xl font-bold text-red-600 mb-1">
                 {minutes}:{seconds.toString().padStart(2, '0')}
               </div>
