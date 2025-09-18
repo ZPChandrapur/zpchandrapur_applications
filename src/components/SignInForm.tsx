@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Mail, Lock, Eye, EyeOff, LogIn, Smartphone, Globe } from 'lucide-react';
 import { encryptPassword } from '../utils/security';
+import { supabase } from '../lib/supabase';
 
 interface SignInFormProps {
   onSignInSuccess: (session: any) => void; // Adjust type as needed for session
