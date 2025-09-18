@@ -78,7 +78,7 @@ export const SignInForm: React.FC<SignInFormProps> = ({ onSignInSuccess }) => {
       
     } catch (err) {
       // Avoid logging full error details
-      console.error('Authentication failed (generic error)');
+      console.error('Authentication failed (generic error)',err);
 
       if (err.message && (err.message.includes('Failed to fetch') || err.message.includes('NetworkError'))) {
         setError('Network connection error. Please check your internet connection and try again.');
