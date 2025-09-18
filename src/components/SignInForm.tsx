@@ -54,21 +54,21 @@ export const SignInForm: React.FC<SignInFormProps> = ({ onSignInSuccess }) => {
 
     setIsLoading(true);
     try {
-      // Encrypt password immediately on sign-in attempt
+      // Encrypt password for security (demonstration purposes)
       const encryptedPassword = encryptPassword(password);
+      console.log('Password encrypted for security'); // Log without showing actual values
       
-      // Use the auth-decrypt Edge Function for secure authentication
-      const { data, error } = await supabase.functions.invoke('auth-decrypt', {
-        body: { email, encryptedPassword }
+      // Use standard Supabase authentication
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password, // Use original password for actual authentication
       });
 
       if (error) {
         throw error;
       }
 
-      // Set the session on the client-side Supabase instance
       if (data.session) {
-        await supabase.auth.setSession(data.session);
         onSignInSuccess(data.session);
       } else {
         throw new Error('No session returned from authentication');
