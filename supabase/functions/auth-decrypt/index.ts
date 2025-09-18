@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { AES, enc } from "https://esm.sh/crypto-js@4.1.1";
+import CryptoJS from 'npm:crypto-js@4.2.0';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -19,8 +19,8 @@ function decryptPassword(encryptedPassword: string): string {
   }
 
   try {
-    const decrypted = AES.decrypt(encryptedPassword, ENCRYPTION_KEY);
-    const plaintext = decrypted.toString(enc.Utf8);
+    const bytes = CryptoJS.AES.decrypt(encryptedPassword, ENCRYPTION_KEY);
+    const plaintext = bytes.toString(CryptoJS.enc.Utf8);
     if (!plaintext) {
       throw new Error("Decryption resulted in empty string");
     }
@@ -63,9 +63,23 @@ serve(async (req) => {
     // Decrypt the password
     const decryptedPassword = decryptPassword(encryptedPassword);
 
-    // Create Supabase client using built-in Supabase env vars
-    // (SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are automatically available in edge functions)
-    const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+    // Get Supabase environment variables
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error("Missing Supabase environment variables");
+      return new Response(
+        JSON.stringify({ error: "Server configuration error" }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // Create Supabase client using environment variables
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Use Supabase's built-in authentication with decrypted password
     const { data, error } = await supabase.auth.signInWithPassword({
