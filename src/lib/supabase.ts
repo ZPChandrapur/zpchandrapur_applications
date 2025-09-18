@@ -83,12 +83,7 @@ export const testERMSConnection = async () => {
       console.log('✅ User roles table structure:', userRoles);
     }
     
-    console.log('🔍 Testing ERMS Schema Connection with provided credentials...');
-    console.log('📋 Connection Details:');
-    console.log('   URL: https://tvmqkondihsomlebizjj.supabase.co');
-    console.log('   Anon Key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...');
-    console.log('   Schema: erms');
-    console.log('   Target Table: department');
+    console.log('🔍 Testing Schema Connection with provided credentials...');
     
     // Test 1: Basic connection
     console.log('🧪 Step 1: Testing basic Supabase connection...');
