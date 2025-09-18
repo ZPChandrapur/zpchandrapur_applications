@@ -13,8 +13,7 @@ import {
   Building2,
   MapPin,
   UserCheck,
-  ClipboardList,
-  Shield
+  ClipboardList
 } from 'lucide-react';
 import { OrganizationSetup } from './OrganizationSetup';
 import { EmployeeDashboard } from './EmployeeDashboard';
@@ -23,6 +22,7 @@ import { RetirementTracker } from './RetirementTracker';
 import { InstructionsDashboard } from './InstructionsDashboard';
 import { CustomReports } from './CustomReports';
 import { usePermissions } from '../hooks/usePermissions';
+import { Shield } from 'lucide-react';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 interface ERMSDashboardProps {
@@ -278,6 +278,27 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, onBack }) =>
       return (
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
+      );
+    }
+    
+    // Check if user has access to the active module
+    const activeModuleConfig = modules.find(m => m.id === activeModule);
+    if (activeModuleConfig && !hasAccess('erms', activeModuleConfig.requiredPermission)) {
+      return (
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <Shield className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              {t('permissions.accessRestricted')}
+            </h3>
+            <p className="text-gray-600">
+              {t('permissions.noAccess', { 
+                permission: activeModuleConfig.requiredPermission, 
+                system: 'ERMS' 
+              })}
+            </p>
+          </div>
         </div>
       );
     }
