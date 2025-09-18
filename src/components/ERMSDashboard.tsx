@@ -21,6 +21,8 @@ import { RetirementDashboard } from './RetirementDashboard';
 import { RetirementTracker } from './RetirementTracker';
 import { InstructionsDashboard } from './InstructionsDashboard';
 import { CustomReports } from './CustomReports';
+import { usePermissions } from '../hooks/usePermissions';
+import { Shield } from 'lucide-react';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 interface ERMSDashboardProps {
@@ -30,6 +32,7 @@ interface ERMSDashboardProps {
 
 export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, onBack }) => {
   const { t } = useTranslation();
+  const { hasAccess } = usePermissions(user);
   
   // Enhanced module state management with better persistence
   const getInitialModule = () => {
@@ -201,7 +204,8 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, onBack }) =>
       description: t('erms.employeeDashboardDesc'),
       icon: Users,
       color: 'bg-blue-500',
-      hoverColor: 'hover:bg-blue-600'
+      hoverColor: 'hover:bg-blue-600',
+      requiredPermission: 'read'
     },
     {
       id: 'organization-setup',
@@ -209,7 +213,8 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, onBack }) =>
       description: t('erms.organizationSetupDesc'),
       icon: Settings,
       color: 'bg-green-500',
-      hoverColor: 'hover:bg-green-600'
+      hoverColor: 'hover:bg-green-600',
+      requiredPermission: 'admin'
     },
     {
       id: 'retirement-dashboard',
@@ -217,7 +222,8 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, onBack }) =>
       description: t('erms.retirementDashboardDesc'),
       icon: Calendar,
       color: 'bg-orange-500',
-      hoverColor: 'hover:bg-orange-600'
+      hoverColor: 'hover:bg-orange-600',
+      requiredPermission: 'read'
     },
     {
       id: 'retirement-tracker',
@@ -225,7 +231,8 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, onBack }) =>
       description: t('erms.retirementTrackerDesc'),
       icon: TrendingUp,
       color: 'bg-purple-500',
-      hoverColor: 'hover:bg-purple-600'
+      hoverColor: 'hover:bg-purple-600',
+      requiredPermission: 'write'
     },
     {
       id: 'retirement-file-tracker',
@@ -233,7 +240,8 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, onBack }) =>
       description: t('erms.retirementFileTrackerDesc'),
       icon: FolderOpen,
       color: 'bg-indigo-500',
-      hoverColor: 'hover:bg-indigo-600'
+      hoverColor: 'hover:bg-indigo-600',
+      requiredPermission: 'read'
     },
     {
       id: 'custom-reports',
@@ -241,7 +249,8 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, onBack }) =>
       description: t('erms.customReportsDesc'),
       icon: BarChart3,
       color: 'bg-teal-500',
-      hoverColor: 'hover:bg-teal-600'
+      hoverColor: 'hover:bg-teal-600',
+      requiredPermission: 'read'
     },
     {
       id: 'instructions',
@@ -249,10 +258,19 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, onBack }) =>
       description: t('erms.instructionsDesc'),
       icon: BookOpen,
       color: 'bg-gray-500',
-      hoverColor: 'hover:bg-gray-600'
+      hoverColor: 'hover:bg-gray-600',
+      requiredPermission: 'read'
     }
   ];
 
+  // Filter modules based on user permissions
+  const getAccessibleModules = () => {
+    return modules.filter(module => {
+      return hasAccess('erms', module.requiredPermission);
+    });
+  };
+
+  const accessibleModules = getAccessibleModules();
 
   const renderModuleContent = () => {
     // Ensure we don't render content until properly initialized
@@ -260,6 +278,27 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, onBack }) =>
       return (
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
+      );
+    }
+    
+    // Check if user has access to the active module
+    const activeModuleConfig = modules.find(m => m.id === activeModule);
+    if (activeModuleConfig && !hasAccess('erms', activeModuleConfig.requiredPermission)) {
+      return (
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <Shield className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              {t('permissions.accessRestricted')}
+            </h3>
+            <p className="text-gray-600">
+              {t('permissions.noAccess', { 
+                permission: activeModuleConfig.requiredPermission, 
+                system: 'ERMS' 
+              })}
+            </p>
+          </div>
         </div>
       );
     }
@@ -317,7 +356,18 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, onBack }) =>
         {/* Navigation Menu */}
         <div className="flex-1 overflow-y-auto p-4">
           <nav className="space-y-2">
-            {modules.map((module) => (
+            {accessibleModules.length === 0 ? (
+              <div className="text-center py-8">
+                <Shield className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600 text-sm">
+                  {t('permissions.noAccess', { permission: 'any', system: 'ERMS' })}
+                </p>
+                <p className="text-gray-500 text-xs mt-2">
+                  {t('permissions.contactAdmin')}
+                </p>
+              </div>
+            ) : (
+              accessibleModules.map((module) => (
               <button
                 key={module.id}
                 onClick={() => handleModuleChange(module.id)}
@@ -346,6 +396,7 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, onBack }) =>
                 </div>
               </button>
             ))}
+            )}
           </nav>
         </div>
       </div>

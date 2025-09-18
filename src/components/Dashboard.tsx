@@ -595,7 +595,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
       hoverColor: 'hover:from-blue-300 hover:via-blue-400 hover:to-indigo-500',
       headerColor: 'bg-gradient-to-r from-blue-300 to-indigo-400',
       type: t('systems.erms.webApplication'),
-      mobileOnly: false
+      mobileOnly: false,
+      applicationName: 'erms'
     },
     {
       id: 'estimate',
@@ -607,7 +608,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
       hoverColor: 'hover:from-emerald-300 hover:via-green-400 hover:to-teal-500',
       headerColor: 'bg-gradient-to-r from-emerald-300 to-teal-400',
       type: t('systems.estimate.mobileApplication'),
-      mobileOnly: true
+      mobileOnly: true,
+      applicationName: 'estimate'
     },
     {
       id: 'fims',
@@ -619,7 +621,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
       hoverColor: 'hover:from-purple-300 hover:via-violet-400 hover:to-indigo-500',
       headerColor: 'bg-gradient-to-r from-purple-300 to-indigo-400',
       type: t('systems.fims.mobileApplication'),
-      mobileOnly: true
+      mobileOnly: true,
+      applicationName: 'fims'
     },
     {
       id: 'pesa',
@@ -631,19 +634,29 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
       hoverColor: 'hover:from-sky-200 hover:via-blue-300 hover:to-indigo-400',
       headerColor: 'bg-gradient-to-r from-sky-300 to-indigo-400',
       type: t('systems.pesa.webApplication'),
-      mobileOnly: false
+      mobileOnly: false,
+      applicationName: 'pesa'
     },
   ];
 
   // Filter systems based on device type
   const getVisibleSystems = () => {
+    let filteredSystems = systems;
+    
+    // Filter by device type
     if (isMobile) {
       // Mobile: Show only FIMS and E-estimate
-      return systems.filter(system => system.id === 'fims' || system.id === 'estimate');
+      filteredSystems = systems.filter(system => system.id === 'fims' || system.id === 'estimate');
     } else {
       // Web: Show all systems
-      return systems;
+      filteredSystems = systems;
     }
+    
+    // Filter by user permissions
+    return filteredSystems.filter(system => {
+      // Check if user has read access to this application
+      return hasAccess(system.applicationName, 'read');
+    });
   };
 
   const getSystemGradient = (systemId: string) => {
@@ -662,6 +675,25 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
   };
 
   const visibleSystems = getVisibleSystems();
+  
+  // Show message if no systems are accessible
+  const renderNoAccessMessage = () => (
+    <div className="text-center py-12">
+      <div className="bg-gradient-to-br from-gray-100 to-gray-200 p-8 rounded-3xl shadow-xl max-w-md mx-auto">
+        <Shield className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+        <h3 className="text-xl font-semibold text-gray-900 mb-2">
+          {t('permissions.accessRestricted')}
+        </h3>
+        <p className="text-gray-600 mb-4">
+          You don't have access to any applications at the moment.
+        </p>
+        <p className="text-sm text-gray-500">
+          {t('permissions.contactAdmin')}
+        </p>
+      </div>
+    </div>
+  );
+  
   if (permissionsLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -936,7 +968,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
         </div>
 
         {/* Systems Grid */}
-        <div className={`grid grid-cols-1 ${isMobile ? 'gap-4' : 'lg:grid-cols-2 gap-8'}`}>
+        {visibleSystems.length === 0 ? (
+          renderNoAccessMessage()
+        ) : (
+          <div className={`grid grid-cols-1 ${isMobile ? 'gap-4' : 'lg:grid-cols-2 gap-8'}`}>
           {visibleSystems.map((system) => (
             <div 
               key={system.id}
@@ -969,6 +1004,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
             </div>
           ))}
         </div>
+        )}
       </main>
       
       {/* Session Timeout Warning Modal */}
