@@ -468,7 +468,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
       if (error) {
         console.error('❌ PESA: Error getting session:', error);
         // Open without auth if session fetch fails
-        window.open('https://clever-syrniki-c924d1.netlify.app/', '_blank', 'noopener,noreferrer');
+        window.open('https://pesaworks.zpchandrapurapps.com/', '_blank', 'noopener,noreferrer');
         return;
       }
 
