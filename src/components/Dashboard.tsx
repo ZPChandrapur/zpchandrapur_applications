@@ -641,6 +641,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
 
   // Filter systems based on device type
   const getVisibleSystems = () => {
+    console.log('🔍 Debug: Getting visible systems');
+    console.log('👤 User role:', userRole);
+    console.log('📱 Is mobile:', isMobile);
+    console.log('🔑 All permissions:', permissions);
+    
     let filteredSystems = systems;
     
     // Filter by device type - but allow all systems on both platforms for developer role
@@ -649,11 +654,18 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
       filteredSystems = systems.filter(system => system.id === 'fims' || system.id === 'estimate');
     }
     
+    console.log('📋 Systems after device filter:', filteredSystems.map(s => s.id));
+    
     // Filter by user permissions
-    return filteredSystems.filter(system => {
+    const accessibleSystems = filteredSystems.filter(system => {
       // Check if user has read access to this application
-      return hasAccess(system.applicationName, 'read');
+      const hasPermission = hasAccess(system.applicationName, 'read');
+      console.log(`🔐 System ${system.id} (${system.applicationName}): ${hasPermission ? '✅ ALLOWED' : '❌ DENIED'}`);
+      return hasPermission;
     });
+    
+    console.log('✅ Final accessible systems:', accessibleSystems.map(s => s.id));
+    return accessibleSystems;
   };
 
   const getSystemGradient = (systemId: string) => {
