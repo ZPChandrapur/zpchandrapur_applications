@@ -54,44 +54,42 @@ export const SignInForm: React.FC<SignInFormProps> = ({ onSignInSuccess }) => {
 
     setIsLoading(true);
     try {
-      // Encrypt password for security (demonstration purposes)
+      // Step 1: Encrypt the password
       const encryptedPassword = encryptPassword(password);
-      console.log('Password encrypted for security'); // Log without showing actual values
       
-      // First try with encrypted password (this will likely fail but hides the real password)
-      let authResult = await supabase.auth.signInWithPassword({
-        email,
-        password: encryptedPassword, // Use encrypted password first
+      // Step 2: Send encrypted password to auth-decrypt edge function
+      const { data: authData, error: edgeError } = await supabase.functions.invoke('auth-decrypt', {
+        body: {
+          email,
+          encryptedPassword
+        }
       });
 
-      // If encrypted password fails (expected), try with original password
-      if (authResult.error) {
-        console.log('🔄 Encrypted password failed as expected, trying fallback...');
-        authResult = await supabase.auth.signInWithPassword({
-          email,
-          password, // Use original password as fallback
-        });
+      if (edgeError) {
+        throw new Error('Failed to send a request to the Edge Function');
       }
 
-      if (authResult.error) {
-        throw authResult.error;
-      }
-
-      if (authResult.data.session) {
-        onSignInSuccess(authResult.data.session);
+      if (authData?.session) {
+        // Step 4: Set the session from the edge function response
+        const { error: sessionError } = await supabase.auth.setSession(authData.session);
+        if (sessionError) {
+          throw sessionError;
+        }
+        onSignInSuccess(authData.session);
       } else {
-        throw new Error('No session returned from authentication');
+        throw new Error('No session returned from edge function');
       }
 
       // Clear the plain password from state after successful authentication
       setPassword('');
       
     } catch (err) {
-      // Avoid logging full error details
-      console.error('Authentication failed (generic error)',err);
+      console.error('Authentication failed (generic error)', err);
 
       if (err.message && (err.message.includes('Failed to fetch') || err.message.includes('NetworkError'))) {
         setError('Network connection error. Please check your internet connection and try again.');
+      } else if (err.message.includes('Failed to send a request to the Edge Function')) {
+        setError('Failed to send a request to the Edge Function');
       } else if (err.message.includes('Invalid login credentials')) {
         setError(t('auth.signInError'));
       } else {
