@@ -45,7 +45,6 @@ export const ermsClient = createClient(supabaseUrl, supabaseAnonKey, {
 export const testERMSConnection = async () => {
   try {
     // Test Supabase Auth user metadata capabilities
-    console.log('🔍 Testing Supabase Auth and User Metadata...');
     
     // Check current user and available metadata
     const { data: { user }, error: userError } = await supabase.auth.getUser();
@@ -57,9 +56,6 @@ export const testERMSConnection = async () => {
       console.log('👤 Current User Info:');
       console.log('   User ID:', user.id);
       console.log('   Email:', user.email);
-      console.log('   User Metadata:', user.user_metadata);
-      console.log('   App Metadata:', user.app_metadata);
-      console.log('   Created At:', user.created_at);
     }
     
     // Check if we can access the auth.users table (usually restricted)
@@ -70,14 +66,12 @@ export const testERMSConnection = async () => {
       .limit(1);
     
     if (authError) {
-      console.log('❌ Cannot access auth.users table directly:', authError.message);
-      console.log('ℹ️ This is normal - auth.users is typically restricted');
+      console.log('❌ Cannot access  table directly:', authError.message);
     } else {
       console.log('✅ Auth users table accessible:', authUsers);
     }
     
     // Check user_roles table structure
-    console.log('🔍 Checking user_roles table structure...');
     const { data: userRoles, error: rolesError } = await supabase
       .from('user_roles')
       .select('*')
