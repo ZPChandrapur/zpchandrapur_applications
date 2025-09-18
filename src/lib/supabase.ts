@@ -105,7 +105,7 @@ export const testERMSConnection = async () => {
     } catch (signOutError) {
       console.error('❌ Error during signOut:', signOutError);
     }
-    console.error('❌ Error in testERMSConnection:', error);
+    console.error('❌ Error in testConnection:', error);
     return { success: false, error: error.message, data: null };
   }
 }
