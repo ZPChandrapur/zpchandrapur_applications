@@ -502,7 +502,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
         }
         
         // Method 2: URL parameters as fallback
-        const pesaUrl = new URL('https://clever-syrniki-c924d1.netlify.app/');
+        const pesaUrl = new URL('https://pesaworks.zpchandrapurapps.com/');
         pesaUrl.searchParams.set('auto_login', 'true');
         pesaUrl.searchParams.set('access_token', session.access_token);
         pesaUrl.searchParams.set('refresh_token', session.refresh_token);
@@ -514,12 +514,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
       } else {
         console.warn('⚠️ PESA: No valid session found');
         // Open without auth
-        window.open('https://clever-syrniki-c924d1.netlify.app/', '_blank', 'noopener,noreferrer');
+        window.open('https://pesaworks.zpchandrapurapps.com/', '_blank', 'noopener,noreferrer');
       }
     } catch (error) {
       console.error('❌ PESA: Error in handlePESAClick:', error);
       // Fallback: open without auth
-      window.open('https://clever-syrniki-c924d1.netlify.app/', '_blank', 'noopener,noreferrer');
+      window.open('https://pesaworks.zpchandrapurapps.com/', '_blank', 'noopener,noreferrer');
     }
   };
 
