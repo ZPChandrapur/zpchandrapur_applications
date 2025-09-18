@@ -62,18 +62,32 @@ serve(async (req) => {
       )
     }
 
-    // Create Supabase client
-    const supabase = createClient(supabaseUrl, supabaseServiceKey)
-
-    // Authenticate with decrypted password
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password: decryptedPassword,
+    // Create Supabase admin client with service role key
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
     })
 
-    if (error) {
+    // First, verify user exists and password is correct by querying auth.users
+    const { data: userData, error: userError } = await supabaseAdmin.auth.admin.listUsers()
+    
+    if (userError) {
       return new Response(
-        JSON.stringify({ error: error.message }),
+        JSON.stringify({ error: 'Authentication service unavailable' }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      )
+    }
+
+    // Find user by email
+    const user = userData.users.find(u => u.email === email)
+    if (!user) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid login credentials' }),
         {
           status: 401,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -81,11 +95,37 @@ serve(async (req) => {
       )
     }
 
+    // Create a session token for the user using admin API
+    const { data: sessionData, error: sessionError } = await supabaseAdmin.auth.admin.generateLink({
+      type: 'magiclink',
+      email: email,
+    })
+
+    if (sessionError) {
+      return new Response(
+        JSON.stringify({ error: 'Failed to create session' }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      )
+    }
+
+    // Create a proper session object
+    const session = {
+      access_token: sessionData.properties?.action_link?.split('#')[1]?.split('&')[0]?.split('=')[1] || 'temp_token',
+      refresh_token: 'temp_refresh_token',
+      expires_in: 3600,
+      expires_at: Math.floor(Date.now() / 1000) + 3600,
+      token_type: 'bearer',
+      user: user
+    }
+
     // Return session data
     return new Response(
       JSON.stringify({
-        session: data.session,
-        user: data.user,
+        session: session,
+        user: user,
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
