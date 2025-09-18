@@ -4,7 +4,6 @@ import CryptoJS from 'crypto-js';
 const ENCRYPTION_KEY = 'ZP_CHANDRAPUR_2025_SECURE_KEY_!@#$%^&*()';
 
 /**
- * Encrypt password before sending to server
  */
 export const encryptPassword = (password: string): string => {
   try {

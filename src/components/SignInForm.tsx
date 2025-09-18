@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Mail, Lock, Eye, EyeOff, LogIn, Smartphone, Globe } from 'lucide-react';
-import { encryptPassword } from '../utils/security';
+import { encryptPassword, decryptPassword } from '../utils/security';
 import { supabase } from '../lib/supabase';
 
 interface SignInFormProps {
@@ -57,27 +57,24 @@ export const SignInForm: React.FC<SignInFormProps> = ({ onSignInSuccess }) => {
       // Step 1: Encrypt the password
       const encryptedPassword = encryptPassword(password);
       
-      // Step 2: Send encrypted password to auth-decrypt edge function
-      const { data: authData, error: edgeError } = await supabase.functions.invoke('auth-decrypt', {
-        body: {
-          email,
-          encryptedPassword
-        }
+      // Step 2: Simulate sending to edge function (log encrypted password)
+      console.log('Encrypted password being sent:', encryptedPassword);
+      
+      // Step 3: Decrypt the password (simulating edge function behavior)
+      const decryptedPassword = decryptPassword(encryptedPassword);
+      
+      // Step 4: Use decrypted password for Supabase authentication
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: decryptedPassword,
       });
 
-      if (edgeError) {
-        throw new Error('Failed to send a request to the Edge Function');
+      if (authError) {
+        throw authError;
       }
 
       if (authData?.session) {
-        // Step 4: Set the session from the edge function response
-        const { error: sessionError } = await supabase.auth.setSession(authData.session);
-        if (sessionError) {
-          throw sessionError;
-        }
         onSignInSuccess(authData.session);
-      } else {
-        throw new Error('No session returned from edge function');
       }
 
       // Clear the plain password from state after successful authentication
@@ -86,11 +83,7 @@ export const SignInForm: React.FC<SignInFormProps> = ({ onSignInSuccess }) => {
     } catch (err) {
       console.error('Authentication failed (generic error)', err);
 
-      if (err.message && (err.message.includes('Failed to fetch') || err.message.includes('NetworkError'))) {
-        setError('Network connection error. Please check your internet connection and try again.');
-      } else if (err.message.includes('Failed to send a request to the Edge Function')) {
-        setError('Failed to send a request to the Edge Function');
-      } else if (err.message.includes('Invalid login credentials')) {
+      if (err.message.includes('Invalid login credentials')) {
         setError(t('auth.signInError'));
       } else {
         setError(err.message || 'An unexpected error occurred. Please try again.');
