@@ -621,7 +621,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
       hoverColor: 'hover:from-purple-300 hover:via-violet-400 hover:to-indigo-500',
       headerColor: 'bg-gradient-to-r from-purple-300 to-indigo-400',
       type: t('systems.fims.mobileApplication'),
-      mobileOnly: true,
+      mobileOnly: false,
       applicationName: 'fims'
     },
     {
@@ -643,13 +643,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
   const getVisibleSystems = () => {
     let filteredSystems = systems;
     
-    // Filter by device type
-    if (isMobile) {
-      // Mobile: Show only FIMS and E-estimate
+    // Filter by device type - but allow all systems on both platforms for developer role
+    if (isMobile && userRole !== 'developer') {
+      // Mobile: Show only FIMS and E-estimate (unless developer)
       filteredSystems = systems.filter(system => system.id === 'fims' || system.id === 'estimate');
-    } else {
-      // Web: Show all systems
-      filteredSystems = systems;
     }
     
     // Filter by user permissions
