@@ -62,7 +62,6 @@ export const SessionTimeoutModal: React.FC<SessionTimeoutModalProps> = ({
 
         {/* Content */}
         <div className="p-6">
-          <>
           <div className="text-center mb-6">
             <div className="bg-gradient-to-br from-amber-100 to-orange-100 p-4 rounded-2xl inline-block mb-4">
               <Clock className="h-12 w-12 text-amber-600" />
@@ -91,7 +90,7 @@ export const SessionTimeoutModal: React.FC<SessionTimeoutModalProps> = ({
               />
             </div>
           </div>
-        </div>
+          
 
           {/* Action Buttons */}
           <div className="flex space-x-3">
