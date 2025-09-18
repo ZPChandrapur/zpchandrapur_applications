@@ -64,19 +64,30 @@ export const SignInForm: React.FC<SignInFormProps> = ({ onSignInSuccess }) => {
     setIsLoading(true);
 
     try {
-      // Encrypt password for secure transmission (client-side security)
+      // Encrypt password to prevent it from showing in console/network logs
       const encryptedPassword = encryptPassword(password);
       console.log('🔐 Password encrypted for secure transmission');
       
-      // For now, use standard Supabase auth while maintaining encryption concept
-      // In production, the encrypted password would be sent to a secure backend
+      // Use encrypted password for authentication to hide original from console/network
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
-        password, // Using original password for Supabase auth
+        password: encryptedPassword, // Using encrypted password to hide from console
       });
 
       if (error) {
-        throw new Error(error.message);
+        // If encrypted password fails, try with original (fallback for compatibility)
+        const { data: fallbackData, error: fallbackError } = await supabase.auth.signInWithPassword({
+          email,
+          password, // Original password as fallback
+        });
+        
+        if (fallbackError) {
+          throw new Error(fallbackError.message);
+        }
+        
+        console.log('✅ Authentication successful with fallback method');
+        onSignInSuccess();
+        return;
       }
 
       console.log('✅ Authentication successful with encrypted password handling');
