@@ -20,7 +20,6 @@ export const SessionTimeoutModal: React.FC<SessionTimeoutModalProps> = ({
 
   useEffect(() => {
     if (!isVisible) return;
-
     const interval = setInterval(() => {
       setTimeLeft(prev => {
         const newTime = prev - 1000;
@@ -31,7 +30,6 @@ export const SessionTimeoutModal: React.FC<SessionTimeoutModalProps> = ({
         return newTime;
       });
     }, 1000);
-
     return () => clearInterval(interval);
   }, [isVisible, onSignOut]);
 
@@ -59,7 +57,6 @@ export const SessionTimeoutModal: React.FC<SessionTimeoutModalProps> = ({
             </div>
           </div>
         </div>
-
         {/* Content */}
         <div className="p-6">
           <div className="text-center mb-6">
@@ -69,16 +66,14 @@ export const SessionTimeoutModal: React.FC<SessionTimeoutModalProps> = ({
             <p className="text-gray-700 mb-4">
               Your session will automatically expire in:
             </p>
-              <div className="text-3xl font-bold text-red-600 mb-1">
-                {minutes}:{seconds.toString().padStart(2, '0')}
-              </div>
-              <div className="text-sm text-red-500">minutes remaining</div>
+            <div className="text-3xl font-bold text-red-600 mb-1">
+              {minutes}:{seconds.toString().padStart(2, '0')}
             </div>
-            <p className="text-sm text-gray-600">
-              Click "Extend Session" to continue working, or you'll be automatically signed out for security.
-            </p>
+            <div className="text-sm text-red-500">minutes remaining</div>
           </div>
-
+          <p className="text-sm text-gray-600">
+            Click "Extend Session" to continue working, or you'll be automatically signed out for security.
+          </p>
           {/* Progress Bar */}
           <div className="mb-6">
             <div className="w-full bg-gray-200 rounded-full h-2">
@@ -90,8 +85,6 @@ export const SessionTimeoutModal: React.FC<SessionTimeoutModalProps> = ({
               />
             </div>
           </div>
-          
-
           {/* Action Buttons */}
           <div className="flex space-x-3">
             <button
