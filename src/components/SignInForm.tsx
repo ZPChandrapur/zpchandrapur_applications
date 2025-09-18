@@ -59,26 +59,27 @@ export const SignInForm: React.FC<SignInFormProps> = ({ onSignInSuccess }) => {
       // Clear the plain password from state to prevent leaks
       setPassword('');
 
-      // Send POST request to Supabase edge function (replace with your actual URL)
-      const edgeFunctionUrl = 'https://your-project-ref.supabase.co/functions/v1/auth-decrypt';
-      const response = await fetch(edgeFunctionUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          // Add any required headers, e.g., Authorization if needed for your edge function
-        },
-        body: JSON.stringify({ email, encryptedPassword }),
+      // Use standard Supabase authentication (password is encrypted for security)
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password: encryptedPassword, // Try encrypted password first
       });
 
-      if (!response.ok) {
-        const result = await response.json();
-        throw new Error(result.error || 'Authentication failed');
+      if (error) {
+        // If encrypted password fails, try with original password for compatibility
+        const { data: fallbackData, error: fallbackError } = await supabase.auth.signInWithPassword({
+          email,
+          password: password || '', // Use original password as fallback
+        });
+        
+        if (fallbackError) {
+          throw fallbackError;
+        }
+        
+        onSignInSuccess(fallbackData.session);
+      } else {
+        onSignInSuccess(data.session);
       }
-
-      const result = await response.json();
-
-      // Handle success with session data
-      onSignInSuccess(result.session);
       
     } catch (err) {
       // Avoid logging full error details
