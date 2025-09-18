@@ -32,6 +32,8 @@ import { usePermissions } from '../hooks/usePermissions';
 import { PermissionGuard } from './PermissionGuard';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { ERMSDashboard } from './ERMSDashboard';
+import { SessionTimeoutModal } from './SessionTimeoutModal';
+import { SessionTimeoutManager, SESSION_CONFIG } from '../utils/security';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 // E-estimate iframe component
@@ -211,6 +213,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [selectedApp, setSelectedApp] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [sessionManager] = useState(() => new SessionTimeoutManager(
+    () => handleSessionTimeout(),
+    () => setShowTimeoutWarning(true)
+  ));
+  const [showTimeoutWarning, setShowTimeoutWarning] = useState(false);
+  const [remainingTime, setRemainingTime] = useState(SESSION_CONFIG.WARNING_DURATION);
 
   // Detect if running on mobile device
   useEffect(() => {
@@ -224,6 +232,31 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  // Session timeout management
+  useEffect(() => {
+    if (user) {
+      sessionManager.start();
+      
+      // Update remaining time every second when warning is shown
+      let interval: NodeJS.Timeout;
+      if (showTimeoutWarning) {
+        interval = setInterval(() => {
+          setRemainingTime(sessionManager.getRemainingTime());
+        }, 1000);
+      }
+      
+      return () => {
+        if (interval) clearInterval(interval);
+      };
+    } else {
+      sessionManager.stop();
+    }
+    
+    return () => {
+      sessionManager.stop();
+    };
+  }, [user, sessionManager, showTimeoutWarning]);
 
   // Close profile dropdown when clicking outside
   useEffect(() => {
@@ -240,7 +273,29 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
     }
   }, [isProfileOpen]);
 
+  const handleSessionTimeout = async () => {
+    console.log('⏰ Session timeout - automatically signing out user');
+    setShowTimeoutWarning(false);
+    sessionManager.stop();
+    
+    try {
+      await supabase.auth.signOut();
+      onSignOut();
+    } catch (error) {
+      console.error('Error during automatic sign out:', error);
+      // Force sign out even if there's an error
+      onSignOut();
+    }
+  };
+
+  const handleExtendSession = () => {
+    console.log('🔄 User extended session');
+    sessionManager.extendSession();
+    setShowTimeoutWarning(false);
+  };
+
   const handleSignOut = async () => {
+    sessionManager.stop();
     try {
       await supabase.auth.signOut();
       onSignOut();
@@ -905,6 +960,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
           ))}
         </div>
       </main>
+      
+      {/* Session Timeout Warning Modal */}
+      <SessionTimeoutModal
+        isVisible={showTimeoutWarning}
+        remainingTime={remainingTime}
+        onExtendSession={handleExtendSession}
+        onSignOut={handleSessionTimeout}
+      />
     </div>
   );
 };

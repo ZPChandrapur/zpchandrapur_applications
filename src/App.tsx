@@ -43,6 +43,7 @@ function App() {
   };
 
   const handleSignOut = () => {
+    console.log('🚪 User signed out');
     setUser(null);
   };
 

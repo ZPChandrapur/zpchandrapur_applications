@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Mail, Lock, Eye, EyeOff, LogIn, Smartphone, Globe } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { encryptPassword } from '../utils/security';
 
 interface SignInFormProps {
   onSignInSuccess: () => void;
@@ -63,25 +64,51 @@ export const SignInForm: React.FC<SignInFormProps> = ({ onSignInSuccess }) => {
     setIsLoading(true);
 
     try {
-      const { data, error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      // Encrypt password before sending to Supabase
+      const encryptedPassword = encryptPassword(password);
+      console.log('🔐 Password encrypted for secure transmission');
+      
+      // Use our custom auth endpoint for encrypted password handling
+      const authUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/auth-decrypt`;
+      const response = await fetch(authUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({
+          email,
+          encryptedPassword
+        }),
       });
 
-      if (signInError) {
-        if (signInError.message.includes('Failed to fetch')) {
-          setError('Unable to connect to authentication server. Please check your internet connection and try again.');
-        } else {
-          setError(signInError.message);
-        }
-      } else if (data.user) {
-        onSignInSuccess();
+      const result = await response.json();
+
+      if (!response.ok || result.error) {
+        throw new Error(result.error || 'Authentication failed');
       }
+
+      // Set the session in Supabase client
+      const { error: sessionError } = await supabase.auth.setSession({
+        access_token: result.session.access_token,
+        refresh_token: result.session.refresh_token,
+      });
+
+      if (sessionError) {
+        throw new Error(sessionError.message);
+      }
+
+      console.log('✅ Secure authentication successful');
+      onSignInSuccess();
+      
     } catch (err) {
-      if (err.message && err.message.includes('Failed to fetch')) {
+      console.error('Authentication error:', err);
+      if (err.message && (err.message.includes('Failed to fetch') || err.message.includes('NetworkError'))) {
         setError('Network connection error. Please check your internet connection and try again.');
+      } else if (err.message.includes('Invalid login credentials')) {
+        setError(t('auth.signInError'));
       } else {
-        setError('An unexpected error occurred. Please try again.');
+        setError(err.message || 'An unexpected error occurred. Please try again.');
       }
     } finally {
       setIsLoading(false);
