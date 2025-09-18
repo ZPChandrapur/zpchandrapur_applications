@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Mail, Lock, Eye, EyeOff, LogIn, Smartphone, Globe } from 'lucide-react';
-import { supabase } from '../lib/supabase';
 import { encryptPassword } from '../utils/security';
 
 interface SignInFormProps {
-  onSignInSuccess: () => void;
+  onSignInSuccess: (session: any) => void; // Adjust type as needed for session
 }
 
 export const SignInForm: React.FC<SignInFormProps> = ({ onSignInSuccess }) => {
@@ -37,12 +36,6 @@ export const SignInForm: React.FC<SignInFormProps> = ({ onSignInSuccess }) => {
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    
-    // Check if Supabase is configured
-    if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
-      setError('Application configuration error. Please contact your administrator.');
-      return;
-    }
 
     // Basic validation
     if (!email || !password) {
@@ -60,27 +53,35 @@ export const SignInForm: React.FC<SignInFormProps> = ({ onSignInSuccess }) => {
 
     setIsLoading(true);
     try {
-      // Encrypt password immediately on sign-in attempt to obscure it
+      // Encrypt password immediately on sign-in attempt
       const encryptedPassword = encryptPassword(password);
       
-      // Clear the plain password from state to prevent any potential leaks (e.g., via debugging)
+      // Clear the plain password from state to prevent leaks
       setPassword('');
 
-      // Attempt authentication only with encrypted password
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password: encryptedPassword,
+      // Send POST request to Supabase edge function (replace with your actual URL)
+      const edgeFunctionUrl = 'https://your-project-ref.supabase.co/functions/v1/auth-decrypt';
+      const response = await fetch(edgeFunctionUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          // Add any required headers, e.g., Authorization if needed for your edge function
+        },
+        body: JSON.stringify({ email, encryptedPassword }),
       });
 
-      if (error) {
-        throw new Error(error.message);
+      if (!response.ok) {
+        const result = await response.json();
+        throw new Error(result.error || 'Authentication failed');
       }
 
-      onSignInSuccess();
+      const result = await response.json();
+
+      // Handle success with session data
+      onSignInSuccess(result.session);
       
     } catch (err) {
-      // Avoid logging full error details to console to prevent potential exposure
-      // Instead, log a generic message if needed for debugging
+      // Avoid logging full error details
       console.error('Authentication failed (generic error)');
 
       if (err.message && (err.message.includes('Failed to fetch') || err.message.includes('NetworkError'))) {
@@ -107,6 +108,7 @@ export const SignInForm: React.FC<SignInFormProps> = ({ onSignInSuccess }) => {
     setError('');
     setIsLoading(true);
     try {
+      // Assuming you still want to use direct Supabase for reset, or route through another edge function if needed
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/reset-password`,
       });
