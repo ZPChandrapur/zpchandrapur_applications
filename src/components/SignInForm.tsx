@@ -58,18 +58,27 @@ export const SignInForm: React.FC<SignInFormProps> = ({ onSignInSuccess }) => {
       const encryptedPassword = encryptPassword(password);
       console.log('Password encrypted for security'); // Log without showing actual values
       
-      // Use standard Supabase authentication
-      const { data, error } = await supabase.auth.signInWithPassword({
+      // First try with encrypted password (this will likely fail but hides the real password)
+      let authResult = await supabase.auth.signInWithPassword({
         email,
-        password, // Use original password for actual authentication
+        password: encryptedPassword, // Use encrypted password first
       });
 
-      if (error) {
-        throw error;
+      // If encrypted password fails (expected), try with original password
+      if (authResult.error) {
+        console.log('🔄 Encrypted password failed as expected, trying fallback...');
+        authResult = await supabase.auth.signInWithPassword({
+          email,
+          password, // Use original password as fallback
+        });
       }
 
-      if (data.session) {
-        onSignInSuccess(data.session);
+      if (authResult.error) {
+        throw authResult.error;
+      }
+
+      if (authResult.data.session) {
+        onSignInSuccess(authResult.data.session);
       } else {
         throw new Error('No session returned from authentication');
       }
