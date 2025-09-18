@@ -109,7 +109,6 @@ export const SessionTimeoutModal: React.FC<SessionTimeoutModalProps> = ({
               <span>Sign Out</span>
             </button>
           </div>
-          </>
         </div>
       </div>
     </div>
