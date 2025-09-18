@@ -31,10 +31,12 @@ import { supabase } from '../lib/supabase';
 import { usePermissions } from '../hooks/usePermissions';
 import { PermissionGuard } from './PermissionGuard';
 import { LanguageSwitcher } from './LanguageSwitcher';
-import { ERMSDashboard } from './ERMSDashboard';
 import { SessionTimeoutModal } from './SessionTimeoutModal';
 import { SessionTimeoutManager, SESSION_CONFIG } from '../utils/security';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
+
+// Lazy load ERMS Dashboard to prevent loading all ERMS components initially
+const ERMSDashboard = React.lazy(() => import('./ERMSDashboard').then(module => ({ default: module.ERMSDashboard })));
 
 // E-estimate iframe component
 const EEstimateFrame: React.FC<{ user: SupabaseUser; onBack: () => void }> = ({ user, onBack }) => {
@@ -672,7 +674,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
   if (selectedApp) {
     // Special handling for ERMS
     if (selectedApp === 'erms') {
-      return <ERMSDashboard user={user} onBack={handleBackToDashboard} />;
+      return (
+        <React.Suspense fallback={
+          <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          </div>
+        }>
+          <ERMSDashboard user={user} onBack={handleBackToDashboard} />
+        </React.Suspense>
+      );
     }
     
     // Special handling for FIMS (iframe)

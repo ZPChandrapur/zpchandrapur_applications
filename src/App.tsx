@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Building2 } from 'lucide-react';
 import { SignInForm } from './components/SignInForm';
-import { Dashboard } from './components/Dashboard';
 import { supabase } from './lib/supabase';
 import type { User } from '@supabase/supabase-js';
+
+// Lazy load Dashboard to prevent loading all components on login page
+const Dashboard = React.lazy(() => import('./components/Dashboard').then(module => ({ default: module.Dashboard })));
 
 function App() {
   const { t } = useTranslation();
@@ -63,7 +65,15 @@ function App() {
   }
 
   if (user) {
-    return <Dashboard user={user} onSignOut={handleSignOut} />;
+    return (
+      <React.Suspense fallback={
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>
+      }>
+        <Dashboard user={user} onSignOut={handleSignOut} />
+      </React.Suspense>
+    );
   }
 
   return (
