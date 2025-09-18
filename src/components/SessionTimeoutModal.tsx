@@ -91,6 +91,7 @@ export const SessionTimeoutModal: React.FC<SessionTimeoutModalProps> = ({
               />
             </div>
           </div>
+        </div>
 
           {/* Action Buttons */}
           <div className="flex space-x-3">
