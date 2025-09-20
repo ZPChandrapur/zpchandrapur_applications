@@ -16,6 +16,7 @@ import {
   Download
 } from 'lucide-react';
 import { ermsClient, supabase } from '../lib/supabase';
+import { EducationEmployeeDashboard } from './EducationEmployeeDashboard';
 import { usePermissions } from '../hooks/usePermissions';
 
 interface EmployeeDashboardProps {
@@ -73,11 +74,15 @@ interface ClerkData {
 
 export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) => {
   const { t } = useTranslation();
+  const [activeTab, setActiveTab] = useState<'general' | 'education'>('general');
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState('');
   const [selectedClerk, setSelectedClerk] = useState('');
   const [selectedReason, setSelectedReason] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalEmployeeCount, setTotalEmployeeCount] = useState(0);
+  const [recordsPerPage, setRecordsPerPage] = useState(20);
   const [selectedCadre, setSelectedCadre] = useState('');
   
   // Modal persistence state management
@@ -412,36 +417,76 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
   const fetchEmployees = async () => {
     try {
       console.log('🔍 Fetching employees from erms.employee table...');
-      const { data, error } = await ermsClient
+      
+      // First get the education department ID
+      const { data: educationDept, error: deptError } = await ermsClient
+        .from('department')
+        .select('dept_id')
+        .eq('department', 'शिक्षण विभाग')
+        .single();
+      
+      if (deptError) {
+        console.warn('Could not find education department:', deptError);
+      }
+      
+      const educationDeptId = educationDept?.dept_id;
+      console.log('Education Department ID:', educationDeptId);
+      
+      // Get total count excluding education department
+      const countQuery = ermsClient
+        .from('employee')
+        .select('*', { count: 'exact', head: true });
+      
+      if (educationDeptId) {
+        countQuery.neq('dept_id', educationDeptId);
+      }
+      
+      const { count, error: countError } = await countQuery;
+      
+      if (countError) {
+        console.error('Error getting employee count:', countError);
+        throw countError;
+      }
+      
+      console.log('Total employees (excluding education):', count);
+      setTotalEmployeeCount(count || 0);
+      
+      // Fetch all records excluding education department
+      const dataQuery = ermsClient
         .from('employee')
         .select(`
           emp_id,
           employee_name,
+          employee_name_en,
+          age,
           date_of_birth,
           retirement_date,
           reason,
           assigned_clerk,
+          date_of_assignment,
           dept_id,
-          designation_id,
           tal_id,
           office_id,
-          Cadre,
-          ddo_code,
           panchayatrajsevarth_id,
+          ddo_code,
+          Cadre,
           date_of_joining,
           created_at,
           updated_at
         `)
-        .order('date_of_birth');
+        .range(0, count ? count - 1 : 9999)
+        .order('employee_name');
       
-      if (error) {
-        console.error('❌ Error fetching employees:', error);
-        throw error;
+      if (educationDeptId) {
+        dataQuery.neq('dept_id', educationDeptId);
       }
       
+      const { data, error } = await dataQuery;
+      
+      // Define education department ID
       console.log('✅ Raw employee data from database:', data);
       console.log('📊 Number of employees fetched:', data?.length || 0);
-      
+      console.log('✅ Employees fetched (excluding education):', data?.length || 0, 'out of', count);
       setEmployees(data || []);
       console.log('📋 Employees state updated with:', data?.length || 0, 'records');
     } catch (error) {
@@ -538,7 +583,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
 
     if (searchTerm) {
       filtered = filtered.filter(emp =>
-        emp.emp_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        String(emp.emp_id || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         emp.employee_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         emp.department?.toLowerCase().includes(searchTerm.toLowerCase())
       );
@@ -557,7 +602,14 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     }
 
     setFilteredEmployees(filtered);
+    setCurrentPage(1); // Reset to first page when filters change
   };
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredEmployees.length / recordsPerPage);
+  const startIndex = (currentPage - 1) * recordsPerPage;
+  const endIndex = startIndex + recordsPerPage;
+  const paginatedEmployees = filteredEmployees.slice(startIndex, endIndex);
 
   const calculateUpcomingRetirements = () => {
     const sixMonthsFromNow = new Date();
@@ -816,6 +868,11 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
   const unassignedCount = employees.length - assignedCount;
   const upcomingRetirements = calculateUpcomingRetirements();
 
+  // If education tab is selected, render the education component
+  if (activeTab === 'education') {
+    return <EducationEmployeeDashboard onBack={() => setActiveTab('general')} />;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -842,6 +899,32 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                 <span className="text-sm font-medium">{t('erms.addEmployee')}</span>
               </button>
             </div>
+          </div>
+          
+          {/* Tabs */}
+          <div className="mt-4">
+            <nav className="flex space-x-8">
+              <button
+                onClick={() => setActiveTab('general')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
+                  activeTab === 'general'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                General Employees
+              </button>
+              <button
+                onClick={() => setActiveTab('education')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
+                  activeTab === 'education'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Education Department
+              </button>
+            </nav>
           </div>
         </div>
       </div>
@@ -902,13 +985,30 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         {/* Employee Records Table */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
           <div className="px-6 py-4 border-b border-gray-200">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">{t('erms.employeeRecords')}</h3>
+            <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <button className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200">
-                  <Download className="h-4 w-4" />
-                  <span className="text-sm">{t('common.export')}</span>
+                <select
+                  value={recordsPerPage}
+                  onChange={(e) => {
+                    setRecordsPerPage(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                >
+                  <option value={20}>20 per page</option>
+                  <option value={50}>50 per page</option>
+                  <option value={100}>100 per page</option>
+                </select>
+                <button 
+                  onClick={fetchEmployees}
+                  className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                  <span className="text-sm font-medium">{t('erms.refresh')}</span>
                 </button>
+              </div>
+              <div className="text-sm text-gray-500">
+                Showing {startIndex + 1}-{Math.min(endIndex, filteredEmployees.length)} of {filteredEmployees.length} employees
               </div>
             </div>
 
@@ -992,14 +1092,14 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredEmployees.length === 0 ? (
+                {paginatedEmployees.length === 0 ? (
                   <tr>
                     <td colSpan={12} className="px-6 py-8 text-center text-gray-500">
                       {t('erms.noEmployeesFound')}
                     </td>
                   </tr>
                 ) : (
-                  filteredEmployees.map((employee) => (
+                  paginatedEmployees.map((employee) => (
                     <tr key={employee.emp_id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {employee.emp_id || '-'}
@@ -1064,6 +1164,54 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
               </tbody>
             </table>
           </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="px-6 py-4 border-t border-gray-200">
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-500">
+                  Showing {startIndex + 1} to {Math.min(endIndex, filteredEmployees.length)} of {filteredEmployees.length} results
+                </div>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                    disabled={currentPage === 1}
+                    className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Previous
+                  </button>
+                  
+                  {/* Page numbers */}
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    const pageNum = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i;
+                    if (pageNum > totalPages) return null;
+                    
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => setCurrentPage(pageNum)}
+                        className={`px-3 py-1 text-sm border rounded-md ${
+                          currentPage === pageNum
+                            ? 'bg-blue-500 text-white border-blue-500'
+                            : 'border-gray-300 hover:bg-gray-50'
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+                  
+                  <button
+                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                    disabled={currentPage === totalPages}
+                    className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -1093,25 +1241,21 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     value={formData.panchayatrajsevarth_id || ''}
                     onChange={(e) => setFormData({ ...formData, panchayatrajsevarth_id: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder={t('erms.enterpanchayatrajsevarthId')}
                   />
                 </div>
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    कर्मचारी आयडी
+                    {t('erms.employeeIdInternal')} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     value={formData.emp_id || ''}
                     onChange={(e) => setFormData({ ...formData, emp_id: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder={t('erms.enterEmployeeId')}
-                    disabled={editingEmployee ? true : false}
+                    required
+                    maxLength={50}
                   />
-                  {editingEmployee && (
-                    <p className="text-xs text-gray-500 mt-1">Employee ID cannot be changed during edit</p>
-                  )}
                 </div>
                 
                 <div>
@@ -1123,7 +1267,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     value={formData.employee_name || ''}
                     onChange={(e) => setFormData({ ...formData, employee_name: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder={t('erms.enterEmployeeName')}
                     required
                     maxLength={100}
                   />
@@ -1131,13 +1274,14 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.dateOfBirth')}
+                    {t('erms.dateOfBirth')} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="date"
                     value={formData.date_of_birth || ''}
                     onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required
                   />
                 </div>
 
@@ -1158,15 +1302,20 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     {t('erms.Cadre')} <span className="text-red-500">*</span>
                   </label>
                   <select
-                      value={formData.Cadre}
-                      onChange={(e) => setFormData({ ...formData, Cadre: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      required
-                    >
-                      <option value="">Select Cadre</option>
-                      <option value="C">C</option>
-                      <option value="D">D</option>
-                   </select>
+                    value={formData.Cadre || ''}
+                    onChange={(e) => setFormData({ ...formData, Cadre: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required
+                  >
+                   <option value="">Select Cadre</option>
+                   <option value="C">C</option>
+                   <option value="D">D</option>
+                  </select>
+                  {formData.Cadre && (
+                    <p className="text-xs text-gray-500 mt-1">
+                    Currently selected Cadre: <span className="font-semibold">{formData.Cadre}</span>
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -1183,16 +1332,18 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('erms.retirementDate')} (Auto-calculated)
+                    {t('erms.retirementDate')}
                   </label>
                   <input
                     type="date"
                     value={calculateRetirementDate(formData.date_of_birth, formData.Cadre) || ''}
                     readOnly
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
                     title="Retirement date is auto-calculated based on date of birth and Cadre"
-                    disabled
                   />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Auto-calculated: Cadre C = 58 years, Cadre D = 60 years (last day of month)
+                  </p>
                 </div>
 
                 <div>
@@ -1295,27 +1446,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
             
             <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200">
               <button
-                onClick={() => {
-                  clearPersistedState(); // Add this line
-                  setShowAddModal(false);
-                  setEditingEmployee(null);
-                  setFormData({
-                    panchayatrajsevarth_id: '',
-                    emp_id: '',
-                    employee_name: '',
-                    date_of_birth: '',
-                    ddo_code: '',
-                    Cadre: '',
-                    date_of_joining: '',
-                    retirement_date: '',
-                    retirement_reason: '',
-                    department: '',
-                    designation: '',
-                    taluka: '',
-                    office: '', 
-                    assigned_clerk: ''
-                  });
-                }}
+                onClick={() => setShowAddModal(false)}
                 className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200"
               >
                 {t('common.cancel')}
