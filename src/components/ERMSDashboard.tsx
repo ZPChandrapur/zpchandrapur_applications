@@ -24,16 +24,13 @@ import { CustomReports } from './CustomReports';
 import { usePermissions } from '../hooks/usePermissions';
 import { Shield } from 'lucide-react';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
-
 interface ERMSDashboardProps {
   user: SupabaseUser;
   onBack: () => void;
 }
-
 export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, onBack }) => {
   const { t } = useTranslation();
   const { hasAccess } = usePermissions(user);
-  
   // Enhanced module state management with better persistence
   const getInitialModule = () => {
     try {
@@ -57,10 +54,8 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, onBack }) =>
     // Always default to employee-dashboard as the landing page
     return 'employee-dashboard';
   };
-  
-  const [activeModule, setActiveModule] = useState(getInitialModule);
+  const [activeModule, setActiveModule] = useState('employee-dashboard');
   const [isInitialized, setIsInitialized] = useState(false);
-  
   // Enhanced module change handler with better error handling
   const handleModuleChange = (moduleId: string) => {
     try {
@@ -68,7 +63,7 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, onBack }) =>
       const validModules = [
         'employee-dashboard',
         'organization-setup',
-        'retirement-dashboard', 
+        'retirement-dashboard',
         'retirement-tracker',
         'retirement-file-tracker',
         'custom-reports',
@@ -98,7 +93,6 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, onBack }) =>
       setActiveModule(moduleId);
     }
   };
-  
   // Enhanced tab synchronization and state management
   useEffect(() => {
     // Mark as initialized after first render
@@ -184,7 +178,6 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, onBack }) =>
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, [activeModule]);
-  
   // Enhanced back handler that maintains current module context
   const handleBackToMain = () => {
     // This function is called when navigating back within modules
@@ -196,7 +189,6 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, onBack }) =>
     }
     // Don't change activeModule - this prevents unwanted redirects
   };
-
   const modules = [
     {
       id: 'employee-dashboard',
@@ -262,16 +254,13 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, onBack }) =>
       requiredPermission: 'read'
     }
   ];
-
   // Filter modules based on user permissions
   const getAccessibleModules = () => {
     return modules.filter(module => {
       return hasAccess('erms', module.requiredPermission);
     });
   };
-
   const accessibleModules = getAccessibleModules();
-
   const renderModuleContent = () => {
     // Ensure we don't render content until properly initialized
     if (!isInitialized) {
@@ -329,7 +318,6 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, onBack }) =>
         return <EmployeeDashboard onBack={handleBackToMain} />;
     }
   };
-
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Left Sidebar */}
@@ -352,7 +340,6 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, onBack }) =>
             </div>
           </div>
         </div>
-
         {/* Navigation Menu */}
         <div className="flex-1 overflow-y-auto p-4">
           <nav className="space-y-2">
@@ -400,7 +387,6 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, onBack }) =>
           </nav>
         </div>
       </div>
-
       {/* Main Content Area */}
       <div className="flex-1 overflow-hidden">
         {renderModuleContent()}
