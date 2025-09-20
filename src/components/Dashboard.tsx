@@ -235,6 +235,69 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // Handle back button navigation - log out user
+  useEffect(() => {
+    const handlePopState = async (event: PopStateEvent) => {
+      console.log('🔙 Back button pressed - logging out user for security');
+      
+      // Prevent the default back navigation
+      event.preventDefault();
+      
+      // Sign out the user
+      try {
+        await supabase.auth.signOut();
+        onSignOut();
+      } catch (error) {
+        console.error('Error during back button logout:', error);
+        // Force sign out even if there's an error
+        onSignOut();
+      }
+    };
+
+    // Add state to history to detect back button
+    window.history.pushState({ page: 'dashboard' }, '', window.location.href);
+    
+    // Listen for back button
+    window.addEventListener('popstate', handlePopState);
+    
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [onSignOut]);
+
+  // Prevent password saving and form autocomplete
+  useEffect(() => {
+    // Disable password managers and autocomplete
+    const disablePasswordSaving = () => {
+      // Add meta tag to prevent password saving
+      const metaTag = document.createElement('meta');
+      metaTag.name = 'save-password';
+      metaTag.content = 'never';
+      document.head.appendChild(metaTag);
+      
+      // Disable autocomplete on all forms
+      const forms = document.querySelectorAll('form');
+      forms.forEach(form => {
+        form.setAttribute('autocomplete', 'off');
+      });
+      
+      // Disable autocomplete on all input fields
+      const inputs = document.querySelectorAll('input');
+      inputs.forEach(input => {
+        input.setAttribute('autocomplete', 'off');
+        input.setAttribute('data-form-type', 'other');
+      });
+    };
+
+    disablePasswordSaving();
+    
+    // Run periodically to catch dynamically added forms
+    const interval = setInterval(disablePasswordSaving, 1000);
+    
+    return () => {
+      clearInterval(interval);
+    };
+  }, []);
   // Session timeout management
   useEffect(() => {
     if (user) {

@@ -29,6 +29,31 @@ export const SignInForm: React.FC<SignInFormProps> = ({ onSignInSuccess }) => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // Prevent password saving
+  React.useEffect(() => {
+    // Disable password managers
+    const disablePasswordSaving = () => {
+      // Add meta tags to prevent password saving
+      let metaTag = document.querySelector('meta[name="save-password"]');
+      if (!metaTag) {
+        metaTag = document.createElement('meta');
+        metaTag.setAttribute('name', 'save-password');
+        metaTag.setAttribute('content', 'never');
+        document.head.appendChild(metaTag);
+      }
+      
+      // Add another meta tag for password managers
+      let metaTag2 = document.querySelector('meta[name="password-managers"]');
+      if (!metaTag2) {
+        metaTag2 = document.createElement('meta');
+        metaTag2.setAttribute('name', 'password-managers');
+        metaTag2.setAttribute('content', 'disabled');
+        document.head.appendChild(metaTag2);
+      }
+    };
+
+    disablePasswordSaving();
+  }, []);
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
@@ -172,7 +197,12 @@ export const SignInForm: React.FC<SignInFormProps> = ({ onSignInSuccess }) => {
           }
         </p>
       </div>
-      <form onSubmit={handleSignIn} className="space-y-6">
+      <form 
+        onSubmit={handleSignIn} 
+        className="space-y-6"
+        autoComplete="off"
+        data-form-type="other"
+      >
         {error && (
           <div className="bg-gradient-to-r from-red-50 to-pink-50 border border-red-200/50 text-red-700 px-6 py-4 rounded-3xl shadow-lg backdrop-blur-sm">
             {error}
@@ -192,6 +222,11 @@ export const SignInForm: React.FC<SignInFormProps> = ({ onSignInSuccess }) => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full pl-16 pr-6 py-4 border border-gray-200 rounded-3xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300 shadow-lg hover:shadow-xl bg-gradient-to-r from-gray-50 to-blue-50/30 hover:from-blue-50 hover:to-indigo-50/50"
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="off"
+              spellCheck="false"
+              data-form-type="other"
               placeholder={t('auth.enterEmail')}
               disabled={isLoading}
             />
@@ -211,6 +246,13 @@ export const SignInForm: React.FC<SignInFormProps> = ({ onSignInSuccess }) => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full pl-16 pr-16 py-4 border border-gray-200 rounded-3xl focus:ring-4 focus:ring-purple-500/20 focus:border-purple-500 transition-all duration-300 shadow-lg hover:shadow-xl bg-gradient-to-r from-gray-50 to-purple-50/30 hover:from-purple-50 hover:to-pink-50/50"
+              autoComplete="new-password"
+              autoCorrect="off"
+              autoCapitalize="off"
+              spellCheck="false"
+              data-form-type="other"
+              data-lpignore="true"
+              data-1p-ignore="true"
               placeholder={t('auth.enterPassword')}
               disabled={isLoading}
             />
