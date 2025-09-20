@@ -54,7 +54,7 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, onBack }) =>
     // Always default to employee-dashboard as the landing page
     return 'employee-dashboard';
   };
-  const [activeModule, setActiveModule] = useState('employee-dashboard');
+  const [activeModule, setActiveModule] = useState(getInitialModule);
   const [isInitialized, setIsInitialized] = useState(false);
   // Enhanced module change handler with better error handling
   const handleModuleChange = (moduleId: string) => {
@@ -63,7 +63,7 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, onBack }) =>
       const validModules = [
         'employee-dashboard',
         'organization-setup',
-        'retirement-dashboard',
+        'retirement-dashboard', 
         'retirement-tracker',
         'retirement-file-tracker',
         'custom-reports',
