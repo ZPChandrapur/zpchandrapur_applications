@@ -504,11 +504,11 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       const { data, error } = await dataQuery;
       
       // Define education department ID
-      console.log('✅ Raw employee data from database:', data);
-      console.log('📊 Number of employees fetched:', data?.length || 0);
-      console.log('✅ Employees fetched (excluding education):', data?.length || 0, 'out of', count);
+      // console.log('✅ Raw employee data from database:', data);
+      // console.log('📊 Number of employees fetched:', data?.length || 0);
+      // console.log('✅ Employees fetched (excluding education):', data?.length || 0, 'out of', count);
       setEmployees(data || []);
-      console.log('📋 Employees state updated with:', data?.length || 0, 'records');
+      // console.log('📋 Employees state updated with:', data?.length || 0, 'records');
     } catch (error) {
       console.error('Error fetching employees:', error);
       // Set empty array on error to prevent undefined state
@@ -771,7 +771,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       // console.log('   department:', employeeData.department);
 
 
-      if (editingEmployee) {
+      if (editingEmployee) {debugger;
         const { error } = await ermsClient
           .from('employee')
           .update(employeeData)
