@@ -286,10 +286,11 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
     let filtered = employees;
 
     if (searchTerm) {
-      filtered = filtered.filter(emp =>  
-         String(emp.emp_id || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      filtered = filtered.filter(emp =>
+        emp.emp_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         emp.employee_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        emp.department?.toLowerCase().includes(searchTerm.toLowerCase())
+        emp.employee_name_en?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        emp.designations?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 

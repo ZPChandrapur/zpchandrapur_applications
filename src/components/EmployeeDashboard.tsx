@@ -435,9 +435,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       // Get total count excluding education department
       const countQuery = ermsClient
         .from('employee')
-        .select('*', { count: 'exact', head: true })
-        .or(`dept_id.is.null,dept_id.neq.${educationDeptId}`);
-
+        .select('*', { count: 'exact', head: true });
       
       if (educationDeptId) {
         countQuery.neq('dept_id', educationDeptId);
@@ -475,22 +473,14 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
           date_of_joining,
           created_at,
           updated_at
-        `,{
-            count: 'exact',
-                head: false
-            })
-        .order('employee_name')
+        `)
         .range(0, count ? count - 1 : 9999)
-        .or(`dept_id.is.null,dept_id.neq.${educationDeptId}`);
+        .order('employee_name');
       
-      // if (educationDeptId) {
-      //   dataQuery.neq('dept_id', educationDeptId);
-      // }
-
       if (educationDeptId) {
-            dataQuery.or(`dept_id.is.null,dept_id.neq.${educationDeptId}`);
-              }
-
+        dataQuery.neq('dept_id', educationDeptId);
+      }
+      
       const { data, error } = await dataQuery;
       
       // Define education department ID
