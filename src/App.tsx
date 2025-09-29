@@ -188,7 +188,7 @@ function App() {
   }
 
   // If user is authenticated and not in recovery, show FIMS Dashboard
-  return <FIMSDashboard user={user} onSignOut={handleSignOut} />;
+  return <Dashboard user={user} onSignOut={handleSignOut} />;
 }
 
 export default App;
