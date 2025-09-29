@@ -414,7 +414,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     }
   };
 
-  const fetchEmployees = async () => {debugger;
+  const fetchEmployees = async () => {
     try {
       console.log('🔍 Fetching employees from erms.employee table...');
       
