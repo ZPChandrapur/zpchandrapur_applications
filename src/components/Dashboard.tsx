@@ -1,32 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { 
-  Building2, 
-  Users, 
-  Calendar, 
-  FileText, 
-  TrendingUp,
-  User,
-  Settings,
-  LogOut,
-  ChevronDown,
-  Smartphone,
-  Globe,
-  Shield,
-  Eye,
-  Edit,
-  Trash2,
-  UserCheck,
-  ArrowRight,
-  BarChart3,
-  Camera,
-  MapPin,
-  Clock,
-  CheckCircle,
-  AlertCircle,
-  DollarSign,
-  Activity
-} from 'lucide-react';
+import { Building2, Users, Calendar, FileText, TrendingUp, User, Settings, LogOut, ChevronDown, Smartphone, Globe, Shield, Eye, CreditCard as Edit, Trash2, UserCheck, ArrowRight, BarChart3, Camera, MapPin, Clock, CheckCircle, AlertCircle, DollarSign, Activity } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { usePermissions } from '../hooks/usePermissions';
 import { PermissionGuard } from './PermissionGuard';
