@@ -426,7 +426,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
 
   const fetchEmployees = async () => {
     try {
-      console.log('🔍 Fetching employees from erms.employee table...');
+      // console.log('🔍 Fetching employees from erms.employee table...');
       
       // First get the education department ID
       const { data: educationDept, error: deptError } = await ermsClient
@@ -477,6 +477,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
           assigned_clerk,
           date_of_assignment,
           dept_id,
+          designation_id,
           tal_id,
           office_id,
           panchayatrajsevarth_id,
