@@ -473,9 +473,14 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
           date_of_joining,
           created_at,
           updated_at
-        `)
+        `,{
+            count: 'exact',
+                head: false
+            })
         .range(0, count ? count - 1 : 9999)
-        .order('employee_name');
+        .order('employee_name')
+        .or(`dept_id.is.null,dept_id.neq.${educationDeptId}`);
+;
       
       // if (educationDeptId) {
       //   dataQuery.neq('dept_id', educationDeptId);
