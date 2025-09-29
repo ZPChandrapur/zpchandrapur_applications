@@ -177,7 +177,7 @@ function App() {
             {/* Footer */}
             <div className="mt-8 text-center">
               <p className="text-xs text-gray-500">
-                {t('auth.secureAccess', 'Secure access to integrated government applications')}
+                {t('auth.secureAccess', '© 2025 ZP Chandrapur,Govt of Maharashtra. All rights reserved.')}
               </p>
             </div>
           </div>
