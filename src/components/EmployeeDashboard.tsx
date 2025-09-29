@@ -431,16 +431,12 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       
       const educationDeptId = educationDept?.dept_id;
       console.log('Education Department ID:', educationDeptId);
-
-        const { count1, error: countError1 } = await ermsClient
-              .from('employee')
-              .select('*', { count1: 'exact', head: true });
       
-      // // Get total count excluding education department
-      // const countQuery = ermsClient
-      //   .from('employee')
-      //   .select('*', { count: 'exact', head: true })
-      //   .or(`dept_id.is.null,dept_id.neq.${educationDeptId}`);
+      // Get total count excluding education department
+      const countQuery = ermsClient
+        .from('employee')
+        .select('*', { count: 'exact', head: true })
+        .or(`dept_id.is.null,dept_id.neq.${educationDeptId}`);
 
       
       if (educationDeptId) {
