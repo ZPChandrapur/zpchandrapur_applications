@@ -1099,6 +1099,9 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                     </td>
                   </tr>
                 ) : (
+                  const sortedEmployees = [...paginatedEmployees].sort((a, b) => {
+                      return new Date(a.date_of_birth) - new Date(b.date_of_birth);
+                      });
                   paginatedEmployees.map((employee) => (
                     <tr key={employee.emp_id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
