@@ -889,7 +889,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
   const upcomingRetirements = calculateUpcomingRetirements();
 
   // If education tab is selected, render the education component
-  if (activeTab === 'education') {debugger;
+  if (activeTab === 'education') {
     return <EducationEmployeeDashboard onBack={() => setActiveTab('general')} />;
   }
 
