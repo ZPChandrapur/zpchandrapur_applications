@@ -159,6 +159,7 @@ function App() {
                   />
                 <div className="bg-gradient-to-r from-blue-600 to-blue-400 p-3 rounded-full shadow-lg">
               </div>
+            </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
               {t('dashboard.title')}
             </h1>
@@ -187,7 +188,7 @@ function App() {
     );
   }
 
-  // If user is authenticated and not in recovery, show FIMS Dashboard
+  // If user is authenticated and not in recovery, show Dashboard
   return <Dashboard user={user} onSignOut={handleSignOut} />
 }
 
