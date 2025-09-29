@@ -481,9 +481,9 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       //   dataQuery.neq('dept_id', educationDeptId);
       // }
 
-          if (educationDeptId) {
-              dataQuery.or(`dept_id.is.null,dept_id.neq.${educationDeptId}`);
-                }
+      if (educationDeptId) {
+            dataQuery.or(`dept_id.is.null,dept_id.neq.${educationDeptId}`);
+              }
 
       const { data, error } = await dataQuery;
       
