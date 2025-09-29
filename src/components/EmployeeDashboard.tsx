@@ -437,7 +437,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         .from('employee')
         .select('*', { count: 'exact', head: true });
       
-      if (educationDeptId) {
+      if (educationDeptId) {debugger;
         countQuery.neq('dept_id', educationDeptId);
       }
       
