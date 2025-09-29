@@ -477,8 +477,8 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
             count: 'exact',
                 head: false
             })
-        .range(0, count ? count - 1 : 9999)
         .order('employee_name')
+        .range(0, count ? count - 1 : 9999)
         .or(`dept_id.is.null,dept_id.neq.${educationDeptId}`);
 ;
       
