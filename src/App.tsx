@@ -116,7 +116,7 @@ function App() {
                 </svg>
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Configuration Required</h3>
-              <p className="text-gray-600 mb-4">Supabase environment variables are missing or invalid.</p>
+              <p className="text-gray-600 mb-4">Variables are missing or invalid.</p>
               <div className="bg-gray-50 p-4 rounded-lg text-left">
                 <p className="text-sm font-medium text-gray-700 mb-2">Required steps:</p>
                 <ol className="text-sm text-gray-600 space-y-1">
