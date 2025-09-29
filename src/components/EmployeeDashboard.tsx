@@ -435,7 +435,9 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       // Get total count excluding education department
       const countQuery = ermsClient
         .from('employee')
-        .select('*', { count: 'exact', head: true });
+        .select('*', { count: 'exact', head: true })
+        .or(`dept_id.is.null,dept_id.neq.${educationDeptId}`);
+
       
       if (educationDeptId) {
         countQuery.neq('dept_id', educationDeptId);
