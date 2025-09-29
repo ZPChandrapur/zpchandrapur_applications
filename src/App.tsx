@@ -157,7 +157,6 @@ function App() {
                 alt="ZP Chandrapur Logo" 
                 className="h-16 w-16 object-contain"
                   />
-                <div className="bg-gradient-to-r from-blue-600 to-blue-400 p-3 rounded-full shadow-lg">
               </div>
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
