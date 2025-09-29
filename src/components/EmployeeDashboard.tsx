@@ -772,7 +772,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       // console.log('   department:', employeeData.department);
 
 
-      if (editingEmployee) {debugger;
+      if (editingEmployee) {
         const { error } = await ermsClient
           .from('employee')
           .update(employeeData)
