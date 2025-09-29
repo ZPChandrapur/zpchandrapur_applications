@@ -1,32 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { 
-  Building2, 
-  Users, 
-  Calendar, 
-  FileText, 
-  TrendingUp,
-  User,
-  Settings,
-  LogOut,
-  ChevronDown,
-  Smartphone,
-  Globe,
-  Shield,
-  Eye,
-  Edit,
-  Trash2,
-  UserCheck,
-  ArrowRight,
-  BarChart3,
-  Camera,
-  MapPin,
-  Clock,
-  CheckCircle,
-  AlertCircle,
-  DollarSign,
-  Activity
-} from 'lucide-react';
+import { Building2, Users, Calendar, FileText, TrendingUp, User, Settings, LogOut, ChevronDown, Smartphone, Globe, Shield, Eye, CreditCard as Edit, Trash2, UserCheck, ArrowRight, BarChart3, Camera, MapPin, Clock, CheckCircle, AlertCircle, DollarSign, Activity } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { usePermissions } from '../hooks/usePermissions';
 import { PermissionGuard } from './PermissionGuard';
@@ -35,8 +9,8 @@ import { SessionTimeoutModal } from './SessionTimeoutModal';
 import { SessionTimeoutManager, SESSION_CONFIG } from '../utils/security';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
-// Lazy load ERMS Dashboard to prevent loading all ERMS components initially
-const ERMSDashboard = React.lazy(() => import('./ERMSDashboard').then(module => ({ default: module.ERMSDashboard })));
+// Import ERMSDashboard directly since lazy loading is causing issues
+import { ERMSDashboard } from './ERMSDashboard';
 
 // E-estimate iframe component
 const EEstimateFrame: React.FC<{ user: SupabaseUser; onBack: () => void }> = ({ user, onBack }) => {
@@ -778,15 +752,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
   if (selectedApp) {
     // Special handling for ERMS
     if (selectedApp === 'erms') {
-      return (
-        <React.Suspense fallback={
-          <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-          </div>
-        }>
-          <ERMSDashboard user={user} onBack={handleBackToDashboard} />
-        </React.Suspense>
-      );
+      return <ERMSDashboard user={user} onBack={handleBackToDashboard} />;
     }
     
     // Special handling for FIMS (iframe)
