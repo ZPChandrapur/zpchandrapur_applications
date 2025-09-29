@@ -432,7 +432,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
   const paginatedEmployees = getPaginatedEmployees();
   const totalPages = getTotalPages();
 
-  return (
+  return (debugger;
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white shadow-sm border-b border-gray-200">
