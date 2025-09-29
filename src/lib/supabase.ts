@@ -110,19 +110,7 @@ export const testERMSConnection = async () => {
   }
 }
 
-export const supabase = configErrors.length === 0 ? createClient(supabaseUrl!, supabaseAnonKey!, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true
-  },
-  global: {
-    headers: {
-      'X-Client-Info': 'erms'
-    }
-  }
-}) : null;
- 
+
 // Export configuration status for components to check
 export const isSupabaseConfigured = configErrors.length === 0;
 export const supabaseConfigErrors = configErrors;
