@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { supabase, isSupabaseConfigured, supabaseConfigErrors } from "./lib/supabase";
-import { SignInForm } from './SignInForm'; // Ensure your SignInForm accepts props as shown!
+import { Camera } from 'lucide-react';
+import { SignInForm } from './SignInForm';
 import { Dashboard } from './components/Dashboard';
+import { supabase, isSupabaseConfigured, supabaseConfigErrors } from "./lib/supabase";
 import type { User } from '@supabase/supabase-js';
 
 function App() {
@@ -13,6 +14,7 @@ function App() {
   const [recoveryTokens, setRecoveryTokens] = useState<{ accessToken: string | null; refreshToken: string | null }>({ accessToken: null, refreshToken: null });
 
   useEffect(() => {
+    // Immediately check URL for recovery params (before any auth calls)
     const checkForRecovery = () => {
       const params = new URLSearchParams(window.location.search);
       const hashParams = new URLSearchParams(window.location.hash.substring(1));
@@ -22,6 +24,7 @@ function App() {
       if (type === 'recovery' && accessToken && refreshToken) {
         setIsRecoveryMode(true);
         setRecoveryTokens({ accessToken, refreshToken });
+        // Clean URL to prevent re-triggering
         if (window.history.replaceState) {
           window.history.replaceState(null, '', window.location.pathname);
         }
@@ -31,6 +34,7 @@ function App() {
     };
     checkForRecovery();
 
+    // Check if user is already signed in
     const checkUser = async () => {
       if (!isSupabaseConfigured || !supabase) {
         setIsLoading(false);
@@ -52,7 +56,8 @@ function App() {
     };
     checkUser();
 
-    let subscription = null;
+    // Set up auth listener
+    let subscription: any = null;
     if (isSupabaseConfigured && supabase) {
       const { data: { subscription: authSubscription } } = supabase.auth.onAuthStateChange((event, session) => {
         setUser(session?.user ?? null);
@@ -70,20 +75,24 @@ function App() {
     };
   }, []);
 
-  const handleSignInSuccess = () => { };
+  const handleSignInSuccess = () => {
+    // User state will be updated by the auth state listener
+  };
+
   const handleSignOut = () => {
     setUser(null);
-    setIsRecoveryMode(false);
+    setIsRecoveryMode(false); // Reset recovery mode on sign out
   };
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-indigo-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
       </div>
     );
   }
 
+  // Show configuration error if Supabase is not configured
   if (!isSupabaseConfigured) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-indigo-50 flex items-center justify-center">
@@ -123,71 +132,60 @@ function App() {
     );
   }
 
+  // If in recovery mode or not signed in, show the sign-in page (with reset form forced if recovery)
   if (isRecoveryMode || !user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 flex items-center justify-center p-4">
         <div className="w-full max-w-md">
-          <div className="bg-white rounded-3xl shadow-2xl p-8">
-            {/* Web Application Card */}
+          <div className="bg-white rounded-2xl shadow-xl p-8">
+
+            {/* Web Application Card - NEW */}
             <div className="mb-6">
-              <div className="flex items-center bg-blue-100 rounded-2xl shadow-lg px-8 py-6">
-                <div className="bg-green-200 rounded-full h-12 w-12 flex items-center justify-center mr-4">
-                  {/* Globe Icon */}
-                  <svg className="w-7 h-7 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="flex items-center bg-white rounded-2xl shadow-md px-4 py-4">
+                <div className="bg-green-100 rounded-full h-10 w-10 flex items-center justify-center mr-4">
+                  <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <circle cx="12" cy="12" r="10" strokeWidth="2" />
                     <path d="M2 12h20M12 2c4.418 0 8 4.48 8 10s-3.582 10-8 10-8-4.48-8-10 3.582-10 8-10z" strokeWidth="2" />
                   </svg>
                 </div>
                 <div>
                   <div className="font-semibold text-green-700 text-lg">
-                    Web Application
+                    {t('auth.webApplication', 'Web Application')}
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    {t('auth.webApplicationSubtitle', 'Full system access on web')}
                   </div>
                 </div>
-              </div>
-              <div className="mt-2 text-center text-sm text-gray-500">
-                Full system access on web
               </div>
             </div>
 
             {/* Header */}
-            <h1 className="text-lg font-medium text-center mb-6 text-gray-800 tracking-wide">
-              एकात्मिक अनुप्रयोग प्रणाली
-            </h1>
-
-            {/* Sign In Form block starts */}
-            <SignInForm
-              onSignInSuccess={handleSignInSuccess}
+            <div className="text-center mb-8">
+              <div className="flex justify-center mb-4">
+                <img 
+                  src="Zpchandrapurlogo.png" 
+                  alt="ZP Chandrapur Logo" 
+                  className="h-16 w-16 object-contain"
+                />   
+              </div>
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                {t('dashboard.title')}
+              </h1>
+              <p className="text-gray-600 text-sm">
+                {t('dashboard.subtitle')}
+              </p>
+            </div>
+            {/* Sign In Form (force reset mode if in recovery, pass tokens) */}
+            <SignInForm 
+              onSignInSuccess={handleSignInSuccess} 
               forceResetMode={isRecoveryMode}
               accessToken={recoveryTokens.accessToken}
               refreshToken={recoveryTokens.refreshToken}
-              showLabels={true}
-              showIcons={true}
-              buttonText="साईन इन"
-              forgotText="आपला पासवर्ड विसरलात?"
-              inputStyles={{
-                container: "mb-5 flex items-center bg-blue-50 rounded-2xl shadow p-2",
-                icon: "bg-blue-200 rounded-full h-10 w-10 flex items-center justify-center mr-3",
-                input: "flex-1 bg-transparent border-none text-lg placeholder-gray-400 focus:outline-none"
-              }}
-              passwordStyles={{
-                container: "mb-4 flex items-center bg-purple-50 rounded-2xl shadow p-2",
-                icon: "bg-purple-200 rounded-full h-10 w-10 flex items-center justify-center mr-3",
-                input: "flex-1 bg-transparent border-none text-lg placeholder-gray-400 focus:outline-none"
-              }}
-              forgotStyles="text-blue-700 px-4 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 font-semibold text-base mb-6"
-              buttonStyles="w-full flex items-center justify-center gap-2 text-white text-xl font-bold rounded-2xl py-4 bg-gradient-to-r from-blue-600 to-purple-500 hover:from-blue-700 hover:to-purple-600 shadow-xl"
-              buttonIcon={
-                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path d="M15 12H3m12 0l-4-4m4 4l-4 4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              }
             />
-            {/* Sign In Form block ends */}
-
             {/* Footer */}
             <div className="mt-8 text-center">
-              <p className="text-xs text-gray-400">
-                Secure access to integrated government applications
+              <p className="text-xs text-gray-500">
+                {t('auth.secureAccess', 'Secure access to integrated government applications')}
               </p>
             </div>
           </div>
@@ -196,7 +194,7 @@ function App() {
     );
   }
 
+  // If user is authenticated and not in recovery, show Dashboard
   return <Dashboard user={user} onSignOut={handleSignOut} />;
 }
-
 export default App;
