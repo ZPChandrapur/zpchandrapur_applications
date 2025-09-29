@@ -335,7 +335,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
     return { total, upcomingRetirements, assigned, unassigned };
   };
 
-  const handleAddEmployee = () => {
+  const handleAddEmployee = () => {debugger;
     setFormData({
       Cadre: 'C',
       date_of_joining: ''
@@ -432,7 +432,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
   const paginatedEmployees = getPaginatedEmployees();
   const totalPages = getTotalPages();
 
-  return (debugger;
+  return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white shadow-sm border-b border-gray-200">
