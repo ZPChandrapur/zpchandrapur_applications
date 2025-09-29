@@ -173,7 +173,20 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     retirementDate.setFullYear(birthDate.getFullYear() + retirementAge);
     
     // Set to last day of that month
-    retirementDate.setMonth(retirementDate.getMonth() + 1, 0);
+    // Check if birth date is the 1st
+      if (birthDate.getDate() === 1) {
+          // Set to last day of previous month
+            retirementDate.setMonth(retirementDate.getMonth(), 0);
+          } else {
+          // Set to last day of retirement month
+          retirementDate.setMonth(retirementDate.getMonth() + 1, 0);
+            }
+
+
+
+
+    
+    // retirementDate.setMonth(retirementDate.getMonth() + 1, 0);
     
      // Format date to YYYY-MM-DD
     const year = retirementDate.getFullYear();
@@ -727,9 +740,9 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       const calculatedRetirementDate = formData.Cadre ? 
         calculateRetirementDate(formData.date_of_birth, formData.Cadre) : null;
       
-      console.log('📊 Calculated values:');
-      console.log('   Age:', calculatedAge);
-      console.log('   Retirement Date:', calculatedRetirementDate);
+      // console.log('📊 Calculated values:');
+      // console.log('   Age:', calculatedAge);
+      // console.log('   Retirement Date:', calculatedRetirementDate);
     
       
       // Calculate retirement date based on cadre
@@ -753,12 +766,12 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       };
 
       // Log the employeeData object before insert to verify retirement_date is present
-      console.log('📝 Employee data being sent to database:');
-      console.log(JSON.stringify(employeeData, null, 2));
-      console.log('   retirement_date field present:', 'retirement_date' in employeeData);
-      console.log('   retirement_date value:', employeeData.retirement_date);
-      console.log('   dept_id:', employeeData.dept_id);
-      console.log('   department:', employeeData.department);
+      // console.log('📝 Employee data being sent to database:');
+      // console.log(JSON.stringify(employeeData, null, 2));
+      // console.log('   retirement_date field present:', 'retirement_date' in employeeData);
+      // console.log('   retirement_date value:', employeeData.retirement_date);
+      // console.log('   dept_id:', employeeData.dept_id);
+      // console.log('   department:', employeeData.department);
 
 
       if (editingEmployee) {
