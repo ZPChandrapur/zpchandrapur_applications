@@ -110,7 +110,6 @@ export const testERMSConnection = async () => {
   }
 }
 
-
 // Export configuration status for components to check
 export const isSupabaseConfigured = configErrors.length === 0;
 export const supabaseConfigErrors = configErrors;
