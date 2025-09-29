@@ -118,7 +118,7 @@ export const supabase = configErrors.length === 0 ? createClient(supabaseUrl!, s
   },
   global: {
     headers: {
-      'X-Client-Info': 'fims-app'
+      'X-Client-Info': 'erms'
     }
   }
 }) : null;
