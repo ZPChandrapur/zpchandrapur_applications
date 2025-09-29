@@ -152,6 +152,11 @@ function App() {
             {/* FIMS Header */}
             <div className="text-center mb-8">
               <div className="flex justify-center mb-4">
+                <img 
+                src="Zpchandrapurlogo.png" 
+                alt="ZP Chandrapur Logo" 
+                className="h-16 w-16 object-contain"
+              />
                 <div className="bg-gradient-to-r from-blue-600 to-blue-400 p-3 rounded-full shadow-lg">
                   <Camera className="h-8 w-8 text-white" />
                 </div>
