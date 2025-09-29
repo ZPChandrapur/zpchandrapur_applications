@@ -157,7 +157,7 @@ function App() {
                 alt="ZP Chandrapur Logo" 
                 className="h-16 w-16 object-contain"
                   />
-              </div>
+                
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
               {t('dashboard.title')}
