@@ -1132,18 +1132,17 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.designation')}</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('erms.designation')}
+                  </label>
                   <select
-                    value={formData.designation || ''}
-                    onChange={(e) => setFormData({ ...formData, designation: e.target.value })}
+                    value={formData.designation_id || ''}
+                    onChange={(e) => setFormData({ ...formData, designation_id: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
                   >
                     <option value="">{t('erms.selectDesignation')}</option>
                     {designations.map(designation => (
-                      <option key={designation.designation_id} value={designation.designation}>
-                        {designation.designation}
-                      </option>
+                      <option key={designation.designation_id} value={designation.designation_id}>{designation.designation}</option>
                     ))}
                   </select>
                 </div>
