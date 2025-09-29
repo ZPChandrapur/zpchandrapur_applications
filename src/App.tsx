@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Camera } from 'lucide-react';
 import { SignInForm } from './SignInForm';
 import { Dashboard } from './components/Dashboard';
-import { supabase, isSupabaseConfigured, supabaseConfigErrors } from './lib';
+import { supabase, isSupabaseConfigured, supabaseConfigErrors } from 'src/lib/supabase.ts';
 import type { User } from '@supabase/supabase-js';
 
 function App() {
