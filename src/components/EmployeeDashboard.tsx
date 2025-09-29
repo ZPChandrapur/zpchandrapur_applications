@@ -182,10 +182,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
           retirementDate.setMonth(retirementDate.getMonth() + 1, 0);
             }
 
-
-
-
-    
+ 
     // retirementDate.setMonth(retirementDate.getMonth() + 1, 0);
     
      // Format date to YYYY-MM-DD
