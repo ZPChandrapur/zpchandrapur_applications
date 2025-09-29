@@ -105,7 +105,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
   const [editingEmployee, setEditingEmployee] = useState<EducationEmployee | null>(null);
   
   // Form data
-  const [formData, setFormData] = useState<Partial<EducationEmployee>>({debugger;
+  const [formData, setFormData] = useState<Partial<EducationEmployee>>({
     Cadre: 'C',
     date_of_joining: ''
   });
