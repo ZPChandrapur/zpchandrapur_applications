@@ -34,6 +34,7 @@ interface EducationEmployee {
   date_of_birth: string | null;
   dept_id: string;
   designation: string;
+  designation_id: string;
   taluka: string | null;
   office: string | null;
   retirement_date: string | null;
