@@ -1091,30 +1091,30 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">क्रिया</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {paginatedEmployees.length === 0 ? (
-                  <tr>
-                    <td colSpan={12} className="px-6 py-8 text-center text-gray-500">
-                      {t('erms.noEmployeesFound')}
-                    </td>
-                  </tr>
-                ) : (
-                  const sortedEmployees = [...paginatedEmployees].sort((a, b) => {
-                      return new Date(a.date_of_birth) - new Date(b.date_of_birth);
-                      });
-                  sortedEmployees.map((employee) => (
-                    <tr key={employee.emp_id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {employee.emp_id || '-'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">{employee.employee_name}</div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {employee.date_of_birth}
-                      </td>
+            <tbody className="bg-white divide-y divide-gray-200">
+  {paginatedEmployees.length === 0 ? (
+    <tr>
+      <td colSpan={12} className="px-6 py-8 text-center text-gray-500">
+        {t('erms.noEmployeesFound')}
+      </td>
+    </tr>
+  ) : (
+    [...paginatedEmployees]
+      .sort((a, b) => new Date(a.date_of_birth) - new Date(b.date_of_birth))
+      .map((employee) => (
+        <tr key={employee.emp_id} className="hover:bg-gray-50">
+          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+            {employee.emp_id || '-'}
+          </td>
+          <td className="px-6 py-4 whitespace-nowrap">
+            <div>
+              <div className="text-sm font-medium text-gray-900">{employee.employee_name}</div>
+            </div>
+          </td>
+          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+            {employee.date_of_birth}
+          </td>
+
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {employee.ddo_code || '-'}
                       </td>
