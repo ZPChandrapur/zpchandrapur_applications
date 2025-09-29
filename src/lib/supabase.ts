@@ -9,7 +9,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 // Main client for public schema (auth, roles, permissions)
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+export const supabase = createClient = configErrors.length === 0 ? (supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
