@@ -414,7 +414,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     }
   };
 
-  const fetchEmployees = async () => {
+  const fetchEmployees = async () => {debugger;
     try {
       console.log('🔍 Fetching employees from erms.employee table...');
       
@@ -437,7 +437,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         .from('employee')
         .select('*', { count: 'exact', head: true });
       
-      if (educationDeptId) {debugger;
+      if (educationDeptId) {
         countQuery.neq('dept_id', educationDeptId);
       }
       
