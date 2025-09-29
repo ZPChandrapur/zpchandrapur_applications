@@ -45,7 +45,7 @@ interface EducationEmployee {
   appointment_caste_category?: string;
   teacher_type?: string;
   teacher_is_active?: boolean;
-  cadre?: string;
+  Cadre?: string;
   date_of_joining?: string;
   created_at?: string;
   updated_at?: string;
@@ -105,7 +105,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
   
   // Form data
   const [formData, setFormData] = useState<Partial<EducationEmployee>>({
-    cadre: 'C',
+    Cadre: 'C',
     date_of_joining: ''
   });
 
@@ -336,7 +336,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
 
   const handleAddEmployee = () => {
     setFormData({
-      cadre: 'C',
+      Cadre: 'C',
       date_of_joining: ''
     });
     setEditingEmployee(null);
@@ -365,7 +365,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
       const employeeData = {
         ...formData,
         dept_id: educationDeptId, // Always set to Education Department ID
-        cadre: 'C', // Always set to C
+        Cadre: 'C', // Always set to C
         updated_at: new Date().toISOString()
       };
 
@@ -390,7 +390,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
       await fetchEmployees();
       setShowAddModal(false);
       setShowEditModal(false);
-      setFormData({ cadre: 'C' });
+      setFormData({ Cadre: 'C' });
     } catch (error) {
       console.error('Error saving employee:', error);
       alert(t('common.error') + ': ' + error.message);
