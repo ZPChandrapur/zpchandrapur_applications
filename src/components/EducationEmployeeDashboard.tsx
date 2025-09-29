@@ -625,7 +625,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
                         {employee.gender || '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {employee.designation}
+                        {designations.find(d => d.designation_id === employee.designation_id)?.designation || '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {employee.Shalarth_Id || '-'}
