@@ -146,7 +146,7 @@ function App() {
   // If in recovery mode or not signed in, show the sign-in page (with reset form forced if recovery)
   if (isRecoveryMode || !user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-indigo-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 flex items-center justify-center p-4">
         <div className="w-full max-w-md">
           <div className="bg-white rounded-2xl shadow-xl p-8">
             {/* FIMS Header */}
