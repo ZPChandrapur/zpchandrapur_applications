@@ -996,7 +996,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <h3 className="text-lg font-semibold text-gray-900">Edit Education Department Employee</h3>
               <button
-                onClick={() => setShowEditModal(true)}
+                onClick={() => setShowEditModal(false)}
                 className="text-gray-400 hover:text-gray-600"
               >
                 <X className="h-5 w-5" />
