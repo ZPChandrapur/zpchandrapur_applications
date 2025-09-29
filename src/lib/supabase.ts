@@ -21,7 +21,7 @@ export const supabase = createClient = configErrors.length === 0 ? (supabaseUrl,
       'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
     },
   },
-});
+}):
 
 // ERMS-specific client for erms schema
 export const ermsClient = createClient(supabaseUrl, supabaseAnonKey, {
