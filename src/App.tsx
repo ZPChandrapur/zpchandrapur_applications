@@ -158,19 +158,14 @@ function App() {
                 className="h-16 w-16 object-contain"
                   />
                 <div className="bg-gradient-to-r from-blue-600 to-blue-400 p-3 rounded-full shadow-lg">
-                  <Camera className="h-8 w-8 text-white" />
-                </div>
               </div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent mb-2">
-                FIMS
-              </h1>
-              <p className="text-gray-600 text-sm mb-2">
-                {t('systems.fims.fullName')}
-              </p>
-              <p className="text-gray-500 text-xs">
-                {t('systems.fims.description')}
-              </p>
-            </div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              {t('dashboard.title')}
+            </h1>
+            <p className="text-gray-600 text-sm">
+              {t('dashboard.subtitle')}
+            </p>
+              </div>
 
             {/* Sign In Form (force reset mode if in recovery, pass tokens) */}
             <SignInForm 
