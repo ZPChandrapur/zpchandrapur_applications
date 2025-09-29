@@ -480,7 +480,6 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
         .order('employee_name')
         .range(0, count ? count - 1 : 9999)
         .or(`dept_id.is.null,dept_id.neq.${educationDeptId}`);
-;
       
       // if (educationDeptId) {
       //   dataQuery.neq('dept_id', educationDeptId);
