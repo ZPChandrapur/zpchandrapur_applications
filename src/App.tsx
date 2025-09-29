@@ -18,13 +18,10 @@ function App() {
     const checkForRecovery = () => {
       const params = new URLSearchParams(window.location.search);
       const hashParams = new URLSearchParams(window.location.hash.substring(1));
-
       const type = params.get('type') || hashParams.get('type');
       const accessToken = params.get('access_token') || hashParams.get('access_token');
       const refreshToken = params.get('refresh_token') || hashParams.get('refresh_token');
-
       if (type === 'recovery' && accessToken && refreshToken) {
-        console.log('Recovery URL detected:', { type, accessToken, refreshToken });  // Debug log
         setIsRecoveryMode(true);
         setRecoveryTokens({ accessToken, refreshToken });
         // Clean URL to prevent re-triggering
@@ -35,7 +32,6 @@ function App() {
       }
       return false;
     };
-
     checkForRecovery();
 
     // Check if user is already signed in
@@ -44,12 +40,10 @@ function App() {
         setIsLoading(false);
         return;
       }
-
       try {
         const { data: { user } } = await supabase.auth.getUser();
         setUser(user);
       } catch (error) {
-        console.error('Error checking user:', error);
         if (error instanceof Error && error.message.includes('Invalid Refresh Token')) {
           localStorage.removeItem('supabase.auth.token');
           sessionStorage.removeItem('supabase.auth.token');
@@ -60,25 +54,20 @@ function App() {
         setIsLoading(false);
       }
     };
-
     checkUser();
 
     // Set up auth listener
     let subscription: any = null;
     if (isSupabaseConfigured && supabase) {
       const { data: { subscription: authSubscription } } = supabase.auth.onAuthStateChange((event, session) => {
-        console.log('Auth event:', event, 'Session:', session);  // Debug log
         setUser(session?.user ?? null);
-
         if (event === 'PASSWORD_RECOVERY') {
           setIsRecoveryMode(true);
         }
-
         setIsLoading(false);
       });
       subscription = authSubscription;
     }
-
     return () => {
       if (subscription) {
         subscription.unsubscribe();
@@ -92,7 +81,7 @@ function App() {
 
   const handleSignOut = () => {
     setUser(null);
-    setIsRecoveryMode(false);  // Reset recovery mode on sign out
+    setIsRecoveryMode(false); // Reset recovery mode on sign out
   };
 
   if (isLoading) {
@@ -149,23 +138,43 @@ function App() {
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 flex items-center justify-center p-4">
         <div className="w-full max-w-md">
           <div className="bg-white rounded-2xl shadow-xl p-8">
+
+            {/* Web Application Card - NEW */}
+            <div className="mb-6">
+              <div className="flex items-center bg-white rounded-2xl shadow-md px-4 py-4">
+                <div className="bg-green-100 rounded-full h-10 w-10 flex items-center justify-center mr-4">
+                  <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10" strokeWidth="2" />
+                    <path d="M2 12h20M12 2c4.418 0 8 4.48 8 10s-3.582 10-8 10-8-4.48-8-10 3.582-10 8-10z" strokeWidth="2" />
+                  </svg>
+                </div>
+                <div>
+                  <div className="font-semibold text-green-700 text-lg">
+                    {t('auth.webApplication', 'Web Application')}
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    {t('auth.webApplicationSubtitle', 'Full system access on web')}
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* Header */}
             <div className="text-center mb-8">
               <div className="flex justify-center mb-4">
                 <img 
-                src="Zpchandrapurlogo.png" 
-                alt="ZP Chandrapur Logo" 
-                className="h-16 w-16 object-contain"
-                  />   
-            </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              {t('dashboard.title')}
-            </h1>
-            <p className="text-gray-600 text-sm">
-              {t('dashboard.subtitle')}
-            </p>
+                  src="Zpchandrapurlogo.png" 
+                  alt="ZP Chandrapur Logo" 
+                  className="h-16 w-16 object-contain"
+                />   
               </div>
-
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                {t('dashboard.title')}
+              </h1>
+              <p className="text-gray-600 text-sm">
+                {t('dashboard.subtitle')}
+              </p>
+            </div>
             {/* Sign In Form (force reset mode if in recovery, pass tokens) */}
             <SignInForm 
               onSignInSuccess={handleSignInSuccess} 
@@ -173,7 +182,6 @@ function App() {
               accessToken={recoveryTokens.accessToken}
               refreshToken={recoveryTokens.refreshToken}
             />
-
             {/* Footer */}
             <div className="mt-8 text-center">
               <p className="text-xs text-gray-500">
@@ -187,7 +195,6 @@ function App() {
   }
 
   // If user is authenticated and not in recovery, show Dashboard
-  return <Dashboard user={user} onSignOut={handleSignOut} />
+  return <Dashboard user={user} onSignOut={handleSignOut} />;
 }
-
 export default App;
