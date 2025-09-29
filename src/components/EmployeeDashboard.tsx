@@ -589,7 +589,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       );
     }
 
-    if (selectedDepartment) {
+    if (selectedDepartment) {debugger;
       filtered = filtered.filter(emp => emp.dept_id === selectedDepartment);
     }
 
