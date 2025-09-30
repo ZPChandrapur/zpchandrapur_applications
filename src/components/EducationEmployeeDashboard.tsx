@@ -285,7 +285,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
     }
   };
 
-  const filterEmployees = () => {debugger;
+  const filterEmployees = () => {
     let filtered = employees;
 
     if (searchTerm) {
@@ -311,7 +311,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
   };
 
   // Pagination logic
-  const getPaginatedEmployees = () => {debugger;
+  const getPaginatedEmployees = () => {
     const startIndex = (currentPage - 1) * recordsPerPage;
     const endIndex = startIndex + recordsPerPage;
     return filteredEmployees.slice(startIndex, endIndex);
@@ -352,7 +352,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
     setShowEditModal(true);
   };
 
-  const handleSaveEmployee = async () => {debugger;
+  const handleSaveEmployee = async () => {
     if (!formData.emp_id || !formData.employee_name || !formData.designation_id) {
       alert(t('erms.fillAllFields'));
       return;
