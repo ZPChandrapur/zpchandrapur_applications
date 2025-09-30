@@ -467,7 +467,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
           // Clean up after 30 seconds
           setTimeout(() => {
             localStorage.removeItem('fims_auth_transfer');
-            console.log('🧹 FIMS: Auth data cleaned up from localStorage');
+            //console.log('🧹 FIMS: Auth data cleaned up from localStorage');
           }, 30000);
           
         } catch (storageError) {
