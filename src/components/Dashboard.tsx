@@ -212,7 +212,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
   // Handle back button navigation - log out user
   useEffect(() => {
     const handlePopState = async (event: PopStateEvent) => {
-      console.log('🔙 Back button pressed - logging out user for security');
+      //console.log('🔙 Back button pressed - logging out user for security');
       
       // Prevent the default back navigation
       event.preventDefault();
@@ -313,7 +313,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
   }, [isProfileOpen]);
 
   const handleSessionTimeout = async () => {
-    console.log('⏰ Session timeout - automatically signing out user');
+    //console.log('⏰ Session timeout - automatically signing out user');
     setShowTimeoutWarning(false);
     sessionManager.stop();
     
