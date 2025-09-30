@@ -380,12 +380,12 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
         dept_id: educationDeptId,
         office_id: formData.office_id,
         date_of_joining: formData.date_of_joining || null,
-        Shalarth_id: ,
-        cast_category: ,
-        appointment_caste_category: ,
-        teacher_type: ,
-        teacher_is_active: ,
-        gender: ,
+        Shalarth_id: formData.Shalarth_id,
+        cast_category: formData.cast_category,
+        appointment_caste_category: formData.appointment_caste_category,
+        teacher_type: formData.teacher_type,
+        teacher_is_active:formData.teacher_is_active ,
+        gender:formData.gender ,
         updated_at: new Date().toISOString()
       };
 
