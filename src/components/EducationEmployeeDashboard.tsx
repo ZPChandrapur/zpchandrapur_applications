@@ -368,6 +368,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
       const employeeData = {
         ...formData,
         dept_id: educationDeptId, // Always set to Education Department ID
+        office_id: formData.office_id,
         Cadre: 'C', // Always set to C
         updated_at: new Date().toISOString()
       };
