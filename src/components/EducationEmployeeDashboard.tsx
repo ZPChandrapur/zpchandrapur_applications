@@ -164,7 +164,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
     }
   };
   
-  const fetchEmployees = async () => {debugger;
+  const fetchEmployees = async () => {
     if (!educationDeptId) return;
     
     try {
@@ -285,7 +285,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
     }
   };
 
-  const filterEmployees = () => {
+  const filterEmployees = () => {debugger;
     let filtered = employees;
 
     if (searchTerm) {
