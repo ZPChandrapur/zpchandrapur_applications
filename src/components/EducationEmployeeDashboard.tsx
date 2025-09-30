@@ -378,7 +378,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
         assigned_clerk: formData.assigned_clerk || null,
         tal_id: formData.tal_id,
         dept_id: educationDeptId,
-        office_id: formData.office_id,
+        office_id: formData.office,
         date_of_joining: formData.date_of_joining || null,
         Shalarth_Id: formData.Shalarth_Id,
         cast_category: formData.cast_category,
