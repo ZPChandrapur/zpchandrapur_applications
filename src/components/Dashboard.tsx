@@ -678,10 +678,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
 
   // Filter systems based on device type
   const getVisibleSystems = () => {
-    console.log('🔍 Debug: Getting visible systems');
-    console.log('👤 User role:', userRole);
-    console.log('📱 Is mobile:', isMobile);
-    console.log('🔑 All permissions:', permissions);
     
     let filteredSystems = systems;
     
