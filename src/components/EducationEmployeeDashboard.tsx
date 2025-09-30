@@ -660,11 +660,12 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
                         {employee.retirement_date ? new Date(employee.retirement_date).toLocaleDateString() : '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                         {employee.assigned_clerk ? 
-                          clerks.find(c => c.user_id === employee.assigned_clerk)?.name || t('erms.unassigned')
-                          : t('erms.unassigned')
-                        }
-                      </td>
+  {/* Show assigned clerk name by mapping ID to clerk object */}
+  {employee.assignedclerk
+    ? clerks.find((c) => c.userid === employee.assignedclerk)?.name || employee.assignedclerk
+    : terms.unassigned}
+</td>
+
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex items-center space-x-2">
                           <button className="text-blue-600 hover:text-blue-900 p-1 rounded">
