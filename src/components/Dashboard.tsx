@@ -498,7 +498,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
 
   const handlePESAClick = async () => {
     try {
-      console.log('🚀 PESA: Starting authentication transfer...');
+     // console.log('🚀 PESA: Starting authentication transfer...');
       // Get current session
       const { data: { session }, error } = await supabase.auth.getSession();
       
