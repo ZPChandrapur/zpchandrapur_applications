@@ -245,7 +245,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
     }
   };
 
-  const fetchOffices = async () => {debugger
+  const fetchOffices = async () => {
     try {
       const { data, error } = await ermsClient
         .from('office_locations')
