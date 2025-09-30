@@ -481,7 +481,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
         fimsUrl.searchParams.set('refresh_token', session.refresh_token);
         fimsUrl.searchParams.set('source', 'zp_main');
         
-        console.log('🌐 FIMS: Opening with auth data...');
+       // console.log('🌐 FIMS: Opening with auth data...');
         // Open FIMS with auth data
         window.open(fimsUrl.toString(), '_blank', 'noopener,noreferrer');
       } else {
