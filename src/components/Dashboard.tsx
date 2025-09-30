@@ -462,7 +462,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
           };
           
           localStorage.setItem('fims_auth_transfer', JSON.stringify(authData));
-          console.log('💾 FIMS: Auth data stored in localStorage');
+         // console.log('💾 FIMS: Auth data stored in localStorage');
           
           // Clean up after 30 seconds
           setTimeout(() => {
