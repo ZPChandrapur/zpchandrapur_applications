@@ -195,7 +195,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
         console.error('Error fetching employees:', error);
         throw error;
       }
-      console.log('✅ Employees fetched:', data?.length || 0, 'out of', count);
+     // console.log('✅ Employees fetched:', data?.length || 0, 'out of', count);
       setEmployees(data || []);
       setTotalEmployeeCount(count || data?.length || 0);
     } catch (error) {
@@ -365,7 +365,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
     
     setIsLoading(true);
     try {
-      console.log("formData", formData);
+      //console.log("formData", formData);
       const employeeData = {
         emp_id: String(formData.emp_id || '').trim() || null,
         employee_name: String(formData.employee_name || '').trim(),
