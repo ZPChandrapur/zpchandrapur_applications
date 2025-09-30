@@ -545,7 +545,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
         pesaUrl.searchParams.set('refresh_token', session.refresh_token);
         pesaUrl.searchParams.set('source', 'zp_main');
         
-        console.log('🌐 PESA: Opening with auth data...');
+        //console.log('🌐 PESA: Opening with auth data...');
         // Open PESA with auth data
         window.open(pesaUrl.toString(), '_blank', 'noopener,noreferrer');
       } else {
