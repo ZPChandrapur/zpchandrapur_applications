@@ -365,13 +365,30 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
     
     setIsLoading(true);
     try {
+      console.log("formData", formData);
       const employeeData = {
-        ...formData,
-        dept_id: educationDeptId, // Always set to Education Department ID
-        office_id: formData.office_id,
+        emp_id: String(formData.emp_id || '').trim() || null,
+        employee_name: String(formData.employee_name || '').trim(),
+        date_of_birth: formData.date_of_birth,
         Cadre: 'C', // Always set to C
+        //retirement_date: calculatedRetirementDate,
+        //retirement_date: calculateRetirementDate(formData.date_of_birth, formData.Cadre),
+        designation_id: formData.designation_id,
+        //reason: String(formData.reason || '').trim() || null,
+        assigned_clerk: formData.assigned_clerk || null,
+        tal_id: formData.tal_id,
+        dept_id: educationDeptId,
+        office_id: formData.office_id,
+        date_of_joining: formData.date_of_joining || null,
+        Shalarth_id: ,
+        cast_category: ,
+        appointment_caste_category: ,
+        teacher_type: ,
+        teacher_is_active: ,
+        gender: ,
         updated_at: new Date().toISOString()
       };
+
 
       if (editingEmployee) {
         const { error } = await ermsClient
