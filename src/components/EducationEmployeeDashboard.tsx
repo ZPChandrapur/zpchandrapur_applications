@@ -243,7 +243,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
     }
   };
 
-  const fetchOffices = async () => {
+  const fetchOffices = async () => {debugger
     try {
       const { data, error } = await ermsClient
         .from('office_locations')
@@ -945,7 +945,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
                   >
                     <option value="">{t('erms.selectOffice')}</option>
                     {offices.map(office => (
-                      <option key={office.office_id} value={office.name}>
+                      <option key={office.office_id} value={office.office_id}>
                         {office.name}
                       </option>
                     ))}
