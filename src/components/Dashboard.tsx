@@ -373,7 +373,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
 
   const handleEstimateClick = async () => {
     try {
-      console.log('🚀 E-estimate: Starting authentication transfer...');
+      //console.log('🚀 E-estimate: Starting authentication transfer...');
       // Get current session
       const { data: { session }, error } = await supabase.auth.getSession();
       
