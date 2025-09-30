@@ -981,7 +981,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
                   >
                     <option value="">{t('erms.selectClerk')}</option>
                     {clerks.map(clerk => (
-                      <option key={clerk.user_id} value={clerk.name}>
+                      <option key={clerk.user_id} value={clerk.user_id}>
                         {clerk.name}
                       </option>
                     ))}
