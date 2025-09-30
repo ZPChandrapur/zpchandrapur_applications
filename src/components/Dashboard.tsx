@@ -399,7 +399,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
           };
           
           localStorage.setItem('estimate_auth_transfer', JSON.stringify(authData));
-          console.log('💾 E-estimate: Auth data stored in localStorage');
+          //console.log('💾 E-estimate: Auth data stored in localStorage');
           
           // Clean up after 30 seconds
           setTimeout(() => {
@@ -418,7 +418,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
         estimateUrl.searchParams.set('refresh_token', session.refresh_token);
         estimateUrl.searchParams.set('source', 'zp_main');
         
-        console.log('🌐 E-estimate: Opening with auth data...');
+        //console.log('🌐 E-estimate: Opening with auth data...');
         // Open E-estimate with auth data
         window.open(estimateUrl.toString(), '_blank', 'noopener,noreferrer');
       } else {
