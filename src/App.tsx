@@ -24,7 +24,7 @@ function App() {
       const refreshToken = params.get('refresh_token') || hashParams.get('refresh_token');
 
       if (type === 'recovery' && accessToken && refreshToken) {
-        console.log('Recovery URL detected:', { type, accessToken, refreshToken });  // Debug log
+        //console.log('Recovery URL detected:', { type, accessToken, refreshToken });  // Debug log
         setIsRecoveryMode(true);
         setRecoveryTokens({ accessToken, refreshToken });
         // Clean URL to prevent re-triggering
@@ -67,7 +67,6 @@ function App() {
     let subscription: any = null;
     if (isSupabaseConfigured && supabase) {
       const { data: { subscription: authSubscription } } = supabase.auth.onAuthStateChange((event, session) => {
-        console.log('Auth event:', event, 'Session:', session);  // Debug log
         setUser(session?.user ?? null);
 
         if (event === 'PASSWORD_RECOVERY') {
