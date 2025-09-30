@@ -385,7 +385,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
       }
 
       if (session?.access_token && session?.refresh_token) {
-        console.log('🔑 E-estimate: Valid session found, preparing auth transfer...');
+        //console.log('🔑 E-estimate: Valid session found, preparing auth transfer...');
         // Method 1: Try localStorage approach
         try {
           const authData = {
