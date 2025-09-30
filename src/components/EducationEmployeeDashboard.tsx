@@ -178,7 +178,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
       if (countError) {
         console.error('❌ Error getting employee count:', countError);
       } else {
-        console.log('📊 Total education employees:', count);
+       // console.log('📊 Total education employees:', count);
       }
       
       // Fetch all records using range - ensure we get ALL records
