@@ -37,6 +37,8 @@ interface EducationEmployee {
   designation_id: string;
   taluka: string | null;
   office: string | null;
+  tal_id: string;
+  office_id: string;
   retirement_date: string | null;
   retirement_reason: string | null;
   assigned_clerk: string | null;
