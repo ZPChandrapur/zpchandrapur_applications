@@ -328,7 +328,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
   };
 
   const handleExtendSession = () => {
-    console.log('🔄 User extended session');
+    //console.log('🔄 User extended session');
     sessionManager.extendSession();
     setShowTimeoutWarning(false);
   };
