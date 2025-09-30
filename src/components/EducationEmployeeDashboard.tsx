@@ -311,7 +311,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
   };
 
   // Pagination logic
-  const getPaginatedEmployees = () => {
+  const getPaginatedEmployees = () => {debugger;
     const startIndex = (currentPage - 1) * recordsPerPage;
     const endIndex = startIndex + recordsPerPage;
     return filteredEmployees.slice(startIndex, endIndex);
