@@ -1214,7 +1214,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
                   >
                     <option value="">{t('erms.selectOffice')}</option>
                     {offices.map(office => (
-                      <option key={office.office_id} value={office.name}>
+                      <option key={office.office_id} value={office.office_id}>
                         {office.name}
                       </option>
                     ))}
@@ -1230,7 +1230,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
                   >
                     <option value="">{t('erms.selectClerk')}</option>
                     {clerks.map(clerk => (
-                      <option key={clerk.user_id} value={clerk.name}>
+                      <option key={clerk.user_id} value={clerk.user_id}>
                         {clerk.name}
                       </option>
                     ))}
