@@ -435,7 +435,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
 
   const handleFIMSClick = async () => {
     try {
-      console.log('🚀 FIMS: Starting authentication transfer...');
+     // console.log('🚀 FIMS: Starting authentication transfer...');
       // Get current session
       const { data: { session }, error } = await supabase.auth.getSession();
       
