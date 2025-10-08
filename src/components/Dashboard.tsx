@@ -101,7 +101,7 @@ const FIMSFrame: React.FC<{ user: SupabaseUser; onBack: () => void }> = ({ user,
   const [isLoading, setIsLoading] = useState(true);
   
   // FIMS application URL - replace with actual URL when available
-  const fimsUrl = 'https://fieldinspectms.zpchandrapurapps.com/';
+  const fimsUrl = 'https://fieldinspection.zpchandrapurapps.com/';
   
   const handleIframeLoad = () => {
     setIsLoading(false);
@@ -442,7 +442,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
       if (error) {
         console.error('❌ FIMS: Error getting session:', error);
         // Open without auth if session fetch fails
-        window.open('https://fieldinspectms.zpchandrapurapps.com/', '_blank', 'noopener,noreferrer');
+        window.open('https://fieldinspection.zpchandrapurapps.com/', '_blank', 'noopener,noreferrer');
         return;
       }
 
@@ -475,7 +475,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
         }
         
         // Method 2: URL parameters as fallback
-        const fimsUrl = new URL('https://fieldinspectms.zpchandrapurapps.com/');
+        const fimsUrl = new URL('https://fieldinspection.zpchandrapurapps.com/');
         fimsUrl.searchParams.set('auto_login', 'true');
         fimsUrl.searchParams.set('access_token', session.access_token);
         fimsUrl.searchParams.set('refresh_token', session.refresh_token);
@@ -487,12 +487,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
       } else {
         console.warn('⚠️ FIMS: No valid session found');
         // Open without auth
-        window.open('https://fieldinspectms.zpchandrapurapps.com/', '_blank', 'noopener,noreferrer');
+        window.open('https://fieldinspection.zpchandrapurapps.com/', '_blank', 'noopener,noreferrer');
       }
     } catch (error) {
       console.error('❌ FIMS: Error in handleFIMSClick:', error);
       // Fallback: open without auth
-      window.open('https://fieldinspectms.zpchandrapurapps.com/', '_blank', 'noopener,noreferrer');
+      window.open('https://fieldinspection.zpchandrapurapps.com/', '_blank', 'noopener,noreferrer');
     }
   };
 
