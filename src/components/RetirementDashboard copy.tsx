@@ -332,7 +332,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
     }
   };
 
-  const filterEmployees = () => {
+  const filterEmployees = () => {debugger;
     let filtered = retirementEmployees;
 
     // Role-based filtering
