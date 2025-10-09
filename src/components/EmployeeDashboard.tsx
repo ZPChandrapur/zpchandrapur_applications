@@ -587,7 +587,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
       
       if (error) throw error;
       
-      const clerksData = data?.map(clerk => ({
+      const clerksData = data?.map(clerk => ({debugger;
         user_id: clerk.user_id,
         name: clerk.name,
         role_name: clerk.roles?.name || 'clerk'
