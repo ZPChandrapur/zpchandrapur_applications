@@ -306,7 +306,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
     }
   };
 
-  const fetchClerks = async () => {
+  const fetchClerks = async () => {debugger;
     try {
       const { data, error } = await supabase
         .from('user_roles')
