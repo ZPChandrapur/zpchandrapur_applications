@@ -32,8 +32,9 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user }) => {
   const { t } = useTranslation();
   const { hasAccess } = usePermissions(user);
 
-  // Simple state management without persistence
-  const [activeModule, setActiveModule] = useState('employee-dashboard');
+  // // Simple state management without persistence
+  // const [activeModule, setActiveModule] = useState('employee-dashboard');
+  const [activeModule, setActiveModule] = useState(defaultModule);
 
   // Simple module change handler without validation or storage
   const handleModuleChange = (moduleId: string) => {
