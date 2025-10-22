@@ -131,15 +131,6 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user }) => {
 
   const accessibleModules = getAccessibleModules();
 
-  // Validate active module on mount and when permissions change
-  useEffect(() => {
-    const isAccessible = accessibleModules.some((m) => m.id === activeModule);
-    if (!isAccessible && accessibleModules.length > 0) {
-      // If current module is not accessible, switch to first accessible module
-      setActiveModule(accessibleModules[0].id);
-    }
-  }, [accessibleModules.length]);
-
   const renderModuleContent = () => {
     // Check if user has access to the active module
     const activeModuleConfig = modules.find(m => m.id === activeModule);
