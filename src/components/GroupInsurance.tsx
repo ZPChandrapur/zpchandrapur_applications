@@ -52,6 +52,7 @@ interface GroupInsuranceRecord {
   year_2003_date: string | null;
   year_2010_date: string | null;
   year_2020_date: string | null;
+  status?: string; // Added for potential status field, though not in original select
 }
 
 interface ClerkData {
@@ -99,10 +100,10 @@ export const GroupInsurance: React.FC<GroupInsuranceProps> = ({ user }) => {
     const totalPages = getTotalPages();
     if (currentPage > totalPages && totalPages > 0) {
       setCurrentPage(totalPages);
-    } else if (currentPage > totalPages && totalPages === 0) {
+    } else if (currentPage > totalPages) {
       setCurrentPage(1);
     }
-  }, [filteredRecords, activeTab]);
+  }, [filteredRecords, activeTab, currentPage]);
 
   const fetchAllData = async () => {
     setIsLoading(true);
@@ -334,36 +335,14 @@ export const GroupInsurance: React.FC<GroupInsuranceProps> = ({ user }) => {
   const paginatedRecords = getPaginatedRecords();
   const totalPages = getTotalPages();
 
-  // Helper for pagination buttons
+  // Updated helper for pagination buttons with dynamic display and ellipsis
   const renderPageButtons = () => {
-    if (totalPages <= 5) {
-      return Array.from({ length: totalPages }, (_, i) => {
-        const pageNum = i + 1;
-        return (
-          <button
-            key={pageNum}
-            onClick={() => setCurrentPage(pageNum)}
-            className={`px-3 py-1 text-sm border rounded-md ${
-              currentPage === pageNum
-                ? 'bg-blue-500 text-white border-blue-500'
-                : 'border-gray-300 hover:bg-gray-50'
-            }`}
-          >
-            {pageNum}
-          </button>
-        );
-      });
-    }
+    const buttons: React.ReactNode[] = [];
 
-    let startPage = Math.max(2, currentPage - 2);
-    let endPage = Math.min(totalPages - 1, currentPage + 2);
-
-    const buttons = [];
-
-    // First page
+    // First button
     buttons.push(
       <button
-        key={1}
+        key="first"
         onClick={() => setCurrentPage(1)}
         className={`px-3 py-1 text-sm border rounded-md ${
           currentPage === 1
@@ -375,11 +354,12 @@ export const GroupInsurance: React.FC<GroupInsuranceProps> = ({ user }) => {
       </button>
     );
 
-    // Ellipsis if needed
+    // Ellipsis if startPage > 2
+    let startPage = Math.max(2, currentPage - 2);
+    let endPage = Math.min(totalPages - 1, currentPage + 2);
+
     if (startPage > 2) {
-      buttons.push(
-        <span key="ellipsis1" className="px-3 py-1 text-sm text-gray-500">...</span>
-      );
+      buttons.push(<span key="ellipsis-start" className="px-3 py-1 text-sm text-gray-500">...</span>);
     }
 
     // Middle pages
@@ -399,18 +379,16 @@ export const GroupInsurance: React.FC<GroupInsuranceProps> = ({ user }) => {
       );
     }
 
-    // Ellipsis if needed
+    // Ellipsis if endPage < totalPages - 1
     if (endPage < totalPages - 1) {
-      buttons.push(
-        <span key="ellipsis2" className="px-3 py-1 text-sm text-gray-500">...</span>
-      );
+      buttons.push(<span key="ellipsis-end" className="px-3 py-1 text-sm text-gray-500">...</span>);
     }
 
-    // Last page
+    // Last button if totalPages > 1
     if (totalPages > 1) {
       buttons.push(
         <button
-          key={totalPages}
+          key="last"
           onClick={() => setCurrentPage(totalPages)}
           className={`px-3 py-1 text-sm border rounded-md ${
             currentPage === totalPages
@@ -425,6 +403,10 @@ export const GroupInsurance: React.FC<GroupInsuranceProps> = ({ user }) => {
 
     return buttons;
   };
+
+  if (isLoading && groupInsuranceRecords.length === 0) {
+    return <div className="flex justify-center items-center h-64">{t('common.loading')}...</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -504,4 +486,491 @@ export const GroupInsurance: React.FC<GroupInsuranceProps> = ({ user }) => {
           </div>
           <div className="bg-green-50 rounded-lg p-3">
             <div className="text-2xl font-bold text-green-600">{statusCounts.completed}</div>
-            <div className="text-sm text-gray-600">{t('retirementTracker.completed')}</
+            <div className="text-sm text-gray-600">{t('retirementTracker.completed')}</div>
+          </div>
+          <div className="bg-orange-50 rounded-lg p-3">
+            <div className="text-2xl font-bold text-orange-600">{statusCounts.processing}</div>
+            <div className="text-sm text-gray-600">{t('retirementTracker.inProgress')}</div>
+          </div>
+          <div className="bg-purple-50 rounded-lg p-3">
+            <div className="text-2xl font-bold text-purple-600">{statusCounts.pending}</div>
+            <div className="text-sm text-gray-600">{t('retirementTracker.pending')}</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Group Insurance Records Table */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">{t('retirementTracker.groupInsurance')}</h3>
+            <div className="flex items-center space-x-3">
+              <button 
+                onClick={fetchAllData}
+                className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
+              >
+                <RefreshCw className="h-4 w-4" />
+                <span className="text-sm">{t('erms.refresh')}</span>
+              </button>
+              <button className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200">
+                <Download className="h-4 w-4" />
+                <span className="text-sm">{t('common.export')}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Filters */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder={t('retirementTracker.searchEmployees')}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+
+            <select
+              value={selectedDepartment}
+              onChange={(e) => setSelectedDepartment(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">{t('retirementTracker.allDepartments')}</option>
+              {departments.map(dept => (
+                <option key={dept} value={dept}>{dept}</option>
+              ))}
+            </select>
+
+            <select
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">{t('retirementTracker.allStatus')}</option>
+              <option value="pending">{t('retirementTracker.pending')}</option>
+              <option value="processing">{t('retirementTracker.inProgress')}</option>
+              <option value="completed">{t('retirementTracker.completed')}</option>
+            </select>
+
+            {userRole !== 'clerk' && (
+              <select
+                value={selectedClerk}
+                onChange={(e) => setSelectedClerk(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">{t('retirementTracker.allClerks')}</option>
+                {clerks.map(clerk => (
+                  <option key={clerk.user_id} value={clerk.user_id}>
+                    {clerk.name}
+                  </option>
+                ))}
+              </select>
+            )}
+
+            <button
+              onClick={clearFilters}
+              className="flex items-center justify-center space-x-2 px-3 py-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
+            >
+              <X className="h-4 w-4" />
+              <span className="text-sm">{t('retirementTracker.clearFilters')}</span>
+            </button>
+          </div>
+          
+          {/* Tabs */}
+          <div className="mt-4">
+            <nav className="flex space-x-8">
+              <button
+                onClick={() => setActiveTab('inProgress')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
+                  activeTab === 'inProgress'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                {t('retirementTracker.inProgress')} ({statusCounts.processing})
+              </button>
+              <button
+                onClick={() => setActiveTab('pending')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
+                  activeTab === 'pending'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                {t('retirementTracker.pending')} ({statusCounts.pending})
+              </button>
+              <button
+                onClick={() => setActiveTab('completed')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
+                  activeTab === 'completed'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                {t('retirementTracker.completed')} ({statusCounts.completed})
+              </button>
+            </nav>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.employee')}</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.department')}</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Retirement Date</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.age')}</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.assignedClerk')}</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">1990</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">2003</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">2010</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">2020</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.actions')}</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {paginatedRecords.length === 0 ? (
+                <tr>
+                  <td colSpan={10} className="px-6 py-8 text-center text-gray-500">
+                    {isLoading ? t('retirementTracker.loadingData') : t('retirementTracker.noRecordsFound')}
+                  </td>
+                </tr>
+              ) : (
+                paginatedRecords.map((record) => {
+                  const status = getProgressStatus(record);
+                  return (
+                    <tr key={record.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">{record.employee_name}</div>
+                          <div className="text-sm text-gray-500">{record.emp_id}</div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {record.department || '-'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {record.retirement_date ? new Date(record.retirement_date).toLocaleDateString() : '-'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {record.age || '-'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {record.assigned_clerk || t('erms.unassigned')}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="text-green-600 text-lg">
+                          {record.year_1990 ? '✓' : '○'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="text-green-600 text-lg">
+                          {record.year_2003 ? '✓' : '○'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="text-green-600 text-lg">
+                          {record.year_2010 ? '✓' : '○'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="text-green-600 text-lg">
+                          {record.year_2020 ? '✓' : '○'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div className="flex items-center space-x-2">
+                          <button className="text-blue-600 hover:text-blue-900 p-1 rounded">
+                            <Eye className="h-4 w-4" />
+                          </button>
+                          <button 
+                            onClick={() => handleEditRecord(record)}
+                            className="text-green-600 hover:text-green-900 p-1 rounded"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="px-6 py-4 border-t border-gray-200">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-gray-500">
+                {t('retirementTracker.showingPage', {
+                  start: (currentPage - 1) * recordsPerPage + 1,
+                  end: Math.min(currentPage * recordsPerPage, getTabFilteredRecords().length),
+                  total: getTabFilteredRecords().length
+                })}
+              </div>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                
+                <div className="flex space-x-1">
+                  {renderPageButtons()}
+                </div>
+                
+                <button
+                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Edit Modal */}
+      {showEditModal && editingRecord && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">Edit Group Insurance Details</h3>
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            
+            <div className="p-6">
+              {/* Basic Employee Info (Read-only) */}
+              <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                <h4 className="text-md font-semibold text-gray-800 mb-3">{t('retirementTracker.basicEmployeeInfo')}</h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('retirementTracker.employeeId')}</label>
+                    <input
+                      type="text"
+                      value={editingRecord.emp_id}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('retirementTracker.employeeName')}</label>
+                    <input
+                      type="text"
+                      value={editingRecord.employee_name}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('retirementTracker.age')}</label>
+                    <input
+                      type="text"
+                      value={editingRecord.age || '-'}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Group Insurance Fields */}
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">1990 Year</label>
+                    <select
+                      value={editingRecord.year_1990 || ''}
+                      onChange={(e) => setEditingRecord({ ...editingRecord, year_1990: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="">Select Status</option>
+                      <option value="आहे">आहे (Available)</option>
+                      <option value="नाही">नाही (Not Available)</option>
+                      <option value="लागू नाही">लागू नाही (Not Applicable)</option>
+                      <option value="सुट आहे">सुट आहे (Exempted)</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">1990 Date</label>
+                    <input
+                      type="date"
+                      value={editingRecord.year_1990_date ? editingRecord.year_1990_date.split('T')[0] : ''}
+                      onChange={(e) => setEditingRecord({ ...editingRecord, year_1990_date: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">2003 Year</label>
+                    <select
+                      value={editingRecord.year_2003 || ''}
+                      onChange={(e) => setEditingRecord({ ...editingRecord, year_2003: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="">Select Status</option>
+                      <option value="आहे">आहे (Available)</option>
+                      <option value="नाही">नाही (Not Available)</option>
+                      <option value="लागू नाही">लागू नाही (Not Applicable)</option>
+                      <option value="सुट आहे">सुट आहे (Exempted)</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">2003 Date</label>
+                    <input
+                      type="date"
+                      value={editingRecord.year_2003_date ? editingRecord.year_2003_date.split('T')[0] : ''}
+                      onChange={(e) => setEditingRecord({ ...editingRecord, year_2003_date: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">2010 Year</label>
+                    <select
+                      value={editingRecord.year_2010 || ''}
+                      onChange={(e) => setEditingRecord({ ...editingRecord, year_2010: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="">Select Status</option>
+                      <option value="आहे">आहे (Available)</option>
+                      <option value="नाही">नाही (Not Available)</option>
+                      <option value="लागू नाही">लागू नाही (Not Applicable)</option>
+                      <option value="सुट आहे">सुट आहे (Exempted)</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">2010 Date</label>
+                    <input
+                      type="date"
+                      value={editingRecord.year_2010_date ? editingRecord.year_2010_date.split('T')[0] : ''}
+                      onChange={(e) => setEditingRecord({ ...editingRecord, year_2010_date: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">2020 Year</label>
+                    <select
+                      value={editingRecord.year_2020 || ''}
+                      onChange={(e) => setEditingRecord({ ...editingRecord, year_2020: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="">Select Status</option>
+                      <option value="आहे">आहे (Available)</option>
+                      <option value="नाही">नाही (Not Available)</option>
+                      <option value="लागू नाही">लागू नाही (Not Applicable)</option>
+                      <option value="सुट आहे">सुट आहे (Exempted)</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">2020 Date</label>
+                    <input
+                      type="date"
+                      value={editingRecord.year_2020_date ? editingRecord.year_2020_date.split('T')[0] : ''}
+                      onChange={(e) => setEditingRecord({ ...editingRecord, year_2020_date: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+                
+                {/* Year Comments */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">1990 Comment</label>
+                    <textarea
+                      value={editingRecord.year_1990_comment || ''}
+                      onChange={(e) => setEditingRecord({ ...editingRecord, year_1990_comment: e.target.value })}
+                      rows={2}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Enter comment for 1990"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">2003 Comment</label>
+                    <textarea
+                      value={editingRecord.year_2003_comment || ''}
+                      onChange={(e) => setEditingRecord({ ...editingRecord, year_2003_comment: e.target.value })}
+                      rows={2}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Enter comment for 2003"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">2010 Comment</label>
+                    <textarea
+                      value={editingRecord.year_2010_comment || ''}
+                      onChange={(e) => setEditingRecord({ ...editingRecord, year_2010_comment: e.target.value })}
+                      rows={2}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Enter comment for 2010"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">2020 Comment</label>
+                    <textarea
+                      value={editingRecord.year_2020_comment || ''}
+                      onChange={(e) => setEditingRecord({ ...editingRecord, year_2020_comment: e.target.value })}
+                      rows={2}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Enter comment for 2020"
+                    />
+                  </div>
+                </div>
+                
+                {/* Overall Comments */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Overall Comments</label>
+                  <textarea
+                    value={editingRecord.overall_comments || ''}
+                    onChange={(e) => setEditingRecord({ ...editingRecord, overall_comments: e.target.value })}
+                    rows={4}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Enter overall comments"
+                  />
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200">
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200"
+              >
+                {t('common.cancel')}
+              </button>
+              <button
+                onClick={handleUpdateRecord}
+                disabled={isLoading}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 disabled:opacity-50"
+              >
+                {isLoading ? t('common.saving') : t('common.update')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
