@@ -573,7 +573,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
     }
   };
 
-  const fetchClerks = async () => {debugger;
+  const fetchClerks = async () => {
     try {
       const { data, error } = await supabase
         .from('user_roles')
