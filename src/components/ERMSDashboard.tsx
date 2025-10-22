@@ -36,7 +36,7 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user }) => {
   // const [activeModule, setActiveModule] = useState('employee-dashboard');
   const [activeModule, setActiveModule] = useState(defaultModule); //added
 
-// Persist active module to localStorage whenever it changes
+// Persist active module to localStorage whenever it changes--added 39-54
   useEffect(() => {
     localStorage.setItem('ermsActiveModule', activeModule);
   }, [activeModule]);
