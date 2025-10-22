@@ -44,154 +44,97 @@ interface GroupInsuranceRecord {
   last_updated: string | null;
   created_at?: string;
   updated_at?: string;
-  year_1990_comment: string | null;
-  year_2003_comment: string | null;
-  year_2010_comment: string | null;
-  year_2020_comment: string | null;
-  year_1990_date: string | null;
-  year_2003_date: string | null;
-  year_2010_date: string | null;
-  year_2020_date: string | null;
 }
 
 interface ClerkData {
-  user_id: string;
-  name: string;
-  role_name: string;
+  id: string;
+  full_name: string;
+  email: string;
+  role: string;
 }
 
-export const GroupInsurance: React.FC<GroupInsuranceProps> = ({ user }) => {
+const GroupInsurance: React.FC<GroupInsuranceProps> = ({ user }) => {
   const { t } = useTranslation();
-  const { userRole, userProfile } = usePermissions(user);
-  const [isLoading, setIsLoading] = useState(false);
-  const [selectedClerk, setSelectedClerk] = useState('');
-  const [selectedDepartment, setSelectedDepartment] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [editingRecord, setEditingRecord] = useState<GroupInsuranceRecord | null>(null);
-  const [activeTab, setActiveTab] = useState<'inProgress' | 'pending' | 'completed'>('inProgress');
-  const [currentPage, setCurrentPage] = useState(1);
-  const recordsPerPage = 20;
-  
-  // Data states
+  const { hasPermission } = usePermissions(user);
+
+  // State declarations
+  const [loading, setLoading] = useState(true);
   const [groupInsuranceRecords, setGroupInsuranceRecords] = useState<GroupInsuranceRecord[]>([]);
   const [clerks, setClerks] = useState<ClerkData[]>([]);
   const [departments, setDepartments] = useState<string[]>([]);
   const [filteredRecords, setFilteredRecords] = useState<GroupInsuranceRecord[]>([]);
+  const [selectedClerk, setSelectedClerk] = useState<string>('');
+  const [selectedDepartment, setSelectedDepartment] = useState<string>('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'in_progress' | 'completed'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'in_progress' | 'pending' | 'completed'>('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingRecord, setEditingRecord] = useState<GroupInsuranceRecord | null>(null);
+  const [saving, setSaving] = useState(false);
 
+  // LocalStorage persistence keys (universal pattern: change prefix for other pages)
+  const STORAGE_KEYS = {
+    currentPage: 'groupInsurance-currentPage',
+    activeTab: 'groupInsurance-activeTab',
+  };
+
+  // Load persisted state on mount
   useEffect(() => {
-    fetchAllData();
+    const savedPage = localStorage.getItem(STORAGE_KEYS.currentPage);
+    if (savedPage) {
+      setCurrentPage(parseInt(savedPage, 10) || 1);
+    }
+    const savedTab = localStorage.getItem(STORAGE_KEYS.activeTab);
+    if (savedTab && ['all', 'in_progress', 'pending', 'completed'].includes(savedTab)) {
+      setActiveTab(savedTab as 'all' | 'in_progress' | 'pending' | 'completed');
+    }
   }, []);
 
+  // Save currentPage to localStorage on change
   useEffect(() => {
-    filterRecords();
-    setCurrentPage(1); // Reset to first page when filters change
-  }, [groupInsuranceRecords, selectedClerk, selectedDepartment, selectedStatus, searchTerm, userRole, userProfile]);
+    localStorage.setItem(STORAGE_KEYS.currentPage, currentPage.toString());
+  }, [currentPage]);
 
+  // Save activeTab to localStorage on change
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.activeTab, activeTab);
+  }, [activeTab]);
+
+  // Fetch all initial data
   const fetchAllData = async () => {
-    setIsLoading(true);
+    setLoading(true);
     try {
-      await Promise.all([
-        fetchGroupInsuranceRecords(),
-        fetchClerks(),
-        fetchDepartments()
+      const [recordsRes, clerksRes] = await Promise.all([
+        ermsClient.from('group_insurance').select('*').order('employee_name'),
+        supabase.from('user_roles').select('id, full_name, email, role').eq('role', 'clerk')
       ]);
-    } catch (error) {
-      console.error('Error fetching group insurance data:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const fetchGroupInsuranceRecords = async () => {
-    try {
-      const { data, error } = await ermsClient
-        .from('group_insurance')
-        .select(`
-          id,
-          emp_id,
-          employee_name,
-          retirement_date,
-          assigned_clerk,
-          department,
-          age,
-          year_1990,
-          year_2003,
-          year_2010,
-          year_2020,
-          overall_comments,
-          last_updated,
-          created_at,
-          updated_at,
-          year_1990_comment,
-          year_2003_comment,
-          year_2010_comment,
-          year_2020_comment,
-          year_1990_date,
-          year_2003_date,
-          year_2010_date,
-          year_2020_date
-        `)
-        .order('employee_name');
-      
-      if (error) throw error;
-      
-      setGroupInsuranceRecords(data || []);
-    } catch (error) {
-      console.error('Error fetching group insurance records:', error);
-    }
-  };
-
-  const fetchClerks = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select(`
-          user_id,
-          name,
-          roles!inner(name)
-        `)
-        .eq('roles.name', 'clerk')
-        .not('name', 'is', null);
-      
-      if (error) throw error;
-      
-      const clerksData = data?.map(clerk => ({
-        user_id: clerk.user_id,
-        name: clerk.name,
-        role_name: clerk.roles?.name || 'clerk'
-      })) || [];
-      
+      const records = recordsRes.data || [];
+      const clerksData = clerksRes.data || [];
+      setGroupInsuranceRecords(records);
       setClerks(clerksData);
+
+      const uniqueDepts = [...new Set(records.map(r => r.department).filter(Boolean))].sort();
+      setDepartments(uniqueDepts);
     } catch (error) {
-      console.error('Error fetching clerks:', error);
+      console.error('Error fetching data:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const fetchDepartments = async () => {
-    try {
-      const uniqueDepartments = [...new Set(groupInsuranceRecords.map(record => record.department).filter(Boolean))];
-      setDepartments(uniqueDepartments);
-    } catch (error) {
-      console.error('Error fetching departments:', error);
-    }
-  };
+  // Filter records based on selections
+  const filterRecords = useCallback(() => {
+    let filtered = [...groupInsuranceRecords];
 
-  const filterRecords = () => {
-    let filtered = groupInsuranceRecords;
-
-    // Role-based filtering
-    if (userRole === 'clerk' && userProfile?.name) {
-      filtered = filtered.filter(record => record.assigned_clerk === userProfile.name);
+    // Role-based filtering for clerks
+    if (hasPermission('clerk')) {
+      filtered = filtered.filter(record => record.assigned_clerk === user.email);
     }
 
-    // Clerk filter (for non-clerk users)
-    if (selectedClerk && userRole !== 'clerk') {
-      const selectedClerkName = clerks.find(c => c.user_id === selectedClerk)?.name;
-      if (selectedClerkName) {
-        filtered = filtered.filter(record => record.assigned_clerk === selectedClerkName);
-      }
+    // Clerk filter
+    if (selectedClerk) {
+      filtered = filtered.filter(record => record.assigned_clerk === selectedClerk);
     }
 
     // Department filter
@@ -199,699 +142,570 @@ export const GroupInsurance: React.FC<GroupInsuranceProps> = ({ user }) => {
       filtered = filtered.filter(record => record.department === selectedDepartment);
     }
 
-    // Status filter
-    if (selectedStatus) {
-      filtered = filtered.filter(record => record.status === selectedStatus);
-    }
-
     // Search filter
     if (searchTerm) {
+      const term = searchTerm.toLowerCase();
       filtered = filtered.filter(record =>
-        record.emp_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        record.employee_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        record.department?.toLowerCase().includes(searchTerm.toLowerCase())
+        record.employee_name.toLowerCase().includes(term) ||
+        record.emp_id.includes(term) ||
+        record.department?.toLowerCase().includes(term)
       );
     }
 
     setFilteredRecords(filtered);
-  };
+    setCurrentPage(1); // Reset to first page on filter change (existing behavior)
+  }, [groupInsuranceRecords, selectedClerk, selectedDepartment, searchTerm, hasPermission, user.email]);
 
-  const getProgressStatus = (record: GroupInsuranceRecord) => {
-    const progressFields = [
-      record.year_1990,
-      record.year_2003,
-      record.year_2010,
-      record.year_2020
-    ];
+  // Progress status helper
+  const getProgressStatus = useCallback((record: GroupInsuranceRecord) => {
+    const years = [record.year_1990, record.year_2003, record.year_2010, record.year_2020];
+    const filledCount = years.filter(year => year && year !== 'नाही' && year !== 'No').length;
+    if (filledCount === 0) return 'pending';
+    if (filledCount === 4) return 'completed';
+    return 'in_progress';
+  }, []);
 
-    const filledFields = progressFields.filter(field => field && field.trim() !== '').length;
-    const totalFields = progressFields.length;
+  // Get status counts
+  const getStatusCounts = useCallback(() => {
+    const counts = { all: 0, pending: 0, in_progress: 0, completed: 0 };
+    filteredRecords.forEach(record => {
+      const status = getProgressStatus(record);
+      counts[status]++;
+      counts.all++;
+    });
+    return counts;
+  }, [filteredRecords, getProgressStatus]);
 
-    if (filledFields === 0) return 'pending';
-    if (filledFields === totalFields) return 'completed';
-    return 'processing';
-  };
+  // Get records for active tab
+  const getTabFilteredRecords = useCallback(() => {
+    if (activeTab === 'all') return filteredRecords;
+    return filteredRecords.filter(record => getProgressStatus(record) === activeTab);
+  }, [filteredRecords, activeTab, getProgressStatus]);
 
-  const getStatusCounts = () => {
-    const total = filteredRecords.length;
-    const processing = filteredRecords.filter(record => getProgressStatus(record) === 'processing').length;
-    const completed = filteredRecords.filter(record => getProgressStatus(record) === 'completed').length;
-    const pending = filteredRecords.filter(record => getProgressStatus(record) === 'pending').length;
+  // Pagination helpers
+  const PAGE_SIZE = 20;
+  const getPaginatedRecords = useCallback(() => {
+    const tabRecords = getTabFilteredRecords();
+    const startIndex = (currentPage - 1) * PAGE_SIZE;
+    return tabRecords.slice(startIndex, startIndex + PAGE_SIZE);
+  }, [getTabFilteredRecords, currentPage]);
 
-    return { total, processing, completed, pending };
-  };
+  const getTotalPages = useCallback(() => {
+    const tabRecords = getTabFilteredRecords();
+    return Math.ceil(tabRecords.length / PAGE_SIZE);
+  }, [getTabFilteredRecords]);
 
-  const getTabFilteredRecords = () => {
-    if (activeTab === 'completed') {
-      return filteredRecords.filter(record => getProgressStatus(record) === 'completed');
-    } else if (activeTab === 'pending') {
-      return filteredRecords.filter(record => getProgressStatus(record) === 'pending');
-    } else if (activeTab === 'inProgress') {
-      return filteredRecords.filter(record => getProgressStatus(record) === 'processing');
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= getTotalPages()) {
+      setCurrentPage(page);
     }
-    return filteredRecords;
   };
 
-  const getPaginatedRecords = () => {
-    const tabRecords = getTabFilteredRecords();
-    const startIndex = (currentPage - 1) * recordsPerPage;
-    const endIndex = startIndex + recordsPerPage;
-    return tabRecords.slice(startIndex, endIndex);
+  // Effects
+  useEffect(() => {
+    fetchAllData();
+  }, []);
+
+  useEffect(() => {
+    filterRecords();
+  }, [filterRecords]);
+
+  // Status filter effect (resets page if needed, existing)
+  useEffect(() => {
+    if (statusFilter !== 'all') {
+      const statusRecords = filteredRecords.filter(r => getProgressStatus(r) === statusFilter);
+      if (currentPage > Math.ceil(statusRecords.length / PAGE_SIZE)) {
+        setCurrentPage(1);
+      }
+    }
+  }, [statusFilter, filteredRecords, getProgressStatus, currentPage]);
+
+  // Clear filters
+  const clearFilters = () => {
+    setSelectedClerk('');
+    setSelectedDepartment('');
+    setSearchTerm('');
+    setStatusFilter('all');
+    setActiveTab('all');
   };
 
-  const getTotalPages = () => {
-    const tabRecords = getTabFilteredRecords();
-    return Math.ceil(tabRecords.length / recordsPerPage);
-  };
-
-  const handleEditRecord = (record: GroupInsuranceRecord) => {
+  // Open edit modal
+  const openEditModal = (record: GroupInsuranceRecord) => {
     setEditingRecord(record);
     setShowEditModal(true);
   };
 
-  const handleUpdateRecord = async () => {
+  // Save record
+  const saveRecord = async (updatedData: Partial<GroupInsuranceRecord>) => {
     if (!editingRecord) return;
-
-    setIsLoading(true);
+    setSaving(true);
     try {
-      const newStatus = getProgressStatus(editingRecord);
-      
       const { error } = await ermsClient
         .from('group_insurance')
-        .update({
-          year_1990: editingRecord.year_1990,
-          year_2003: editingRecord.year_2003,
-          year_2010: editingRecord.year_2010,
-          year_2020: editingRecord.year_2020,
-          overall_comments: editingRecord.overall_comments,
-          year_1990_comment: editingRecord.year_1990_comment,
-          year_2003_comment: editingRecord.year_2003_comment,
-          year_2010_comment: editingRecord.year_2010_comment,
-          year_2020_comment: editingRecord.year_2020_comment,
-          year_1990_date: editingRecord.year_1990_date,
-          year_2003_date: editingRecord.year_2003_date,
-          year_2010_date: editingRecord.year_2010_date,
-          year_2020_date: editingRecord.year_2020_date,
-          last_updated: new Date().toISOString()
-        })
+        .update({ ...updatedData, last_updated: new Date().toISOString() })
         .eq('id', editingRecord.id);
-
       if (error) throw error;
-      
-      await fetchGroupInsuranceRecords();
+      await fetchAllData(); // Refresh data
       setShowEditModal(false);
       setEditingRecord(null);
     } catch (error) {
-      console.error('Error updating record:', error);
-      alert(t('common.error') + ': ' + error.message);
+      console.error('Error saving record:', error);
     } finally {
-      setIsLoading(false);
+      setSaving(false);
     }
   };
 
-  const clearFilters = () => {
-    setSearchTerm('');
-    setSelectedDepartment('');
-    setSelectedClerk('');
-    setSelectedStatus('');
-  };
-
-  const statusCounts = getStatusCounts();
+  const { all, pending, in_progress, completed } = getStatusCounts();
   const paginatedRecords = getPaginatedRecords();
   const totalPages = getTotalPages();
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6">
+    <div className="p-6 bg-gray-50 min-h-screen">
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div className="bg-white p-4 rounded-lg shadow">
+          <div className="flex items-center">
+            <Users className="h-8 w-8 text-blue-500 mr-3" />
             <div>
-              <p className="text-sm text-gray-600 mb-1">{t('retirementTracker.totalCases')}</p>
-              <p className="text-3xl font-bold text-gray-900">{statusCounts.total}</p>
-            </div>
-            <div className="bg-blue-100 p-3 rounded-lg">
-              <Users className="h-8 w-8 text-blue-600" />
+              <p className="text-sm text-gray-600">{t('total_cases')}</p>
+              <p className="text-2xl font-bold text-gray-900">{all}</p>
             </div>
           </div>
         </div>
-
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
+        <div className="bg-white p-4 rounded-lg shadow">
+          <div className="flex items-center">
+            <Clock className="h-8 w-8 text-yellow-500 mr-3" />
             <div>
-              <p className="text-sm text-gray-600 mb-1">{t('retirementTracker.processing')}</p>
-              <p className="text-3xl font-bold text-orange-600">{statusCounts.processing}</p>
-            </div>
-            <div className="bg-orange-100 p-3 rounded-lg">
-              <Calendar className="h-8 w-8 text-orange-600" />
+              <p className="text-sm text-gray-600">{t('in_progress')}</p>
+              <p className="text-2xl font-bold text-gray-900">{in_progress}</p>
             </div>
           </div>
         </div>
-
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
+        <div className="bg-white p-4 rounded-lg shadow">
+          <div className="flex items-center">
+            <AlertCircle className="h-8 w-8 text-orange-500 mr-3" />
             <div>
-              <p className="text-sm text-gray-600 mb-1">{t('retirementTracker.completed')}</p>
-              <p className="text-3xl font-bold text-green-600">{statusCounts.completed}</p>
-            </div>
-            <div className="bg-green-100 p-3 rounded-lg">
-              <CheckCircle className="h-8 w-8 text-green-600" />
+              <p className="text-sm text-gray-600">{t('pending')}</p>
+              <p className="text-2xl font-bold text-gray-900">{pending}</p>
             </div>
           </div>
         </div>
-
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
+        <div className="bg-white p-4 rounded-lg shadow">
+          <div className="flex items-center">
+            <CheckCircle className="h-8 w-8 text-green-500 mr-3" />
             <div>
-              <p className="text-sm text-gray-600 mb-1">{t('retirementTracker.pending')}</p>
-              <p className="text-3xl font-bold text-purple-600">{statusCounts.pending}</p>
-            </div>
-            <div className="bg-purple-100 p-3 rounded-lg">
-              <FileText className="h-8 w-8 text-purple-600" />
+              <p className="text-sm text-gray-600">{t('completed')}</p>
+              <p className="text-2xl font-bold text-gray-900">{completed}</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Process Overview */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      {/* Progress Overview */}
+      <div className="bg-white p-6 rounded-lg shadow mb-6">
+        <h2 className="text-xl font-semibold mb-4">{t('progress_overview')}</h2>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">{t('retirementTracker.processOverview')}</h3>
-          <span className="text-sm text-gray-500">
-            {statusCounts.total > 0 ? Math.round((statusCounts.completed / statusCounts.total) * 100) : 0}% {t('retirementTracker.complete')}
-          </span>
+          <div className="w-full bg-gray-200 rounded-full h-3">
+            <div 
+              className="bg-gradient-to-r from-blue-500 to-green-500 h-3 rounded-full" 
+              style={{ width: `${(completed / Math.max(1, all)) * 100}%` }}
+            ></div>
+          </div>
+          <span className="ml-4 text-sm font-medium">{Math.round((completed / Math.max(1, all)) * 100)}% {t('completed')}</span>
         </div>
-        
-        <div className="w-full bg-gray-200 rounded-full h-4 mb-4">
-          <div
-            className="bg-gradient-to-r from-orange-500 to-red-500 h-4 rounded-full transition-all duration-300"
-            style={{
-              width: statusCounts.total > 0 ? `${(statusCounts.completed / statusCounts.total) * 100}%` : '0%'
-            }}
-          />
-        </div>
-        
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-          <div className="bg-gray-50 rounded-lg p-3">
-            <div className="text-2xl font-bold text-gray-900">{statusCounts.total}</div>
-            <div className="text-sm text-gray-600">{t('retirementTracker.totalCases')}</div>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="text-center">
+            <p className="text-2xl font-bold text-blue-600">{in_progress}</p>
+            <p className="text-sm text-gray-600">{t('in_progress')}</p>
           </div>
-          <div className="bg-green-50 rounded-lg p-3">
-            <div className="text-2xl font-bold text-green-600">{statusCounts.completed}</div>
-            <div className="text-sm text-gray-600">{t('retirementTracker.completed')}</div>
+          <div className="text-center">
+            <p className="text-2xl font-bold text-orange-600">{pending}</p>
+            <p className="text-sm text-gray-600">{t('pending')}</p>
           </div>
-          <div className="bg-orange-50 rounded-lg p-3">
-            <div className="text-2xl font-bold text-orange-600">{statusCounts.processing}</div>
-            <div className="text-sm text-gray-600">{t('retirementTracker.inProgress')}</div>
+          <div className="text-center">
+            <p className="text-2xl font-bold text-green-600">{completed}</p>
+            <p className="text-sm text-gray-600">{t('completed')}</p>
           </div>
-          <div className="bg-purple-50 rounded-lg p-3">
-            <div className="text-2xl font-bold text-purple-600">{statusCounts.pending}</div>
-            <div className="text-sm text-gray-600">{t('retirementTracker.pending')}</div>
+          <div className="text-center">
+            <p className="text-2xl font-bold text-gray-600">{all}</p>
+            <p className="text-sm text-gray-600">{t('total')}</p>
           </div>
         </div>
       </div>
 
-      {/* Group Insurance Records Table */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">{t('retirementTracker.groupInsurance')}</h3>
-            <div className="flex items-center space-x-3">
-              <button 
-                onClick={fetchAllData}
-                className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
-              >
-                <RefreshCw className="h-4 w-4" />
-                <span className="text-sm">{t('erms.refresh')}</span>
-              </button>
-              <button className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200">
-                <Download className="h-4 w-4" />
-                <span className="text-sm">{t('common.export')}</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Filters */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
+      {/* Filters and Tabs */}
+      <div className="bg-white p-6 rounded-lg shadow mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">{t('search')}</label>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <input
                 type="text"
-                placeholder={t('retirementTracker.searchEmployees')}
+                placeholder={t('search_employee')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="pl-10 pr-4 py-2 border border-gray-300 rounded-md w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
-
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">{t('department')}</label>
             <select
               value={selectedDepartment}
               onChange={(e) => setSelectedDepartment(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="">{t('retirementTracker.allDepartments')}</option>
+              <option value="">{t('all_departments')}</option>
               {departments.map(dept => (
                 <option key={dept} value={dept}>{dept}</option>
               ))}
             </select>
-
-            <select
-              value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">{t('retirementTracker.allStatus')}</option>
-              <option value="pending">{t('retirementTracker.pending')}</option>
-              <option value="processing">{t('retirementTracker.inProgress')}</option>
-              <option value="completed">{t('retirementTracker.completed')}</option>
-            </select>
-
-            {userRole !== 'clerk' && (
+          </div>
+          {hasPermission('admin') && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('assigned_clerk')}</label>
               <select
                 value={selectedClerk}
                 onChange={(e) => setSelectedClerk(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="">{t('retirementTracker.allClerks')}</option>
+                <option value="">{t('all_clerks')}</option>
                 {clerks.map(clerk => (
-                  <option key={clerk.user_id} value={clerk.user_id}>
-                    {clerk.name}
-                  </option>
+                  <option key={clerk.id} value={clerk.email}>{clerk.full_name}</option>
                 ))}
               </select>
-            )}
-
-            <button
-              onClick={clearFilters}
-              className="flex items-center justify-center space-x-2 px-3 py-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
+            </div>
+          )}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">{t('status')}</label>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as any)}
+              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <X className="h-4 w-4" />
-              <span className="text-sm">{t('retirementTracker.clearFilters')}</span>
-            </button>
-          </div>
-          
-          {/* Tabs */}
-          <div className="mt-4">
-            <nav className="flex space-x-8">
-              <button
-                onClick={() => setActiveTab('inProgress')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
-                  activeTab === 'inProgress'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                {t('retirementTracker.inProgress')} ({statusCounts.processing})
-              </button>
-              <button
-                onClick={() => setActiveTab('pending')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
-                  activeTab === 'pending'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                {t('retirementTracker.pending')} ({statusCounts.pending})
-              </button>
-              <button
-                onClick={() => setActiveTab('completed')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
-                  activeTab === 'completed'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                {t('retirementTracker.completed')} ({statusCounts.completed})
-              </button>
-            </nav>
+              <option value="all">{t('all_statuses')}</option>
+              <option value="pending">{t('pending')}</option>
+              <option value="in_progress">{t('in_progress')}</option>
+              <option value="completed">{t('completed')}</option>
+            </select>
           </div>
         </div>
+        <button
+          onClick={clearFilters}
+          className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 flex items-center"
+        >
+          <RefreshCw className="h-4 w-4 mr-2" />
+          {t('clear_filters')}
+        </button>
+      </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.employee')}</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.department')}</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Retirement Date</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.age')}</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.assignedClerk')}</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">1990</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">2003</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">2010</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">2020</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('retirementTracker.actions')}</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {paginatedRecords.length === 0 ? (
-                <tr>
-                  <td colSpan={10} className="px-6 py-8 text-center text-gray-500">
-                    {isLoading ? t('retirementTracker.loadingData') : t('retirementTracker.noRecordsFound')}
+      {/* Tabs */}
+      <div className="bg-white rounded-lg shadow mb-6">
+        <div className="border-b border-gray-200">
+          <nav className="-mb-px flex space-x-8">
+            {[
+              { key: 'all' as const, label: t('all'), count: all },
+              { key: 'in_progress' as const, label: t('in_progress'), count: in_progress },
+              { key: 'pending' as const, label: t('pending'), count: pending },
+              { key: 'completed' as const, label: t('completed'), count: completed }
+            ].map(tab => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center space-x-1 ${
+                  activeTab === tab.key
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <span>{tab.label}</span>
+                <span className="bg-gray-200 rounded-full px-2 py-0.5 text-xs font-bold">
+                  {tab.count}
+                </span>
+              </button>
+            ))}
+          </nav>
+        </div>
+      </div>
+
+      {/* Table */}
+      <div className="bg-white rounded-lg shadow overflow-hidden">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                {t('employee_id')}
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                {t('employee_name')}
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                {t('department')}
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                {t('retirement_date')}
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                {t('age')}
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                {t('assigned_clerk')}
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                1990
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                2003
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                2010
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                2020
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                {t('actions')}
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {paginatedRecords.map((record) => {
+              const status = getProgressStatus(record);
+              return (
+                <tr key={record.id} className={status === 'completed' ? 'bg-green-50' : ''}>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    {record.emp_id}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {record.employee_name}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {record.department}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {record.retirement_date ? new Date(record.retirement_date).toLocaleDateString() : '-'}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {record.age || '-'}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {record.assigned_clerk || '-'}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <CheckCircle className={`h-5 w-5 ${record.year_1990 && record.year_1990 !== 'नाही' ? 'text-green-500' : 'text-gray-300'}`} />
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <CheckCircle className={`h-5 w-5 ${record.year_2003 && record.year_2003 !== 'नाही' ? 'text-green-500' : 'text-gray-300'}`} />
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <CheckCircle className={`h-5 w-5 ${record.year_2010 && record.year_2010 !== 'नाही' ? 'text-green-500' : 'text-gray-300'}`} />
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <CheckCircle className={`h-5 w-5 ${record.year_2020 && record.year_2020 !== 'नाही' ? 'text-green-500' : 'text-gray-300'}`} />
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => openEditModal(record)}
+                        className="text-blue-600 hover:text-blue-900"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
-              ) : (
-                paginatedRecords.map((record) => {
-                  const status = getProgressStatus(record);
-                  return (
-                    <tr key={record.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">{record.employee_name}</div>
-                          <div className="text-sm text-gray-500">{record.emp_id}</div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {record.department || '-'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {record.retirement_date ? new Date(record.retirement_date).toLocaleDateString() : '-'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {record.age || '-'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {record.assigned_clerk || t('erms.unassigned')}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-green-600 text-lg">
-                          {record.year_1990 ? '✓' : '○'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-green-600 text-lg">
-                          {record.year_2003 ? '✓' : '○'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-green-600 text-lg">
-                          {record.year_2010 ? '✓' : '○'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-green-600 text-lg">
-                          {record.year_2020 ? '✓' : '○'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex items-center space-x-2">
-                          <button className="text-blue-600 hover:text-blue-900 p-1 rounded">
-                            <Eye className="h-4 w-4" />
-                          </button>
-                          <button 
-                            onClick={() => handleEditRecord(record)}
-                            className="text-green-600 hover:text-green-900 p-1 rounded"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
+              );
+            })}
+            {paginatedRecords.length === 0 && (
+              <tr>
+                <td colSpan={11} className="px-6 py-4 text-center text-gray-500">
+                  {t('no_records_found')}
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
 
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="px-6 py-4 border-t border-gray-200">
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-gray-500">
-                {t('retirementTracker.showingPage', {
-                  start: (currentPage - 1) * recordsPerPage + 1,
-                  end: Math.min(currentPage * recordsPerPage, getTabFilteredRecords().length),
-                  total: getTabFilteredRecords().length
-                })}
-              </div>
-              <div className="flex items-center space-x-2">
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 mt-4 rounded-b-lg">
+          <div className="flex-1 flex justify-between sm:hidden">
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+              Previous
+            </button>
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next
+              <ChevronRight className="h-5 w-5 ml-1" aria-hidden="true" />
+            </button>
+          </div>
+          <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm text-gray-700">
+                Showing <span className="font-medium">{(currentPage - 1) * PAGE_SIZE + 1}</span> to{' '}
+                <span className="font-medium">{Math.min(currentPage * PAGE_SIZE, getTabFilteredRecords().length)}</span> of{' '}
+                <span className="font-medium">{getTabFilteredRecords().length}</span> results
+              </p>
+            </div>
+            <div>
+              <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
                 <button
-                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                  onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
-                  className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <ChevronLeft className="h-4 w-4" />
+                  <span className="sr-only">Previous</span>
+                  <ChevronLeft className="h-5 w-5" aria-hidden="true" />
                 </button>
-                
                 {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  const pageNum = i + 1;
+                  const page = currentPage <= 3 ? i + 1 : currentPage + i - 3;
+                  if (page > totalPages) return null;
                   return (
                     <button
-                      key={pageNum}
-                      onClick={() => setCurrentPage(pageNum)}
-                      className={`px-3 py-1 text-sm border rounded-md ${
-                        currentPage === pageNum
-                          ? 'bg-blue-500 text-white border-blue-500'
-                          : 'border-gray-300 hover:bg-gray-50'
+                      key={page}
+                      onClick={() => handlePageChange(page)}
+                      className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                        currentPage === page
+                          ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
+                          : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
                       }`}
                     >
-                      {pageNum}
+                      {page}
                     </button>
                   );
                 })}
-                
                 <button
-                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                  onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}
-                  className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <ChevronRight className="h-4 w-4" />
+                  <span className="sr-only">Next</span>
+                  <ChevronRight className="h-5 w-5" aria-hidden="true" />
                 </button>
-              </div>
+              </nav>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Edit Modal */}
       {showEditModal && editingRecord && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">Edit Group Insurance Details</h3>
-              <button
-                onClick={() => setShowEditModal(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            
-            <div className="p-6">
-              {/* Basic Employee Info (Read-only) */}
-              <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-                <h4 className="text-md font-semibold text-gray-800 mb-3">{t('retirementTracker.basicEmployeeInfo')}</h4>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('retirementTracker.employeeId')}</label>
-                    <input
-                      type="text"
-                      value={editingRecord.emp_id}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('retirementTracker.employeeName')}</label>
-                    <input
-                      type="text"
-                      value={editingRecord.employee_name}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('retirementTracker.age')}</label>
-                    <input
-                      type="text"
-                      value={editingRecord.age || '-'}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Group Insurance Fields */}
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">1990 Year</label>
-                    <select
-                      value={editingRecord.year_1990 || ''}
-                      onChange={(e) => setEditingRecord({ ...editingRecord, year_1990: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                      <option value="">Select Status</option>
-                      <option value="आहे">आहे (Available)</option>
-                      <option value="नाही">नाही (Not Available)</option>
-                      <option value="लागू नाही">लागू नाही (Not Applicable)</option>
-                      <option value="सुट आहे">सुट आहे (Exempted)</option>
-                    </select>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">1990 Date</label>
-                    <input
-                      type="date"
-                      value={editingRecord.year_1990_date ? editingRecord.year_1990_date.split('T')[0] : ''}
-                      onChange={(e) => setEditingRecord({ ...editingRecord, year_1990_date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">2003 Year</label>
-                    <select
-                      value={editingRecord.year_2003 || ''}
-                      onChange={(e) => setEditingRecord({ ...editingRecord, year_2003: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                      <option value="">Select Status</option>
-                      <option value="आहे">आहे (Available)</option>
-                      <option value="नाही">नाही (Not Available)</option>
-                      <option value="लागू नाही">लागू नाही (Not Applicable)</option>
-                      <option value="सुट आहे">सुट आहे (Exempted)</option>
-                    </select>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">2003 Date</label>
-                    <input
-                      type="date"
-                      value={editingRecord.year_2003_date ? editingRecord.year_2003_date.split('T')[0] : ''}
-                      onChange={(e) => setEditingRecord({ ...editingRecord, year_2003_date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">2010 Year</label>
-                    <select
-                      value={editingRecord.year_2010 || ''}
-                      onChange={(e) => setEditingRecord({ ...editingRecord, year_2010: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                      <option value="">Select Status</option>
-                      <option value="आहे">आहे (Available)</option>
-                      <option value="नाही">नाही (Not Available)</option>
-                      <option value="लागू नाही">लागू नाही (Not Applicable)</option>
-                      <option value="सुट आहे">सुट आहे (Exempted)</option>
-                    </select>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">2010 Date</label>
-                    <input
-                      type="date"
-                      value={editingRecord.year_2010_date ? editingRecord.year_2010_date.split('T')[0] : ''}
-                      onChange={(e) => setEditingRecord({ ...editingRecord, year_2010_date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">2020 Year</label>
-                    <select
-                      value={editingRecord.year_2020 || ''}
-                      onChange={(e) => setEditingRecord({ ...editingRecord, year_2020: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                      <option value="">Select Status</option>
-                      <option value="आहे">आहे (Available)</option>
-                      <option value="नाही">नाही (Not Available)</option>
-                      <option value="लागू नाही">लागू नाही (Not Applicable)</option>
-                      <option value="सुट आहे">सुट आहे (Exempted)</option>
-                    </select>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">2020 Date</label>
-                    <input
-                      type="date"
-                      value={editingRecord.year_2020_date ? editingRecord.year_2020_date.split('T')[0] : ''}
-                      onChange={(e) => setEditingRecord({ ...editingRecord, year_2020_date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-                </div>
-                
-                {/* Year Comments */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">1990 Comment</label>
-                    <textarea
-                      value={editingRecord.year_1990_comment || ''}
-                      onChange={(e) => setEditingRecord({ ...editingRecord, year_1990_comment: e.target.value })}
-                      rows={2}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Enter comment for 1990"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">2003 Comment</label>
-                    <textarea
-                      value={editingRecord.year_2003_comment || ''}
-                      onChange={(e) => setEditingRecord({ ...editingRecord, year_2003_comment: e.target.value })}
-                      rows={2}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Enter comment for 2003"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">2010 Comment</label>
-                    <textarea
-                      value={editingRecord.year_2010_comment || ''}
-                      onChange={(e) => setEditingRecord({ ...editingRecord, year_2010_comment: e.target.value })}
-                      rows={2}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Enter comment for 2010"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">2020 Comment</label>
-                    <textarea
-                      value={editingRecord.year_2020_comment || ''}
-                      onChange={(e) => setEditingRecord({ ...editingRecord, year_2020_comment: e.target.value })}
-                      rows={2}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Enter comment for 2020"
-                    />
-                  </div>
-                </div>
-                
-                {/* Overall Comments */}
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+            <div className="mt-3">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">{t('edit_record')}</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Overall Comments</label>
-                  <textarea
-                    value={editingRecord.overall_comments || ''}
-                    onChange={(e) => setEditingRecord({ ...editingRecord, overall_comments: e.target.value })}
-                    rows={4}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Enter overall comments"
-                  />
+                  <label className="block text-sm font-medium text-gray-700 mb-1">ID</label>
+                  <input type="text" value={editingRecord.emp_id} readOnly className="w-full p-2 border border-gray-300 rounded-md bg-gray-100" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('employee_name')}</label>
+                  <input type="text" value={editingRecord.employee_name} readOnly className="w-full p-2 border border-gray-300 rounded-md bg-gray-100" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('department')}</label>
+                  <input type="text" value={editingRecord.department || ''} readOnly className="w-full p-2 border border-gray-300 rounded-md bg-gray-100" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('retirement_date')}</label>
+                  <input type="date" value={editingRecord.retirement_date ? new Date(editingRecord.retirement_date).toISOString().split('T')[0] : ''} readOnly className="w-full p-2 border border-gray-300 rounded-md bg-gray-100" />
                 </div>
               </div>
-            </div>
-            
-            <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200">
-              <button
-                onClick={() => setShowEditModal(false)}
-                className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200"
-              >
-                {t('common.cancel')}
-              </button>
-              <button
-                onClick={handleUpdateRecord}
-                disabled={isLoading}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 disabled:opacity-50"
-              >
-                {isLoading ? t('common.saving') : t('common.update')}
-              </button>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">1990</label>
+                  <select
+                    value={editingRecord.year_1990 || ''}
+                    onChange={(e) => setEditingRecord({ ...editingRecord, year_1990: e.target.value })}
+                    className="w-full p-2 border border-gray-300 rounded-md"
+                  >
+                    <option value="">Select</option>
+                    <option value="आहे">आहे</option>
+                    <option value="नाही">नाही</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">2003</label>
+                  <select
+                    value={editingRecord.year_2003 || ''}
+                    onChange={(e) => setEditingRecord({ ...editingRecord, year_2003: e.target.value })}
+                    className="w-full p-2 border border-gray-300 rounded-md"
+                  >
+                    <option value="">Select</option>
+                    <option value="आहे">आहे</option>
+                    <option value="नाही">नाही</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">2010</label>
+                  <select
+                    value={editingRecord.year_2010 || ''}
+                    onChange={(e) => setEditingRecord({ ...editingRecord, year_2010: e.target.value })}
+                    className="w-full p-2 border border-gray-300 rounded-md"
+                  >
+                    <option value="">Select</option>
+                    <option value="आहे">आहे</option>
+                    <option value="नाही">नाही</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">2020</label>
+                  <select
+                    value={editingRecord.year_2020 || ''}
+                    onChange={(e) => setEditingRecord({ ...editingRecord, year_2020: e.target.value })}
+                    className="w-full p-2 border border-gray-300 rounded-md"
+                  >
+                    <option value="">Select</option>
+                    <option value="आहे">आहे</option>
+                    <option value="नाही">नाही</option>
+                  </select>
+                </div>
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('overall_comments')}</label>
+                <textarea
+                  value={editingRecord.overall_comments || ''}
+                  onChange={(e) => setEditingRecord({ ...editingRecord, overall_comments: e.target.value })}
+                  rows={3}
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                  placeholder={t('add_comments')}
+                />
+              </div>
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => { setShowEditModal(false); setEditingRecord(null); }}
+                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
+                >
+                  {t('cancel')}
+                </button>
+                <button
+                  onClick={() => saveRecord(editingRecord)}
+                  disabled={saving}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {saving ? t('saving') : t('save')}
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -899,3 +713,5 @@ export const GroupInsurance: React.FC<GroupInsuranceProps> = ({ user }) => {
     </div>
   );
 };
+
+export default GroupInsurance;
