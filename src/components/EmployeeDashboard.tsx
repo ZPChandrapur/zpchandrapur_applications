@@ -643,7 +643,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack }) 
   };
 
 
-  const handleAddEmployee = () => {
+  const handleAddEmployee = () => {debugger;
     setEditingEmployee(null);
     // Reset form data completely
     setFormData({
