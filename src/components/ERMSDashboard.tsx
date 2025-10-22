@@ -134,7 +134,9 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user }) => {
   const renderModuleContent = () => {
     // Check if user has access to the active module
     const activeModuleConfig = modules.find(m => m.id === activeModule);
-    if (activeModuleConfig && !hasAccess('erms', activeModuleConfig.requiredPermission)) {
+    const hasModuleAccess = activeModuleConfig && hasAccess('erms', activeModuleConfig.requiredPermission);
+
+    if (!hasModuleAccess && activeModuleConfig) {
       return (
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
@@ -143,41 +145,45 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user }) => {
               {t('permissions.accessRestricted')}
             </h3>
             <p className="text-gray-600">
-              {t('permissions.noAccess', { 
-                permission: activeModuleConfig.requiredPermission, 
-                system: 'ERMS' 
+              {t('permissions.noAccess', {
+                permission: activeModuleConfig.requiredPermission,
+                system: 'ERMS'
               })}
             </p>
           </div>
         </div>
       );
     }
-    
-    switch (activeModule) {
-      case 'employee-dashboard':
-        return <EmployeeDashboard onBack={handleBackToMain} />;
-      case 'organization-setup':
-        return <OrganizationSetup onBack={handleBackToMain} />;
-      case 'retirement-dashboard':
-        return <RetirementDashboard user={user} onBack={handleBackToMain} />;
-      case 'retirement-tracker':
-        return <RetirementTracker user={user} onBack={handleBackToMain} />;
-      case 'retirement-file-tracker':
-        return (
+
+    return (
+      <>
+        <div style={{ display: activeModule === 'employee-dashboard' ? 'block' : 'none' }}>
+          <EmployeeDashboard onBack={handleBackToMain} />
+        </div>
+        <div style={{ display: activeModule === 'organization-setup' ? 'block' : 'none' }}>
+          <OrganizationSetup onBack={handleBackToMain} />
+        </div>
+        <div style={{ display: activeModule === 'retirement-dashboard' ? 'block' : 'none' }}>
+          <RetirementDashboard user={user} onBack={handleBackToMain} />
+        </div>
+        <div style={{ display: activeModule === 'retirement-tracker' ? 'block' : 'none' }}>
+          <RetirementTracker user={user} onBack={handleBackToMain} />
+        </div>
+        <div style={{ display: activeModule === 'retirement-file-tracker' ? 'block' : 'none' }}>
           <div className="p-8 text-center">
             <FolderOpen className="h-16 w-16 text-indigo-500 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-gray-900 mb-2">Retirement File Tracker</h3>
             <p className="text-gray-600">File tracking features coming soon...</p>
           </div>
-        );
-      case 'custom-reports':
-        return <CustomReports user={user} onBack={handleBackToMain} />;
-      case 'instructions':
-        return <InstructionsDashboard user={user} onBack={handleBackToMain} />;
-      default:
-        // No fallback - content remains empty or unchanged if invalid
-        return null;
-    }
+        </div>
+        <div style={{ display: activeModule === 'custom-reports' ? 'block' : 'none' }}>
+          <CustomReports user={user} onBack={handleBackToMain} />
+        </div>
+        <div style={{ display: activeModule === 'instructions' ? 'block' : 'none' }}>
+          <InstructionsDashboard user={user} onBack={handleBackToMain} />
+        </div>
+      </>
+    );
   };
 
   return (
