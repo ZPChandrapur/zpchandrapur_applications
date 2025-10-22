@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { 
-  ArrowLeft,
   Users,
   Calendar,
   FileText,
@@ -24,171 +23,28 @@ import { CustomReports } from './CustomReports';
 import { usePermissions } from '../hooks/usePermissions';
 import { Shield } from 'lucide-react';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
+
 interface ERMSDashboardProps {
   user: SupabaseUser;
-  onBack: () => void;
 }
-export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, onBack }) => {
+
+export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user }) => {
   const { t } = useTranslation();
   const { hasAccess } = usePermissions(user);
-  // Enhanced module state management with better persistence
-  const getInitialModule = () => {
-    try {
-      const savedModule = localStorage.getItem('erms-active-module');
-      // Validate that the saved module exists in our modules list
-      const validModules = [
-        'employee-dashboard',
-        'organization-setup', 
-        'retirement-dashboard',
-        'retirement-tracker',
-        'retirement-file-tracker',
-        'custom-reports',
-        'instructions'
-      ];
-      if (savedModule && validModules.includes(savedModule)) {
-        return savedModule;
-      }
-    } catch (error) {
-      console.warn('Failed to load saved module from localStorage:', error);
-    }
-    // Always default to employee-dashboard as the landing page
-    return 'employee-dashboard';
-  };
-  const [activeModule, setActiveModule] = useState(getInitialModule);
-  const [isInitialized, setIsInitialized] = useState(false);
-  // Enhanced module change handler with better error handling
+
+  // Simple state management without persistence
+  const [activeModule, setActiveModule] = useState('employee-dashboard');
+
+  // Simple module change handler without validation or storage
   const handleModuleChange = (moduleId: string) => {
-    try {
-      // Validate module ID before setting
-      const validModules = [
-        'employee-dashboard',
-        'organization-setup',
-        'retirement-dashboard', 
-        'retirement-tracker',
-        'retirement-file-tracker',
-        'custom-reports',
-        'instructions'
-      ];
-      
-      if (!validModules.includes(moduleId)) {
-        console.warn('Invalid module ID:', moduleId);
-        return;
-      }
-      
-      // Update localStorage first
-      localStorage.setItem('erms-active-module', moduleId);
-      // Then update state
-      setActiveModule(moduleId);
-      
-      // Broadcast change to other tabs
-      window.dispatchEvent(new StorageEvent('storage', {
-        key: 'erms-active-module',
-        newValue: moduleId,
-        storageArea: localStorage
-      }));
-      
-    } catch (error) {
-      console.warn('Failed to save module to localStorage:', error);
-      // Still update state even if localStorage fails
-      setActiveModule(moduleId);
-    }
+    setActiveModule(moduleId);
   };
-  // Enhanced tab synchronization and state management
-  useEffect(() => {
-    // Mark as initialized after first render
-    setIsInitialized(true);
-    
-    // Ensure default module is properly set on initialization
-    const currentModule = localStorage.getItem('erms-active-module');
-    if (!currentModule) {
-      localStorage.setItem('erms-active-module', 'employee-dashboard');
-    }
-    
-    // Handle storage events from other tabs
-    const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === 'erms-active-module' && event.newValue) {
-        const validModules = [
-          'employee-dashboard',
-          'organization-setup',
-          'retirement-dashboard',
-          'retirement-tracker', 
-          'retirement-file-tracker',
-          'custom-reports',
-          'instructions'
-        ];
-        
-        if (validModules.includes(event.newValue)) {
-          setActiveModule(event.newValue);
-        }
-      }
-    };
-    
-    // Handle browser tab visibility changes
-    const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        // Tab became visible - sync module state from localStorage
-        try {
-          const savedModule = localStorage.getItem('erms-active-module');
-          const validModules = [
-            'employee-dashboard',
-            'organization-setup',
-            'retirement-dashboard',
-            'retirement-tracker',
-            'retirement-file-tracker', 
-            'custom-reports',
-            'instructions'
-          ];
-          
-          if (savedModule && validModules.includes(savedModule) && savedModule !== activeModule) {
-            setActiveModule(savedModule);
-          }
-        } catch (error) {
-          console.warn('Failed to sync module state on visibility change:', error);
-        }
-      }
-    };
-    
-    // Handle window focus events for better cross-browser support
-    const handleWindowFocus = () => {
-      if (!document.hidden) {
-        handleVisibilityChange();
-      }
-    };
-    
-    // Handle page unload to ensure state is saved
-    const handleBeforeUnload = () => {
-      try {
-        localStorage.setItem('erms-active-module', activeModule);
-      } catch (error) {
-        console.warn('Failed to save module state on unload:', error);
-      }
-    };
-    
-    // Add event listeners
-    window.addEventListener('storage', handleStorageChange);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('focus', handleWindowFocus);
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    
-    // Cleanup event listeners
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('focus', handleWindowFocus);
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
-  }, [activeModule]);
-  // Enhanced back handler that maintains current module context
+
+  // Empty back handler for child components
   const handleBackToMain = () => {
-    // This function is called when navigating back within modules
-    // We maintain the current module state to prevent unwanted redirects
-    try {
-      localStorage.setItem('erms-active-module', activeModule);
-    } catch (error) {
-      console.warn('Failed to persist module state on back navigation:', error);
-    }
-    // Don't change activeModule - this prevents unwanted redirects
+    // No-op to maintain context without changes
   };
+
   const modules = [
     {
       id: 'employee-dashboard',
@@ -254,23 +110,17 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, onBack }) =>
       requiredPermission: 'read'
     }
   ];
+
   // Filter modules based on user permissions
   const getAccessibleModules = () => {
     return modules.filter(module => {
       return hasAccess('erms', module.requiredPermission);
     });
   };
+
   const accessibleModules = getAccessibleModules();
+
   const renderModuleContent = () => {
-    // Ensure we don't render content until properly initialized
-    if (!isInitialized) {
-      return (
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        </div>
-      );
-    }
-    
     // Check if user has access to the active module
     const activeModuleConfig = modules.find(m => m.id === activeModule);
     if (activeModuleConfig && !hasAccess('erms', activeModuleConfig.requiredPermission)) {
@@ -314,23 +164,18 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, onBack }) =>
       case 'instructions':
         return <InstructionsDashboard user={user} onBack={handleBackToMain} />;
       default:
-        // Fallback to employee dashboard for any invalid module
-        return <EmployeeDashboard onBack={handleBackToMain} />;
+        // No fallback - content remains empty or unchanged if invalid
+        return null;
     }
   };
+
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Left Sidebar */}
       <div className="w-80 bg-white shadow-lg border-r border-gray-200 flex flex-col">
-        {/* Header */}
+        {/* Header without back button */}
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center space-x-3 mb-4">
-            <button
-              onClick={onBack}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
-            >
-              <ArrowLeft className="h-5 w-5 text-gray-600" />
-            </button>
             <div className="bg-blue-100 p-2 rounded-lg">
               <Users className="h-6 w-6 text-blue-600" />
             </div>
