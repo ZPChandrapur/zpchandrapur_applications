@@ -41,9 +41,16 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user }) => {
     return localStorage.getItem('ermsActiveModule') || defaultModule;
   });
 
+  // Track which modules have been visited to lazy load them
+  const [visitedModules, setVisitedModules] = useState<Set<string>>(() => {
+    const initial = localStorage.getItem('ermsActiveModule') || defaultModule;
+    return new Set([initial]);
+  });
+
   // Persist active module to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem('ermsActiveModule', activeModule);
+    setVisitedModules(prev => new Set([...prev, activeModule]));
   }, [activeModule]);
 
   // Module change handler
@@ -158,29 +165,31 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user }) => {
     return (
       <>
         <div style={{ display: activeModule === 'employee-dashboard' ? 'block' : 'none' }}>
-          <EmployeeDashboard onBack={handleBackToMain} />
+          {visitedModules.has('employee-dashboard') && <EmployeeDashboard onBack={handleBackToMain} />}
         </div>
         <div style={{ display: activeModule === 'organization-setup' ? 'block' : 'none' }}>
-          <OrganizationSetup onBack={handleBackToMain} />
+          {visitedModules.has('organization-setup') && <OrganizationSetup onBack={handleBackToMain} />}
         </div>
         <div style={{ display: activeModule === 'retirement-dashboard' ? 'block' : 'none' }}>
-          <RetirementDashboard user={user} onBack={handleBackToMain} />
+          {visitedModules.has('retirement-dashboard') && <RetirementDashboard user={user} onBack={handleBackToMain} />}
         </div>
         <div style={{ display: activeModule === 'retirement-tracker' ? 'block' : 'none' }}>
-          <RetirementTracker user={user} onBack={handleBackToMain} />
+          {visitedModules.has('retirement-tracker') && <RetirementTracker user={user} onBack={handleBackToMain} />}
         </div>
         <div style={{ display: activeModule === 'retirement-file-tracker' ? 'block' : 'none' }}>
-          <div className="p-8 text-center">
-            <FolderOpen className="h-16 w-16 text-indigo-500 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Retirement File Tracker</h3>
-            <p className="text-gray-600">File tracking features coming soon...</p>
-          </div>
+          {visitedModules.has('retirement-file-tracker') && (
+            <div className="p-8 text-center">
+              <FolderOpen className="h-16 w-16 text-indigo-500 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Retirement File Tracker</h3>
+              <p className="text-gray-600">File tracking features coming soon...</p>
+            </div>
+          )}
         </div>
         <div style={{ display: activeModule === 'custom-reports' ? 'block' : 'none' }}>
-          <CustomReports user={user} onBack={handleBackToMain} />
+          {visitedModules.has('custom-reports') && <CustomReports user={user} onBack={handleBackToMain} />}
         </div>
         <div style={{ display: activeModule === 'instructions' ? 'block' : 'none' }}>
-          <InstructionsDashboard user={user} onBack={handleBackToMain} />
+          {visitedModules.has('instructions') && <InstructionsDashboard user={user} onBack={handleBackToMain} />}
         </div>
       </>
     );

@@ -58,7 +58,7 @@ interface Village {
   updated_at?: string;
 }
 
-export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) => {debugger;
+export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) => {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('departments');
   const [isLoading, setIsLoading] = useState(false);
