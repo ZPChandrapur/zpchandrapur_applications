@@ -59,8 +59,6 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user }) => {
     setActiveModule(moduleId);
   };
 
-  // Empty back handler for child components
-
   // Back handler to return to main dashboard, preserving overall state
   const handleBackToMain = () => {
     const accessibleModules = getAccessibleModules();
