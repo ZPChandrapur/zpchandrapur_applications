@@ -34,8 +34,26 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user }) => {
 
   // // Simple state management without persistence
   // const [activeModule, setActiveModule] = useState('employee-dashboard');
-  const [activeModule, setActiveModule] = useState(defaultModule);
+  const [activeModule, setActiveModule] = useState(defaultModule); //added
 
+// Persist active module to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('ermsActiveModule', activeModule);
+  }, [activeModule]);
+
+  // Initialize active module from localStorage on mount, ensuring it's accessible
+  useEffect(() => {
+    const saved = localStorage.getItem('ermsActiveModule') || defaultModule;
+    const accessibleModules = getAccessibleModules(); // Defined below
+    const isAccessible = accessibleModules.some((m) => m.id === saved);
+    if (isAccessible) {
+      setActiveModule(saved);
+    } else if (accessibleModules.length > 0) {
+      setActiveModule(accessibleModules[0].id);
+    }
+  }, []); // Runs once on mount
+
+  
   // Simple module change handler without validation or storage
   const handleModuleChange = (moduleId: string) => {
     setActiveModule(moduleId);
