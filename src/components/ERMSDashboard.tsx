@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { 
   Users,
@@ -32,38 +32,28 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user }) => {
   const { t } = useTranslation();
   const { hasAccess } = usePermissions(user);
 
-  // // Simple state management without persistence
-  // const [activeModule, setActiveModule] = useState('employee-dashboard');
-  const [activeModule, setActiveModule] = useState(defaultModule); //added
+  // Default module constant
+  const defaultModule = 'employee-dashboard';
 
-// Persist active module to localStorage whenever it changes--added 39-54
+  // State management with localStorage persistence
+  const [activeModule, setActiveModule] = useState(() => {
+    // Initialize from localStorage or default
+    return localStorage.getItem('ermsActiveModule') || defaultModule;
+  });
+
+  // Persist active module to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem('ermsActiveModule', activeModule);
   }, [activeModule]);
 
-  // Initialize active module from localStorage on mount, ensuring it's accessible
-  useEffect(() => {
-    const saved = localStorage.getItem('ermsActiveModule') || defaultModule;
-    const accessibleModules = getAccessibleModules(); // Defined below
-    const isAccessible = accessibleModules.some((m) => m.id === saved);
-    if (isAccessible) {
-      setActiveModule(saved);
-    } else if (accessibleModules.length > 0) {
-      setActiveModule(accessibleModules[0].id);
-    }
-  }, []); // Runs once on mount
-
-  
-  // Simple module change handler without validation or storage
+  // Module change handler
   const handleModuleChange = (moduleId: string) => {
     setActiveModule(moduleId);
   };
-  
-  // Back handler to return to main dashboard, preserving overall state
+
+  // Back handler - does not change active module, preserving state
   const handleBackToMain = () => {
-    const accessibleModules = getAccessibleModules();
-    const targetModule = accessibleModules.find((m) => m.id === defaultModule)?.id || accessibleModules[0]?.id || defaultModule;
-    setActiveModule(targetModule);
+    // Empty handler - maintains current module state
   };
 
   const modules = [
@@ -140,6 +130,15 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user }) => {
   };
 
   const accessibleModules = getAccessibleModules();
+
+  // Validate active module on mount and when permissions change
+  useEffect(() => {
+    const isAccessible = accessibleModules.some((m) => m.id === activeModule);
+    if (!isAccessible && accessibleModules.length > 0) {
+      // If current module is not accessible, switch to first accessible module
+      setActiveModule(accessibleModules[0].id);
+    }
+  }, [accessibleModules.length]);
 
   const renderModuleContent = () => {
     // Check if user has access to the active module
