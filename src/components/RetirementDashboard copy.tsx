@@ -306,7 +306,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
     }
   };
 
-  const fetchClerks = async () => {
+  const fetchClerks = async () => {debugger;
     try {
       const { data, error } = await supabase
         .from('user_roles')
@@ -332,7 +332,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
     }
   };
 
-  const filterEmployees = () => {
+  const filterEmployees = () => {debugger;
     let filtered = retirementEmployees;
 
     // Role-based filtering

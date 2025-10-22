@@ -618,8 +618,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
   };
 
   const handleBackToDashboard = () => {
-    // Clear ERMS module state when returning to main dashboard
-    localStorage.removeItem('ermsActiveModule');
     setSelectedApp(null);
   };
 

@@ -32,16 +32,19 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user }) => {
   const { t } = useTranslation();
   const { hasAccess } = usePermissions(user);
 
-  // Default module constant - null means show module selection
-  const defaultModule = null;
+  // Default module constant
+  const defaultModule = 'employee-dashboard';
 
-  // State management - don't persist to localStorage
-  const [activeModule, setActiveModule] = useState<string | null>(defaultModule);
+  // State management with localStorage persistence
+  const [activeModule, setActiveModule] = useState(() => {
+    // Initialize from localStorage or default
+    return localStorage.getItem('ermsActiveModule') || defaultModule;
+  });
 
-  // Clear localStorage on mount to always start with module selection
+  // Persist active module to localStorage whenever it changes
   useEffect(() => {
-    localStorage.removeItem('ermsActiveModule');
-  }, []);
+    localStorage.setItem('ermsActiveModule', activeModule);
+  }, [activeModule]);
 
   // Module change handler
   const handleModuleChange = (moduleId: string) => {
