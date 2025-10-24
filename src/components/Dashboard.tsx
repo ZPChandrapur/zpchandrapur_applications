@@ -20,7 +20,7 @@ const EEstimateFrame: React.FC<{ user: SupabaseUser; onBack: () => void }> = ({ 
   // E-estimate application URL - replace with actual URL when available
   const eEstimateUrl = 'https://eestimatemb.zpchandrapurapps.com/';
   
-  const handleIframeLoad = () => {
+  const handleIframeLoad = () => {debugger;
     setIsLoading(false);
   };
 
