@@ -61,7 +61,8 @@
     "quickActions": "Quick Actions",
     "recentActivity": "Recent Activity",
     "systemStatus": "System Status",
-    "notifications": "Notifications"
+    "notifications": "Notifications",
+    "applicationsHeading": "Integrated Applications System Overview"
   },
   "systems": {
     "erms": {
