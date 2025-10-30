@@ -61,7 +61,11 @@
     "quickActions": "त्वरित क्रिया",
     "recentActivity": "अलीकडील क्रियाकलाप",
     "systemStatus": "प्रणाली स्थिती",
-    "notifications": "सूचना"
+    "notifications": "सूचना",
+    "notifications": "Notifications",
+ 
+    "applicationsHeading": "Integrated
+    
   },
   "systems": {
     "erms": {
