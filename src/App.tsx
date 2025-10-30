@@ -2,7 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Camera } from 'lucide-react';
 import { SignInForm } from './SignInForm';
-import { Dashboard } from './components/Dashboard';
+// old dashboard
+// import { Dashboard } from './components/Dashboard';
+// new dashboard
+import { Dashboard } from './components/NewDashboard';
 import { supabase, isSupabaseConfigured, supabaseConfigErrors } from "./lib/supabase";
 import type { User } from '@supabase/supabase-js';
 
@@ -145,7 +148,9 @@ function App() {
   // If in recovery mode or not signed in, show the sign-in page (with reset form forced if recovery)
   if (isRecoveryMode || !user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 flex items-center justify-center p-4">
+      <div
+  className="min-h-screen w-full bg-[url('/PatternedAI_repeat_image.png')] bg-cover bg-center bg-no-repeat flex items-center justify-center p-4 "
+>      
         <div className="w-full max-w-md">
           <div className="bg-white rounded-2xl shadow-xl p-8">
             {/* Header */}
@@ -175,8 +180,19 @@ function App() {
 
             {/* Footer */}
             <div className="mt-8 text-center">
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-gray-500 mb-2">
                 {t('auth.secureAccess', '© 2025 ZP Chandrapur,Govt of Maharashtra. All rights reserved.')}
+              </p>
+              <p className="text-xs text-gray-500">
+                {t('auth.secureAccess', 'Developed by')}{' '}
+                <a
+                  href="https://dpulsai.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-500 hover:underline"
+                >
+                  DepulseAI
+                </a>
               </p>
             </div>
           </div>
