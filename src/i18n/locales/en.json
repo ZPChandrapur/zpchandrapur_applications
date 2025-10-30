@@ -63,7 +63,6 @@
     "systemStatus": "System Status",
     "notifications": "Notifications",
     "applicationsHeading": "Integrated Applications System Overview"
-    "name": "PESA"
   },
   "systems": {
     "erms": {
@@ -106,7 +105,7 @@
       "mobileApplication": "Mobile Application"
     },
     "pesa": {
-      "name": "PESA 5%",
+      "name": "PESA",
       "fullName": "PESA 5% Fund Management System",
       "description": "Track and manage PESA fund utilization across components",
       "totalFund": "Total Fund",
