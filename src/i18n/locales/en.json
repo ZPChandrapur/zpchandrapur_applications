@@ -63,6 +63,7 @@
     "systemStatus": "System Status",
     "notifications": "Notifications",
     "applicationsHeading": "Integrated Applications System Overview"
+    "name": "PESA"
   },
   "systems": {
     "erms": {
