@@ -60,7 +60,7 @@ export const SignInForm: React.FC<SignInFormProps> = ({
         refresh_token: refreshToken,
       });
       if (error) throw error;
-      console.log('Recovery session established:', data);  // Debug log
+      // console.log('Recovery session established:', data);  // Debug log
       setResetMode(true);
     } catch (err) {
       setError('Invalid or expired reset link. Please request a new one.');
@@ -71,86 +71,80 @@ export const SignInForm: React.FC<SignInFormProps> = ({
   };
 
   const handleSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    
-    // Basic validation
-    if (!email || !password) {
-      setError(t('auth.fillAllFields'));
-      return;
-    }
+  e.preventDefault();
+  setError('');
+  
+  // Basic validation
+  if (!email || !password) {
+    setError(t('auth.fillAllFields'));
+    return;
+  }
 
-    if (!validateEmail(email)) {
-      setError(t('auth.invalidEmail'));
-      return;
-    }
+  if (!validateEmail(email)) {
+    setError(t('auth.invalidEmail'));
+    return;
+  }
 
-    if (password.length < 6) {
-      setError(t('auth.passwordTooShort'));
-      return;
-    }
+  if (password.length < 6) {
+    setError(t('auth.passwordTooShort'));
+    return;
+  }
 
-    setIsLoading(true);
+  setIsLoading(true);
 
-    if (!supabase) {
-      setError('Application not properly configured. Please contact administrator.');
-      setIsLoading(false);
-      return;
-    }
+  if (!supabase) {
+    setError('Application not properly configured. Please contact administrator.');
+    setIsLoading(false);
+    return;
+  }
 
-    try {
-      const { data, error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+  try {
+    const { data, error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
-      if (signInError) {
-        setError(signInError.message);
-      } else if (data.user) {
-        onSignInSuccess();
+    if (signInError) {
+      setError(signInError.message);
+    } else if (data.user) {
+      const { data: roleData, error: roleError } = await supabase
+        .from('user_roles')
+        .select('role_id')
+        .eq('user_id', data.user.id)
+        .single();
+
+      if (roleError) {
+        console.error('Role fetch error:', roleError);
+        setIsLoading(false);
+        return;
       }
-    } catch (err) {
-      setError('An unexpected error occurred. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
-  const handlePasswordReset = async () => {
-    if (!email) {
-      setError(t('auth.enterEmail'));
-      return;
-    }
+      const roleId = roleData?.role_id ?? null;
 
-    if (!validateEmail(email)) {
-      setError(t('auth.invalidEmail'));
-      return;
-    }
+      if (roleId !== null) {
+        const { data: accessData, error: accessError } = await supabase
+          .from('application_permissions')
+          .select('id')
+          .eq('role_id', roleId)
+          .eq('application_name', 'erms')
+          .maybeSingle();
 
-    setError('');
-    setIsLoading(true);
-
-    // Use root URL for redirectTo (no separate route needed). Adjust for production domain via env vars.
-    const redirectUrl = process.env.NODE_ENV === 'development'
-      ? `${window.location.origin}/`
-      : 'https://your-app-domain.com/';  // Replace with your actual production domain (or use process.env.REACT_APP_BASE_URL)
-
-    try {
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: redirectUrl,
-      });
-
-      if (resetError) {
-        setError(resetError.message);
-      } else {
-        setResetEmailSent(true);
+        if (!accessData) {
+          alert('You do not have access to ERMS application');
+          await supabase.auth.signOut();
+          setIsLoading(false);
+          return;
+        }
       }
-    } catch (err) {
-      setError('An unexpected error occurred. Please try again.');
-    } finally {
-      setIsLoading(false);
+
+      onSignInSuccess();
     }
-  };
+  } catch (err) {
+    setError('An unexpected error occurred. Please try again.');
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const handleResetSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

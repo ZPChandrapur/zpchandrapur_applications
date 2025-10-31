@@ -52,7 +52,7 @@ export const testERMSConnection = async () => {
       // User info available
     }
 
-    console.log('🔍 Checking auth.users table access...');
+    // console.log('🔍 Checking access...');
     const { data: authUsers, error: authError } = await supabase
       ?.from('users')
       .select('*')
@@ -63,11 +63,11 @@ export const testERMSConnection = async () => {
       .select('*')
       .limit(1);
 
-    if (rolesError) {
-      console.log('❌ Error accessing user_roles:', rolesError.message);
-    } else {
-      console.log('✅ User roles table structure:', userRoles);
-    }
+    // if (rolesError) {
+    //   console.log('❌ Error accessing user_roles:', rolesError.message);
+    // } else {
+    //   console.log('✅ User roles table structure:', userRoles);
+    // }
 
     console.log('🧪 Step 1: Testing basic connection...');
     const { data: sessionData, error: sessionError } = await supabase?.auth.getSession();
