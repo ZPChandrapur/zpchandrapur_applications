@@ -200,7 +200,7 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user }) => {
     <div className="min-h-screen bg-gradient-to-tr from-gray-100 via-gray-50 to-blue-100 flex">
       {/* Left Sidebar */}
       <div 
-        className="w-80 bg-gradient-to-b from-white via-blue-50 to-blue-100 shadow-xl border-r border-blue-200 flex flex-col fixed top-0 left-0 h-screen z-30"
+        className="w-80 bg-gradient-to-b from-white via-blue-50 to-blue-100 shadow-xl border-r border-purple-200 flex flex-col fixed top-0 left-0 h-screen z-30"
         style={{ height: '100vh' }}
       >
         {/* Header with back button */}
