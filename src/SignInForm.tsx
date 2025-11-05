@@ -145,7 +145,41 @@ export const SignInForm: React.FC<SignInFormProps> = ({
     setIsLoading(false);
   }
 };
+const handlePasswordReset = async () => {
+    if (!email) {
+      setError(t('auth.enterEmail'));
+      return;
+    }
 
+    if (!validateEmail(email)) {
+      setError(t('auth.invalidEmail'));
+      return;
+    }
+
+    setError('');
+    setIsLoading(true);
+
+    // Use root URL for redirectTo (no separate route needed). Adjust for production domain via env vars.
+    const redirectUrl = process.env.NODE_ENV === 'development'
+      ? `${window.location.origin}/`
+      : 'https://your-app-domain.com/';  // Replace with your actual production domain (or use process.env.REACT_APP_BASE_URL)
+
+    try {
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: redirectUrl,
+      });
+
+      if (resetError) {
+        setError(resetError.message);
+      } else {
+        setResetEmailSent(true);
+      }
+    } catch (err) {
+      setError('An unexpected error occurred. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
   const handleResetSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
