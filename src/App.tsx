@@ -155,7 +155,7 @@ function App() {
     return (
       <BrowserRouter>
         <div
-          className="min-h-screen w-full bg-[url('/PatternedAI_repeat_image.png')] bg-content bg-center bg-no-repeat flex items-center justify-center p-4"
+          className="min-h-screen w-full bg-[url('/PatternedAI_repeat_image.png')] bg-contain bg-center bg-no-repeat flex items-center justify-center p-4"
         >
           <div className="w-full max-w-md">
             <div className="bg-white rounded-2xl shadow-xl p-8">
