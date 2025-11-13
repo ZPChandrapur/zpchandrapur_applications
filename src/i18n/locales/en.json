@@ -44,7 +44,10 @@
     "passwordTooShort": "Password must be at least 6 characters long",
     "fillAllFields": "Please fill in all fields",
     "newPassword":"Please type new password",
+    "confirmPassword":"Confirm New password",
+    "newPassword":"Please type new password",
     "confirmPassword":"Confirm New password"
+    
   },
   "navigation": {
     "dashboard": "Dashboard",
