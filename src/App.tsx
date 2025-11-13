@@ -197,7 +197,7 @@ function App() {
                     rel="noopener noreferrer"
                     className="text-blue-500 hover:underline"
                   >
-                    DepulseAI
+                    Dpulse AI
                   </a>
                 </p>
               </div>
