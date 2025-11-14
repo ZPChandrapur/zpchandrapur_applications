@@ -845,6 +845,14 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
                   </td>
                 </tr>
               ) : (
+                const sortedEmployees = [...paginatedEmployees].sort((a, b) => {
+                      const dateA = new Date(a.retirement_date || 0);
+                      const dateB = new Date(b.retirement_date || 0);
+                    
+                      // First sort by retirement date (earliest first)
+                      if (dateA < dateB) return -1;
+                      if (dateA > dateB) return 1;
+                    });
                 sortedEmployees.map((employee) => (
                 paginatedEmployees.map((employee) => (
                   <tr key={employee.emp_id} className="hover:bg-blue-50 transition-colors duration-200">
