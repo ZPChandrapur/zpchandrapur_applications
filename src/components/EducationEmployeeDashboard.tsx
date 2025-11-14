@@ -845,6 +845,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
                   </td>
                 </tr>
               ) : (
+                sortedEmployees.map((employee) => (
                 paginatedEmployees.map((employee) => (
                   <tr key={employee.emp_id} className="hover:bg-blue-50 transition-colors duration-200">
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -899,7 +900,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
                       </div>
                     </td>
                   </tr>
-                ))
+                )))
               )}
             </tbody>
           </table>
