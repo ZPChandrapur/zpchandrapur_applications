@@ -44,10 +44,7 @@
     "passwordTooShort": "Password must be at least 6 characters long",
     "fillAllFields": "Please fill in all fields",
     "newPassword":"Please type new password",
-    "confirmPassword":"Confirm New password",
-    "enterNewpassword":"Please type new password",
-    "confirmNewPassword":"Confirm New password"
-    
+    "confirmPassword":"Confirm New password"
   },
   "navigation": {
     "dashboard": "Dashboard",
@@ -64,8 +61,7 @@
     "quickActions": "Quick Actions",
     "recentActivity": "Recent Activity",
     "systemStatus": "System Status",
-    "notifications": "Notifications",
-    "applicationsHeading": "Integrated Applications System Overview"
+    "notifications": "Notifications"
   },
   "systems": {
     "erms": {
@@ -108,7 +104,7 @@
       "mobileApplication": "Mobile Application"
     },
     "pesa": {
-      "name": "PESA",
+      "name": "PESA 5%",
       "fullName": "PESA 5% Fund Management System",
       "description": "Track and manage PESA fund utilization across components",
       "totalFund": "Total Fund",
@@ -322,6 +318,7 @@
     "assignedClerkName": "Assigned Clerk Name",
     "dateOfAssignment": "Date of Assignment",
     "selectDesignation": "Select Designation",
+    "selectTypeOfPension": "Select Type of Pension",
     "selectTaluka": "Select Taluka",
     "panchayatrajsevarthId": "PANCHAYATRAJSEVARTH ID",
     "ddoCode": "DDO CODE",
@@ -452,10 +449,9 @@
     "department": "Department",
     "designation": "Designation",
     "selectStatus": "Select Status",
-    "comment": "Comment",
-    "withSubmissionData": "With submission data",
-    "date": "Date",
     "overallComment": "Overall Comment",
+    "comment": "Comment",
+    "date": "Date",
     "enterOverallComment": "Enter overall comment",
     "showingPage": "Showing {{start}}-{{end}} of {{total}}"
   },
