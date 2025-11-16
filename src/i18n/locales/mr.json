@@ -43,7 +43,9 @@
     "passwordTooShort": "पासवर्ड किमान 6 अक्षरांचा असावा",
     "fillAllFields": "कृपया सर्व फील्ड भरा",
     "newPassword": "कृपया नवीन पासवर्ड टाइप करा",
-    "confirmPassword": "नवीन पासवर्डची पुष्टी करा"
+    "confirmPassword": "नवीन पासवर्डची पुष्टी करा",
+    "enterNewpassword":"कृपया नवीन पासवर्ड टाइप करा",
+    "confirmNewPassword": "नवीन पासवर्डची पुष्टी करा"
 
   },
   "navigation": {
@@ -61,7 +63,8 @@
     "quickActions": "त्वरित क्रिया",
     "recentActivity": "अलीकडील क्रियाकलाप",
     "systemStatus": "प्रणाली स्थिती",
-    "notifications": "सूचना"
+    "notifications": "सूचना",
+    "applicationsHeading": "एकात्मिक अनुप्रयोग प्रणाली विहंगावलोकन"
   },
   "systems": {
     "erms": {
@@ -104,7 +107,7 @@
       "mobileApplication": "मोबाइल अनुप्रयोग"
     },
     "pesa": {
-      "name": "PESA 5%",
+      "name": "PESA",
       "fullName": "PESA 5% निधी व्यवस्थापन प्रणाली",
       "description": "घटकांमध्ये PESA निधी वापराचा मागोवा आणि व्यवस्थापन करा",
       "totalFund": "एकूण निधी",
@@ -324,8 +327,7 @@
     "allClerks": "सर्व लिपिक",
     "allReasons": "सर्व कारणे",
     "selectDepartment": "विभाग निवडा",
-    "selectDesignation": "पदनाम निवडा", 
-    "selectTypeOfPension": "पेन्शन प्रकार निवडा",
+    "selectDesignation": "पदनाम निवडा",
     "enterDesignation": "पदनाम टाका",
     "selectTaluka": "तालुका निवडा",
     "selectOffice": "कार्यालय निवडा",
@@ -379,8 +381,11 @@
     "payCommission": "वेतन आयोग",
     "groupInsurance": "गट विमा",
     "processOverview": "सेवानिवृत्ती प्रक्रिया विहंगावलोकन",
+    "pensionApproved": "पेन्शन मंजूर",
     "complete": "पूर्ण",
     "totalCases": "एकूण प्रकरणे",
+    "awaitingApproval": "मंजुरीची प्रतीक्षा",
+    "withSubmissionData": "सबमिशन डेटासह",
     "completed": "पूर्ण",
     "inProgress": "प्रगतीत",
     "pending": "प्रलंबित",
