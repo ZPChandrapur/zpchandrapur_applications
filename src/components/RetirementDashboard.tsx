@@ -687,9 +687,6 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
       employee.date_of_actual_benefit_provided_for_medical_allowance_if_applic,
       employee.date_of_benefit_provided_for_hometown_travel_allowance_if_appli,
       employee.date_of_actual_benefit_provided_for_pending_travel_allowance_if,
-      employee.retirement_progress_status,
-      employee.pay_commission_status,
-      employee.group_insurance_status,
     
     ];
     const filledFields = progressFields.filter(field =>
