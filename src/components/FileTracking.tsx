@@ -7,7 +7,7 @@ import {
   RotateCcw,
   CheckCircle,
   Clock,
-  User,
+  User as UserIcon,
   Calendar,
   MessageSquare,
   ArrowRight,
@@ -404,7 +404,7 @@ export const FileTracking: React.FC<FileTrackingProps> = ({
                 <h4 className="text-lg font-semibold text-gray-900 mb-4">Current Assignment</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="flex items-start space-x-3">
-                    <User className="h-5 w-5 text-blue-600 mt-1" />
+                    <UserIcon className="h-5 w-5 text-blue-600 mt-1" />
                     <div>
                       <p className="text-sm text-gray-600">Assigned To</p>
                       <p className="font-semibold text-gray-900">{currentTracking.assigned_to_name}</p>
