@@ -74,7 +74,7 @@ export const FileTracking: React.FC<FileTrackingProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [actionMode, setActionMode] = useState<'view' | 'forward' | 'revert'>('view');
+  const [actionMode, setActionMode] = useState<'view' | 'forward' | 'revert' | 'reassign'>('view');
   const [selectedUser, setSelectedUser] = useState<string>('');
   const [comments, setComments] = useState('');
   const [availableUsers, setAvailableUsers] = useState<UserOption[]>([]);
@@ -240,6 +240,12 @@ export const FileTracking: React.FC<FileTrackingProps> = ({
     loadAvailableUsers(prevLevel);
   };
 
+  const handleReassign = () => {
+    if (!currentTracking) return;
+    setActionMode('reassign');
+    loadAvailableUsers(currentTracking.current_level);
+  };
+
   const handleSubmitAction = async () => {
     if (!selectedUser || !currentTracking) return;
 
@@ -249,11 +255,18 @@ export const FileTracking: React.FC<FileTrackingProps> = ({
 
       const targetLevel = actionMode === 'forward'
         ? getNextLevel(currentTracking.current_level)
-        : getPreviousLevel(currentTracking.current_level);
+        : actionMode === 'revert'
+        ? getPreviousLevel(currentTracking.current_level)
+        : currentTracking.current_level; // reassign stays at same level
 
+      // Update current tracking status
       await ermsClient
         .from('retirement_file_tracking')
-        .update({ status: actionMode === 'forward' ? 'completed' : 'reverted' })
+        .update({
+          status: actionMode === 'forward' ? 'completed' :
+                  actionMode === 'revert' ? 'reverted' :
+                  'reassigned'
+        })
         .eq('id', currentTracking.id);
 
       const { error: insertTrackingError } = await ermsClient
@@ -277,7 +290,9 @@ export const FileTracking: React.FC<FileTrackingProps> = ({
           to_user_id: selectedUser,
           from_level: currentTracking.current_level,
           to_level: targetLevel,
-          action: actionMode === 'forward' ? 'forwarded' : 'reverted',
+          action: actionMode === 'forward' ? 'forwarded' :
+                  actionMode === 'revert' ? 'reverted' :
+                  'reassigned',
           comments: comments || null
         });
 
@@ -559,6 +574,13 @@ export const FileTracking: React.FC<FileTrackingProps> = ({
                         <span>Complete File Processing</span>
                       </button>
                     )}
+                    <button
+                      onClick={handleReassign}
+                      className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center space-x-2"
+                    >
+                      <UserIcon className="h-4 w-4" />
+                      <span>Reassign</span>
+                    </button>
                     {currentTracking.current_level !== 'superadmin' && (
                       <button
                         onClick={handleForward}
@@ -635,12 +657,20 @@ export const FileTracking: React.FC<FileTrackingProps> = ({
             <div className="space-y-6">
               <div>
                 <h4 className="text-lg font-semibold text-gray-900 mb-4">
-                  {currentTracking ? (actionMode === 'forward' ? 'Forward File' : 'Revert File') : 'Assign File'}
+                  {currentTracking ? (
+                    actionMode === 'forward' ? 'Forward File' :
+                    actionMode === 'revert' ? 'Revert File' :
+                    'Reassign File'
+                  ) : 'Assign File'}
                 </h4>
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Select {currentTracking ? (actionMode === 'forward' ? getNextLevel(currentTracking.current_level) : getPreviousLevel(currentTracking.current_level)) : 'Clerk'}
+                      Select {currentTracking ? (
+                        actionMode === 'forward' ? getNextLevel(currentTracking.current_level) :
+                        actionMode === 'revert' ? getPreviousLevel(currentTracking.current_level) :
+                        currentTracking.current_level
+                      ) : 'Officer'}
                     </label>
                     <select
                       value={selectedUser}
@@ -685,7 +715,11 @@ export const FileTracking: React.FC<FileTrackingProps> = ({
                   disabled={!selectedUser || isSubmitting}
                   className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isSubmitting ? 'Submitting...' : currentTracking ? (actionMode === 'forward' ? 'Forward File' : 'Revert File') : 'Assign File'}
+                  {isSubmitting ? 'Submitting...' : currentTracking ? (
+                    actionMode === 'forward' ? 'Forward File' :
+                    actionMode === 'revert' ? 'Revert File' :
+                    'Reassign File'
+                  ) : 'Assign File'}
                 </button>
               </div>
             </div>

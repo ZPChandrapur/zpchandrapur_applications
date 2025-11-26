@@ -56,6 +56,7 @@ interface RetirementEmployee {
   pay_commission_status: string | null;
   group_insurance_status: string | null;
   status: string | null;
+  in_file_tracking?: boolean;
   date_of_submission: string | null;
   department_submitted: string | null;
   type_of_pension: string | null;
@@ -505,8 +506,23 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
 
       if (retirementError) throw retirementError;
 
-      // Just set the data without any database updates to prevent loops
-      setRetirementEmployees(retirementData || []);
+      // Fetch file tracking status for all retirement IDs
+      const retirementIds = retirementData?.map(emp => emp.id) || [];
+      const { data: trackingData } = await ermsClient
+        .from('retirement_file_tracking')
+        .select('retirement_id')
+        .in('retirement_id', retirementIds)
+        .eq('status', 'assigned');
+
+      const trackingSet = new Set(trackingData?.map(t => t.retirement_id) || []);
+
+      // Add file tracking status to each employee
+      const employeesWithTracking = retirementData?.map(emp => ({
+        ...emp,
+        in_file_tracking: trackingSet.has(emp.id)
+      })) || [];
+
+      setRetirementEmployees(employeesWithTracking);
     } catch (error) {
       console.error('Error fetching retirement employees:', error);
       setRetirementEmployees([]); // Set empty array on error to prevent undefined issues
@@ -1301,7 +1317,10 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
 
 
                     return (
-                      <tr key={employee.id} className="hover:bg-blue-50">
+                      <tr
+                        key={employee.id}
+                        className={`hover:bg-blue-50 ${employee.in_file_tracking ? 'bg-yellow-50 border-l-4 border-yellow-400' : ''}`}
+                      >
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div>
                             <div className="text-sm font-medium text-gray-900">{employee.employee_name}</div>
