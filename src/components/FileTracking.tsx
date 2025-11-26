@@ -627,15 +627,13 @@ export const FileTracking: React.FC<FileTrackingProps> = ({
                         <span>Forward to Next Level</span>
                       </button>
                     )}
-                    {currentTracking.current_level !== 'officer' && (
-                      <button
-                        onClick={handleRevert}
-                        className="flex-1 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 flex items-center justify-center space-x-2"
-                      >
-                        <RotateCcw className="h-4 w-4" />
-                        <span>Revert to Previous Level</span>
-                      </button>
-                    )}
+                    <button
+                      onClick={handleRevert}
+                      className="flex-1 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 flex items-center justify-center space-x-2"
+                    >
+                      <RotateCcw className="h-4 w-4" />
+                      <span>Revert to Previous Level</span>
+                    </button>
                   </div>
                 )}
               </div>

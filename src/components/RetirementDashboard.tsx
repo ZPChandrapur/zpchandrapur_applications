@@ -508,19 +508,27 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
 
       // Fetch file tracking status for all retirement IDs
       const retirementIds = retirementData?.map(emp => emp.id) || [];
-      const { data: trackingData } = await ermsClient
+      console.log('🔍 Retirement IDs to check:', retirementIds);
+
+      const { data: trackingData, error: trackingError } = await ermsClient
         .from('retirement_file_tracking')
-        .select('retirement_id')
+        .select('retirement_id, status, assigned_to_user_id')
         .in('retirement_id', retirementIds)
         .eq('status', 'assigned');
 
+      console.log('🔍 Tracking data:', trackingData);
+      console.log('🔍 Tracking error:', trackingError);
+
       const trackingSet = new Set(trackingData?.map(t => t.retirement_id) || []);
+      console.log('🔍 Tracking set:', Array.from(trackingSet));
 
       // Add file tracking status to each employee
       const employeesWithTracking = retirementData?.map(emp => ({
         ...emp,
         in_file_tracking: trackingSet.has(emp.id)
       })) || [];
+
+      console.log('🔍 Employees with tracking:', employeesWithTracking.filter(e => e.in_file_tracking));
 
       setRetirementEmployees(employeesWithTracking);
     } catch (error) {
