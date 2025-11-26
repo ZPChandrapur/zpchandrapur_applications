@@ -55,6 +55,7 @@ interface PayCommissionRecord {
   sixth_pay_comission_date: string | null;
   seventh_pay_comission_date: string | null;
   in_file_tracking?: boolean;
+  file_tracking_status?: string | null;
 }
 
 interface ClerkData {
@@ -262,15 +263,16 @@ export const PayCommission: React.FC<PayCommissionProps> = ({ user }) => {
       const recordIds = data?.map(rec => rec.id) || [];
       const { data: trackingData } = await ermsClient
         .from('retirement_file_tracking')
-        .select('retirement_id')
+        .select('retirement_id, status')
         .in('retirement_id', recordIds)
-        .eq('status', 'assigned');
+        .in('status', ['assigned', 'completed']);
 
-      const trackingSet = new Set(trackingData?.map(t => t.retirement_id) || []);
+      const trackingMap = new Map(trackingData?.map(t => [t.retirement_id, t.status]) || []);
 
       const recordsWithTracking = data?.map(rec => ({
         ...rec,
-        in_file_tracking: trackingSet.has(rec.id)
+        in_file_tracking: trackingMap.has(rec.id),
+        file_tracking_status: trackingMap.get(rec.id) || null
       })) || [];
 
       setPayCommissionRecords(recordsWithTracking);
@@ -759,7 +761,13 @@ export const PayCommission: React.FC<PayCommissionProps> = ({ user }) => {
                   return (
                     <tr
                       key={record.id}
-                      className={`hover:bg-blue-50 ${record.in_file_tracking ? 'bg-yellow-50 border-l-4 border-yellow-400' : ''}`}
+                      className={`hover:bg-blue-50 ${
+                        record.file_tracking_status === 'completed'
+                          ? 'bg-green-50 border-l-4 border-green-400'
+                          : record.in_file_tracking
+                          ? 'bg-yellow-50 border-l-4 border-yellow-400'
+                          : ''
+                      }`}
                     >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>

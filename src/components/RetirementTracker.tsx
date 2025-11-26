@@ -101,6 +101,7 @@ interface RetirementProgressRecord {
   common_progress_date: string | null;
   government_decision_march_31_2023: string | null;
   in_file_tracking?: boolean;
+  file_tracking_status?: string | null;
 }
 
 export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBack }) => {
@@ -389,11 +390,11 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
       const retirementIds = data?.map(emp => emp.id) || [];
       const { data: trackingData } = await ermsClient
         .from('retirement_file_tracking')
-        .select('retirement_id')
+        .select('retirement_id, status')
         .in('retirement_id', retirementIds)
-        .eq('status', 'assigned');
+        .in('status', ['assigned', 'completed']);
 
-      const trackingSet = new Set(trackingData?.map(t => t.retirement_id) || []);
+      const trackingMap = new Map(trackingData?.map(t => [t.retirement_id, t.status]) || []);
 
       // Update status for each employee based on progress and save to database
       const employeesWithUpdatedStatus = await Promise.all((data || []).map(async (employee) => {
@@ -420,7 +421,8 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
         return {
           ...employee,
           status: calculatedStatus,
-          in_file_tracking: trackingSet.has(employee.id)
+          in_file_tracking: trackingMap.has(employee.id),
+          file_tracking_status: trackingMap.get(employee.id) || null
         };
       }));
 
@@ -807,7 +809,13 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
                       return (
                         <tr
                           key={employee.id}
-                          className={`hover:bg-blue-50 ${employee.in_file_tracking ? 'bg-yellow-50 border-l-4 border-yellow-400' : ''}`}
+                          className={`hover:bg-blue-50 ${
+                            employee.file_tracking_status === 'completed'
+                              ? 'bg-green-50 border-l-4 border-green-400'
+                              : employee.in_file_tracking
+                              ? 'bg-yellow-50 border-l-4 border-yellow-400'
+                              : ''
+                          }`}
                         >
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div>
