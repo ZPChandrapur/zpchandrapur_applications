@@ -638,10 +638,26 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
     return filteredEmployees;
   }, [activeTab, filteredEmployees]);
 
-  const handleEditEmployee = useCallback((employee: RetirementEmployee) => {
+  const handleEditEmployee = useCallback(async (employee: RetirementEmployee) => {
+    // Check if file is in tracking
+    if (employee.in_file_tracking) {
+      // Check if current user is assigned to this file
+      const { data: trackingData } = await ermsClient
+        .from('retirement_file_tracking')
+        .select('assigned_to_user_id')
+        .eq('retirement_id', employee.id)
+        .eq('status', 'assigned')
+        .maybeSingle();
+
+      if (trackingData && trackingData.assigned_to_user_id !== user.id) {
+        alert('This file is in tracking and can only be edited by the assigned person.');
+        return;
+      }
+    }
+
     setEditingEmployee(employee);
     setShowEditModal(true);
-  }, []);
+  }, [user]);
 
   const handleViewEmployee = useCallback((employee: RetirementEmployee) => {
     setViewingEmployee(employee);
@@ -1871,6 +1887,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
           employeeName={trackingEmployee.employee_name}
           currentUser={user}
           userRole={userRole}
+          employeeData={trackingEmployee}
         />
       )}
     </div>

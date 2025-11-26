@@ -54,6 +54,7 @@ interface PayCommissionRecord {
   fifth_pay_comission_date: string | null;
   sixth_pay_comission_date: string | null;
   seventh_pay_comission_date: string | null;
+  in_file_tracking?: boolean;
 }
 
 interface ClerkData {
@@ -257,7 +258,22 @@ export const PayCommission: React.FC<PayCommissionProps> = ({ user }) => {
 
       if (error) throw error;
 
-      setPayCommissionRecords(data || []);
+      // Fetch file tracking status
+      const recordIds = data?.map(rec => rec.id) || [];
+      const { data: trackingData } = await ermsClient
+        .from('retirement_file_tracking')
+        .select('retirement_id')
+        .in('retirement_id', recordIds)
+        .eq('status', 'assigned');
+
+      const trackingSet = new Set(trackingData?.map(t => t.retirement_id) || []);
+
+      const recordsWithTracking = data?.map(rec => ({
+        ...rec,
+        in_file_tracking: trackingSet.has(rec.id)
+      })) || [];
+
+      setPayCommissionRecords(recordsWithTracking);
     } catch (error) {
       console.error('Error fetching pay commission records:', error);
     }
@@ -397,7 +413,22 @@ export const PayCommission: React.FC<PayCommissionProps> = ({ user }) => {
     return Math.ceil(tabRecords.length / recordsPerPage);
   };
 
-  const handleEditRecord = (record: PayCommissionRecord) => {
+  const handleEditRecord = async (record: PayCommissionRecord) => {
+    // Check if file is in tracking
+    if (record.in_file_tracking) {
+      const { data: trackingData } = await ermsClient
+        .from('retirement_file_tracking')
+        .select('assigned_to_user_id')
+        .eq('retirement_id', record.id)
+        .eq('status', 'assigned')
+        .maybeSingle();
+
+      if (trackingData && trackingData.assigned_to_user_id !== user.id) {
+        alert('This file is in tracking and can only be edited by the assigned person.');
+        return;
+      }
+    }
+
     setEditingRecord(record);
     setShowEditModal(true);
   };
@@ -726,7 +757,10 @@ export const PayCommission: React.FC<PayCommissionProps> = ({ user }) => {
                 paginatedRecords.map((record) => {
                   const status = getProgressStatus(record);
                   return (
-                    <tr key={record.id} className="hover:bg-blue-50">
+                    <tr
+                      key={record.id}
+                      className={`hover:bg-blue-50 ${record.in_file_tracking ? 'bg-yellow-50 border-l-4 border-yellow-400' : ''}`}
+                    >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
                           <div className="text-sm font-medium text-gray-900">{record.employee_name}</div>

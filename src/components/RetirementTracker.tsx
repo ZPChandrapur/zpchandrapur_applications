@@ -100,6 +100,7 @@ interface RetirementProgressRecord {
   common_progress_comment: string | null;
   common_progress_date: string | null;
   government_decision_march_31_2023: string | null;
+  in_file_tracking?: boolean;
 }
 
 export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBack }) => {
@@ -384,6 +385,16 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
 
       if (error) throw error;
 
+      // Fetch file tracking status for all retirement IDs
+      const retirementIds = data?.map(emp => emp.id) || [];
+      const { data: trackingData } = await ermsClient
+        .from('retirement_file_tracking')
+        .select('retirement_id')
+        .in('retirement_id', retirementIds)
+        .eq('status', 'assigned');
+
+      const trackingSet = new Set(trackingData?.map(t => t.retirement_id) || []);
+
       // Update status for each employee based on progress and save to database
       const employeesWithUpdatedStatus = await Promise.all((data || []).map(async (employee) => {
         const calculatedStatus = getProgressStatus(employee);
@@ -406,7 +417,11 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
           }
         }
 
-        return { ...employee, status: calculatedStatus };
+        return {
+          ...employee,
+          status: calculatedStatus,
+          in_file_tracking: trackingSet.has(employee.id)
+        };
       }));
 
       setRetirementProgress(employeesWithUpdatedStatus);
@@ -790,7 +805,10 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
                     paginatedEmployees.map((employee) => {
                       const status = getProgressStatus(employee);
                       return (
-                        <tr key={employee.id} className="hover:bg-blue-50">
+                        <tr
+                          key={employee.id}
+                          className={`hover:bg-blue-50 ${employee.in_file_tracking ? 'bg-yellow-50 border-l-4 border-yellow-400' : ''}`}
+                        >
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div>
                               <div className="text-sm font-medium text-gray-900">{employee.employee_name}</div>
@@ -1566,7 +1584,22 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
     return { total, processing, completed, pending };
   };
 
-  const handleEditEmployee = (employee: RetirementProgress) => {
+  const handleEditEmployee = async (employee: RetirementProgress) => {
+    // Check if file is in tracking
+    if (employee.in_file_tracking) {
+      const { data: trackingData } = await ermsClient
+        .from('retirement_file_tracking')
+        .select('assigned_to_user_id')
+        .eq('retirement_id', employee.id)
+        .eq('status', 'assigned')
+        .maybeSingle();
+
+      if (trackingData && trackingData.assigned_to_user_id !== user.id) {
+        alert('This file is in tracking and can only be edited by the assigned person.');
+        return;
+      }
+    }
+
     setEditingEmployee(employee);
     setShowEditModal(true);
   };
@@ -1576,7 +1609,23 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
     setShowViewModal(true);
   };
 
-  const handleEditRecord = (record: RetirementProgressRecord) => {
+  const handleEditRecord = async (record: RetirementProgressRecord) => {
+    // Check if file is in tracking
+    if (record.in_file_tracking) {
+      const { data: trackingData } = await ermsClient
+        .from('retirement_file_tracking')
+        .select('assigned_to_user_id')
+        .eq('retirement_id', record.id)
+        .eq('status', 'assigned')
+        .maybeSingle();
+
+      if (trackingData && trackingData.assigned_to_user_id !== user.id) {
+        alert('This file is in tracking and can only be edited by the assigned person.');
+        return;
+      }
+    }
+
+    // Convert Record to Employee for editing
     // Convert RetirementProgressRecord to RetirementProgress for editing
     const employee: RetirementProgress = {
       id: record.id,

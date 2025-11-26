@@ -24,6 +24,7 @@ interface FileTrackingProps {
   employeeName: string;
   currentUser: User;
   userRole: string | null;
+  employeeData?: any; // Full employee record for validation
 }
 
 interface FileTracking {
@@ -66,7 +67,8 @@ export const FileTracking: React.FC<FileTrackingProps> = ({
   retirementId,
   employeeName,
   currentUser,
-  userRole
+  userRole,
+  employeeData
 }) => {
   const { t } = useTranslation();
   const [currentTracking, setCurrentTracking] = useState<FileTracking | null>(null);
@@ -80,6 +82,33 @@ export const FileTracking: React.FC<FileTrackingProps> = ({
   const [availableUsers, setAvailableUsers] = useState<UserOption[]>([]);
 
   const isAssignedToCurrentUser = currentTracking?.assigned_to_user_id === currentUser.id;
+
+  // Calculate completion percentage
+  const calculateCompletionPercentage = () => {
+    if (!employeeData) return 0;
+
+    const progressFields = [
+      'retirement_progress_status',
+      'pay_commission_status',
+      'group_insurance_status',
+      'date_of_submission',
+      'type_of_pension',
+      'date_of_pension_case_approval',
+      'date_of_actual_benefit_provided_for_group_insurance',
+      'date_of_benefit_provided_for_gratuity',
+      'date_of_actual_benefit_provided_for_leave_encashment',
+      'date_of_actual_benefit_provided_for_medical_allowance_if_applic',
+      'date_of_benefit_provided_for_hometown_travel_allowance_if_appli',
+      'date_of_actual_benefit_provided_for_pending_travel_allowance_if'
+    ];
+
+    const filledFields = progressFields.filter(field => {
+      const value = employeeData[field];
+      return value !== null && value !== undefined && value !== '';
+    });
+
+    return Math.round((filledFields.length / progressFields.length) * 100);
+  };
 
   useEffect(() => {
     if (isOpen) {
@@ -315,6 +344,14 @@ export const FileTracking: React.FC<FileTrackingProps> = ({
     try {
       setIsSubmitting(true);
       setError(null);
+
+      // Check if file is 100% complete
+      const completionPercentage = calculateCompletionPercentage();
+      if (completionPercentage < 100) {
+        setError(`File must be 100% complete before starting tracking. Current completion: ${completionPercentage}%`);
+        setIsSubmitting(false);
+        return;
+      }
 
       // Clerks start tracking - assign to officer
       if (userRole === 'clerk') {
