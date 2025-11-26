@@ -301,7 +301,13 @@ export const FileTracking: React.FC<FileTrackingProps> = ({
       setIsSubmitting(true);
       setError(null);
 
-      loadAvailableUsers('clerk');
+      // Clerks start tracking - assign to officer
+      if (userRole === 'clerk') {
+        loadAvailableUsers('officer');
+      } else {
+        // Fallback for other roles (shouldn't happen normally)
+        loadAvailableUsers('officer');
+      }
       setActionMode('forward');
     } catch (err) {
       console.error('Error starting tracking:', err);
@@ -318,13 +324,16 @@ export const FileTracking: React.FC<FileTrackingProps> = ({
       setIsSubmitting(true);
       setError(null);
 
+      // Determine the initial level based on who is starting
+      const initialLevel = userRole === 'clerk' ? 'officer' : 'officer';
+
       const { error: insertTrackingError } = await ermsClient
         .from('retirement_file_tracking')
         .insert({
           retirement_id: retirementId,
           assigned_to_user_id: selectedUser,
           assigned_by_user_id: currentUser.id,
-          current_level: 'clerk',
+          current_level: initialLevel,
           status: 'assigned',
           comments: comments || null
         });
@@ -337,8 +346,8 @@ export const FileTracking: React.FC<FileTrackingProps> = ({
           retirement_id: retirementId,
           from_user_id: currentUser.id,
           to_user_id: selectedUser,
-          from_level: null,
-          to_level: 'clerk',
+          from_level: userRole,
+          to_level: initialLevel,
           action: 'assigned',
           comments: comments || null
         });
@@ -425,7 +434,7 @@ export const FileTracking: React.FC<FileTrackingProps> = ({
               <FileText className="h-16 w-16 text-gray-300 mx-auto mb-4" />
               <h4 className="text-lg font-medium text-gray-900 mb-2">No Active File Tracking</h4>
               <p className="text-gray-600 mb-6">This file has not been assigned for tracking yet.</p>
-              {(userRole === 'admin' || userRole === 'superadmin') && (
+              {userRole === 'clerk' && (
                 <button
                   onClick={handleStartTracking}
                   disabled={isSubmitting}
@@ -438,16 +447,41 @@ export const FileTracking: React.FC<FileTrackingProps> = ({
           ) : actionMode === 'view' && currentTracking ? (
             <>
               <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 mb-6">
-                <h4 className="text-lg font-semibold text-gray-900 mb-4">Current Assignment</h4>
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="text-lg font-semibold text-gray-900">Current Assignment</h4>
+                  <div className="flex items-center space-x-2">
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                      currentTracking.status === 'assigned' ? 'bg-green-100 text-green-800' :
+                      currentTracking.status === 'completed' ? 'bg-blue-100 text-blue-800' :
+                      'bg-orange-100 text-orange-800'
+                    }`}>
+                      {currentTracking.status.toUpperCase()}
+                    </span>
+                  </div>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="flex items-start space-x-3">
                     <UserIcon className="h-5 w-5 text-blue-600 mt-1" />
                     <div>
                       <p className="text-sm text-gray-600">Assigned To</p>
                       <p className="font-semibold text-gray-900">{currentTracking.assigned_to_name}</p>
-                      <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium mt-1 ${getLevelBadgeColor(currentTracking.current_level)}`}>
-                        {currentTracking.current_level.toUpperCase()}
-                      </span>
+                      <div className="flex items-center space-x-2 mt-1">
+                        <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getLevelBadgeColor(currentTracking.current_level)}`}>
+                          {currentTracking.current_level.toUpperCase()}
+                        </span>
+                        {isAssignedToCurrentUser && (
+                          <span className="inline-block px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                            YOU
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-3">
+                    <UserIcon className="h-5 w-5 text-purple-600 mt-1" />
+                    <div>
+                      <p className="text-sm text-gray-600">Assigned By</p>
+                      <p className="font-semibold text-gray-900">{currentTracking.assigned_by_name}</p>
                     </div>
                   </div>
                   <div className="flex items-start space-x-3">
@@ -459,6 +493,20 @@ export const FileTracking: React.FC<FileTrackingProps> = ({
                         <Clock className="h-3 w-3 inline mr-1" />
                         {currentTracking.days_held} days held
                       </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-3">
+                    <div className={`h-5 w-5 rounded-full mt-1 flex items-center justify-center ${
+                      userRole === 'clerk' ? 'bg-blue-500' :
+                      userRole === 'officer' ? 'bg-green-500' :
+                      userRole === 'admin' ? 'bg-purple-500' :
+                      'bg-red-500'
+                    }`}>
+                      <UserIcon className="h-3 w-3 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Your Role</p>
+                      <p className="font-semibold text-gray-900">{userRole?.toUpperCase() || 'UNKNOWN'}</p>
                     </div>
                   </div>
                   {currentTracking.comments && (
@@ -474,14 +522,53 @@ export const FileTracking: React.FC<FileTrackingProps> = ({
 
                 {isAssignedToCurrentUser && (
                   <div className="flex space-x-3 mt-6 pt-6 border-t border-gray-200">
-                    <button
-                      onClick={handleForward}
-                      className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center justify-center space-x-2"
-                    >
-                      <Send className="h-4 w-4" />
-                      <span>Forward to Next Level</span>
-                    </button>
-                    {currentTracking.current_level !== 'clerk' && (
+                    {(currentTracking.current_level === 'admin' || currentTracking.current_level === 'superadmin') && (
+                      <button
+                        onClick={async () => {
+                          try {
+                            setIsSubmitting(true);
+                            await ermsClient
+                              .from('retirement_file_tracking')
+                              .update({ status: 'completed' })
+                              .eq('id', currentTracking.id);
+
+                            await ermsClient
+                              .from('retirement_file_history')
+                              .insert({
+                                retirement_id: retirementId,
+                                from_user_id: currentUser.id,
+                                to_user_id: null,
+                                from_level: currentTracking.current_level,
+                                to_level: null,
+                                action: 'completed',
+                                comments: 'File processing completed'
+                              });
+
+                            await loadFileTracking();
+                            await loadFileHistory();
+                          } catch (err) {
+                            console.error('Error completing file:', err);
+                            setError('Failed to complete file');
+                          } finally {
+                            setIsSubmitting(false);
+                          }
+                        }}
+                        className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center justify-center space-x-2"
+                      >
+                        <CheckCircle className="h-4 w-4" />
+                        <span>Complete File Processing</span>
+                      </button>
+                    )}
+                    {currentTracking.current_level !== 'superadmin' && (
+                      <button
+                        onClick={handleForward}
+                        className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center justify-center space-x-2"
+                      >
+                        <Send className="h-4 w-4" />
+                        <span>Forward to Next Level</span>
+                      </button>
+                    )}
+                    {currentTracking.current_level !== 'officer' && (
                       <button
                         onClick={handleRevert}
                         className="flex-1 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 flex items-center justify-center space-x-2"
