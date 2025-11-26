@@ -16,11 +16,13 @@ import {
   BarChart3,
   User,
   X,
-  Search
+  Search,
+  FolderOpen
 } from 'lucide-react';
 import { ermsClient, supabase } from '../lib/supabase';
 import { usePermissions } from '../hooks/usePermissions';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
+import { FileTracking } from './FileTracking';
 
 interface RetirementDashboardProps {
   user: SupabaseUser;
@@ -130,6 +132,8 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
   const [activeTab, setActiveTab] = useState(initialState.activeTab as 'inProgress' | 'pending' | 'completed');
   const [showViewModal, setShowViewModal] = useState(false);
   const [viewingEmployee, setViewingEmployee] = useState<RetirementEmployee | null>(null);
+  const [showFileTrackingModal, setShowFileTrackingModal] = useState(false);
+  const [trackingEmployee, setTrackingEmployee] = useState<RetirementEmployee | null>(null);
   const [retirementEmployees, setRetirementEmployees] = useState<RetirementEmployee[]>([]);
   const [clerks, setClerks] = useState<ClerkData[]>([]);
   const [currentPage, setCurrentPage] = useState(initialState.currentPage);
@@ -626,6 +630,11 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
   const handleViewEmployee = useCallback((employee: RetirementEmployee) => {
     setViewingEmployee(employee);
     setShowViewModal(true);
+  }, []);
+
+  const handleFileTracking = useCallback((employee: RetirementEmployee) => {
+    setTrackingEmployee(employee);
+    setShowFileTrackingModal(true);
   }, []);
 
   const handleUpdateEmployee = useCallback(async () => {
@@ -1379,11 +1388,14 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           <div className="flex items-center space-x-2">
-                            <button onClick={() => handleViewEmployee(employee)} className="text-blue-600 hover:text-blue-900 p-1 rounded">
+                            <button onClick={() => handleViewEmployee(employee)} className="text-blue-600 hover:text-blue-900 p-1 rounded" title="View Details">
                               <Eye className="h-4 w-4" />
                             </button>
-                            <button onClick={() => handleEditEmployee(employee)} className="text-green-600 hover:text-green-900 p-1 rounded">
+                            <button onClick={() => handleEditEmployee(employee)} className="text-green-600 hover:text-green-900 p-1 rounded" title="Edit Details">
                               <Edit className="h-4 w-4" />
+                            </button>
+                            <button onClick={() => handleFileTracking(employee)} className="text-orange-600 hover:text-orange-900 p-1 rounded" title="File Tracking">
+                              <FolderOpen className="h-4 w-4" />
                             </button>
                           </div>
                         </td>
@@ -1826,6 +1838,21 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
             </div>
           </div>
         </div>
+      )}
+
+      {/* File Tracking Modal */}
+      {showFileTrackingModal && trackingEmployee && (
+        <FileTracking
+          isOpen={showFileTrackingModal}
+          onClose={() => {
+            setShowFileTrackingModal(false);
+            setTrackingEmployee(null);
+          }}
+          retirementId={trackingEmployee.id}
+          employeeName={trackingEmployee.employee_name}
+          currentUser={user}
+          userRole={userRole}
+        />
       )}
     </div>
   );
