@@ -122,11 +122,11 @@ export const FileTracking: React.FC<FileTrackingProps> = ({
       setIsLoading(true);
       setError(null);
 
+      // Load the most recent tracking record (any status)
       const { data, error: fetchError } = await ermsClient
         .from('retirement_file_tracking')
         .select('*')
         .eq('retirement_id', retirementId)
-        .eq('status', 'assigned')
         .order('assigned_at', { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -572,7 +572,26 @@ export const FileTracking: React.FC<FileTrackingProps> = ({
                   )}
                 </div>
 
-                {isAssignedToCurrentUser && (
+                {currentTracking.status === 'completed' ? (
+                  <div className="mt-6 pt-6 border-t border-gray-200">
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                      <div className="flex items-center space-x-3">
+                        <div className="flex-shrink-0">
+                          <CheckCircle className="h-8 w-8 text-green-600" />
+                        </div>
+                        <div className="flex-1">
+                          <h5 className="text-lg font-semibold text-green-900">File Processing Completed</h5>
+                          <p className="text-sm text-green-700 mt-1">
+                            This file was completed by <span className="font-semibold">{currentTracking.assigned_to_name}</span> ({currentTracking.current_level.toUpperCase()})
+                          </p>
+                          <p className="text-xs text-green-600 mt-1">
+                            Completed on: {formatDate(currentTracking.updated_at)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : isAssignedToCurrentUser && (
                   <div className="flex space-x-3 mt-6 pt-6 border-t border-gray-200">
                     {(currentTracking.current_level === 'admin' || currentTracking.current_level === 'superadmin') && (
                       <button
