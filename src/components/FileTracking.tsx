@@ -14,7 +14,7 @@ import {
   ArrowLeft,
   History
 } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { supabase, ermsClient } from '../lib/supabase';
 import type { User } from '@supabase/supabase-js';
 
 interface FileTrackingProps {
@@ -93,7 +93,7 @@ export const FileTracking: React.FC<FileTrackingProps> = ({
       setIsLoading(true);
       setError(null);
 
-      const { data, error: fetchError } = await supabase
+      const { data, error: fetchError } = await ermsClient
         .from('retirement_file_tracking')
         .select('*')
         .eq('retirement_id', retirementId)
@@ -135,7 +135,7 @@ export const FileTracking: React.FC<FileTrackingProps> = ({
 
   const loadFileHistory = async () => {
     try {
-      const { data, error: fetchError } = await supabase
+      const { data, error: fetchError } = await ermsClient
         .from('retirement_file_history')
         .select('*')
         .eq('retirement_id', retirementId)
@@ -251,12 +251,12 @@ export const FileTracking: React.FC<FileTrackingProps> = ({
         ? getNextLevel(currentTracking.current_level)
         : getPreviousLevel(currentTracking.current_level);
 
-      await supabase
+      await ermsClient
         .from('retirement_file_tracking')
         .update({ status: actionMode === 'forward' ? 'completed' : 'reverted' })
         .eq('id', currentTracking.id);
 
-      const { error: insertTrackingError } = await supabase
+      const { error: insertTrackingError } = await ermsClient
         .from('retirement_file_tracking')
         .insert({
           retirement_id: retirementId,
@@ -269,7 +269,7 @@ export const FileTracking: React.FC<FileTrackingProps> = ({
 
       if (insertTrackingError) throw insertTrackingError;
 
-      const { error: insertHistoryError } = await supabase
+      const { error: insertHistoryError } = await ermsClient
         .from('retirement_file_history')
         .insert({
           retirement_id: retirementId,
@@ -318,7 +318,7 @@ export const FileTracking: React.FC<FileTrackingProps> = ({
       setIsSubmitting(true);
       setError(null);
 
-      const { error: insertTrackingError } = await supabase
+      const { error: insertTrackingError } = await ermsClient
         .from('retirement_file_tracking')
         .insert({
           retirement_id: retirementId,
@@ -331,7 +331,7 @@ export const FileTracking: React.FC<FileTrackingProps> = ({
 
       if (insertTrackingError) throw insertTrackingError;
 
-      const { error: insertHistoryError } = await supabase
+      const { error: insertHistoryError } = await ermsClient
         .from('retirement_file_history')
         .insert({
           retirement_id: retirementId,
