@@ -95,11 +95,7 @@ export const FileTracking: React.FC<FileTrackingProps> = ({
 
       const { data, error: fetchError } = await supabase
         .from('retirement_file_tracking')
-        .select(`
-          *,
-          assigned_to:user_roles!retirement_file_tracking_assigned_to_user_id_fkey(name),
-          assigned_by:user_roles!retirement_file_tracking_assigned_by_user_id_fkey(name)
-        `)
+        .select('*')
         .eq('retirement_id', retirementId)
         .eq('status', 'assigned')
         .order('assigned_at', { ascending: false })
@@ -109,10 +105,22 @@ export const FileTracking: React.FC<FileTrackingProps> = ({
       if (fetchError) throw fetchError;
 
       if (data) {
+        const { data: assignedToUser } = await supabase
+          .from('user_roles')
+          .select('name')
+          .eq('user_id', data.assigned_to_user_id)
+          .maybeSingle();
+
+        const { data: assignedByUser } = await supabase
+          .from('user_roles')
+          .select('name')
+          .eq('user_id', data.assigned_by_user_id)
+          .maybeSingle();
+
         setCurrentTracking({
           ...data,
-          assigned_to_name: data.assigned_to?.[0]?.name || 'Unknown',
-          assigned_by_name: data.assigned_by?.[0]?.name || 'Unknown'
+          assigned_to_name: assignedToUser?.name || 'Unknown',
+          assigned_by_name: assignedByUser?.name || 'Unknown'
         });
       } else {
         setCurrentTracking(null);
@@ -129,21 +137,42 @@ export const FileTracking: React.FC<FileTrackingProps> = ({
     try {
       const { data, error: fetchError } = await supabase
         .from('retirement_file_history')
-        .select(`
-          *,
-          from_user:user_roles!retirement_file_history_from_user_id_fkey(name),
-          to_user:user_roles!retirement_file_history_to_user_id_fkey(name)
-        `)
+        .select('*')
         .eq('retirement_id', retirementId)
         .order('created_at', { ascending: false });
 
       if (fetchError) throw fetchError;
 
-      const historyWithNames = (data || []).map(item => ({
-        ...item,
-        from_user_name: item.from_user?.[0]?.name || 'System',
-        to_user_name: item.to_user?.[0]?.name || 'Unknown'
-      }));
+      const historyWithNames = await Promise.all(
+        (data || []).map(async (item) => {
+          let fromUserName = 'System';
+          let toUserName = 'Unknown';
+
+          if (item.from_user_id) {
+            const { data: fromUser } = await supabase
+              .from('user_roles')
+              .select('name')
+              .eq('user_id', item.from_user_id)
+              .maybeSingle();
+            fromUserName = fromUser?.name || 'Unknown';
+          }
+
+          if (item.to_user_id) {
+            const { data: toUser } = await supabase
+              .from('user_roles')
+              .select('name')
+              .eq('user_id', item.to_user_id)
+              .maybeSingle();
+            toUserName = toUser?.name || 'Unknown';
+          }
+
+          return {
+            ...item,
+            from_user_name: fromUserName,
+            to_user_name: toUserName
+          };
+        })
+      );
 
       setFileHistory(historyWithNames);
     } catch (err) {
@@ -153,21 +182,29 @@ export const FileTracking: React.FC<FileTrackingProps> = ({
 
   const loadAvailableUsers = async (targetLevel: string) => {
     try {
+      const { data: rolesData, error: rolesError } = await supabase
+        .from('roles')
+        .select('id')
+        .eq('name', targetLevel)
+        .maybeSingle();
+
+      if (rolesError) throw rolesError;
+      if (!rolesData) {
+        setError(`Role '${targetLevel}' not found`);
+        return;
+      }
+
       const { data, error: fetchError } = await supabase
         .from('user_roles')
-        .select(`
-          user_id,
-          name,
-          roles!inner(name)
-        `)
-        .eq('roles.name', targetLevel);
+        .select('user_id, name')
+        .eq('role_id', rolesData.id);
 
       if (fetchError) throw fetchError;
 
       const users = (data || []).map(item => ({
         user_id: item.user_id,
         name: item.name,
-        role_name: item.roles?.name || targetLevel
+        role_name: targetLevel
       }));
 
       setAvailableUsers(users);
