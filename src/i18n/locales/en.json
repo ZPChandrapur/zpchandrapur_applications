@@ -365,6 +365,7 @@
     "enterAge": "Enter age",
     "enterClerkName": "Enter clerk name",
     "selectClerk": "Select Clerk",
+     "selectOfficer": "Select Officer",
     "retirementReason": "Retirement Reason",
     "selectReason": "Select Reason",
     "enterDepartmentId": "Enter department ID",
