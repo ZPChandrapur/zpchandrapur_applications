@@ -235,6 +235,7 @@
     "age": "Age",
     "retirementDate": "Retirement Date",
     "assignedClerk": "Assigned Clerk",
+     "assignedOfficer": "Assigned Officer",
     "unassigned": "Unassigned",
     "clearFilters": "Clear Filters",
     "searchEmployees": "Search employees...",
