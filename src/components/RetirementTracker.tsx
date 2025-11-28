@@ -810,9 +810,9 @@ export const RetirementTracker: React.FC<RetirementTrackerProps> = ({ user, onBa
                         <tr
                           key={employee.id}
                           className={`hover:bg-blue-50 ${
-                            employee.file_tracking_status === 'completed'
+                            employee.status === 'completed'
                               ? 'bg-green-50 border-l-4 border-green-400'
-                              : employee.in_file_tracking
+                              : employee.status === 'processing'
                               ? 'bg-yellow-50 border-l-4 border-yellow-400'
                               : ''
                           }`}
