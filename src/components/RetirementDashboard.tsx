@@ -16,13 +16,11 @@ import {
   BarChart3,
   User,
   X,
-  Search,
-  FolderOpen
+  Search
 } from 'lucide-react';
 import { ermsClient, supabase } from '../lib/supabase';
 import { usePermissions } from '../hooks/usePermissions';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
-import { FileTracking } from './FileTracking';
 
 interface RetirementDashboardProps {
   user: SupabaseUser;
@@ -56,8 +54,6 @@ interface RetirementEmployee {
   pay_commission_status: string | null;
   group_insurance_status: string | null;
   status: string | null;
-  in_file_tracking?: boolean;
-  file_tracking_status?: string | null;
   date_of_submission: string | null;
   department_submitted: string | null;
   type_of_pension: string | null;
@@ -134,8 +130,6 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
   const [activeTab, setActiveTab] = useState(initialState.activeTab as 'inProgress' | 'pending' | 'completed');
   const [showViewModal, setShowViewModal] = useState(false);
   const [viewingEmployee, setViewingEmployee] = useState<RetirementEmployee | null>(null);
-  const [showFileTrackingModal, setShowFileTrackingModal] = useState(false);
-  const [trackingEmployee, setTrackingEmployee] = useState<RetirementEmployee | null>(null);
   const [retirementEmployees, setRetirementEmployees] = useState<RetirementEmployee[]>([]);
   const [clerks, setClerks] = useState<ClerkData[]>([]);
   const [currentPage, setCurrentPage] = useState(initialState.currentPage);
@@ -238,10 +232,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
       employee.date_of_actual_benefit_provided_for_leave_encashment,
       employee.date_of_actual_benefit_provided_for_medical_allowance_if_applic,
       employee.date_of_benefit_provided_for_hometown_travel_allowance_if_appli,
-      employee.date_of_actual_benefit_provided_for_pending_travel_allowance_if
-      // employee.retirement_progress_status,
-      // employee.pay_commission_status,
-      // employee.group_insurance_status
+      employee.date_of_actual_benefit_provided_for_pending_travel_allowance_if,
     ];
 
     const filledFields = progressFields.filter(field => field && field.trim() !== '').length;
@@ -507,32 +498,8 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
 
       if (retirementError) throw retirementError;
 
-      // Fetch file tracking status for all retirement IDs
-      const retirementIds = retirementData?.map(emp => emp.id) || [];
-      console.log('🔍 Retirement IDs to check:', retirementIds);
-
-      const { data: trackingData, error: trackingError } = await ermsClient
-        .from('retirement_file_tracking')
-        .select('retirement_id, status, assigned_to_user_id')
-        .in('retirement_id', retirementIds)
-        .in('status', ['assigned', 'completed']);
-
-      console.log('🔍 Tracking data:', trackingData);
-      console.log('🔍 Tracking error:', trackingError);
-
-      const trackingMap = new Map(trackingData?.map(t => [t.retirement_id, t.status]) || []);
-      console.log('🔍 Tracking map:', Array.from(trackingMap.entries()));
-
-      // Add file tracking status to each employee
-      const employeesWithTracking = retirementData?.map(emp => ({
-        ...emp,
-        in_file_tracking: trackingMap.has(emp.id),
-        file_tracking_status: trackingMap.get(emp.id) || null
-      })) || [];
-
-      console.log('🔍 Employees with tracking:', employeesWithTracking.filter(e => e.in_file_tracking));
-
-      setRetirementEmployees(employeesWithTracking);
+      // Just set the data without any database updates to prevent loops
+      setRetirementEmployees(retirementData || []);
     } catch (error) {
       console.error('Error fetching retirement employees:', error);
       setRetirementEmployees([]); // Set empty array on error to prevent undefined issues
@@ -648,35 +615,14 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
     return filteredEmployees;
   }, [activeTab, filteredEmployees]);
 
-  const handleEditEmployee = useCallback(async (employee: RetirementEmployee) => {
-    // Check if file is in tracking
-    if (employee.in_file_tracking) {
-      // Check if current user is assigned to this file
-      const { data: trackingData } = await ermsClient
-        .from('retirement_file_tracking')
-        .select('assigned_to_user_id')
-        .eq('retirement_id', employee.id)
-        .eq('status', 'assigned')
-        .maybeSingle();
-
-      if (trackingData && trackingData.assigned_to_user_id !== user.id) {
-        alert('This file is in tracking and can only be edited by the assigned person.');
-        return;
-      }
-    }
-
+  const handleEditEmployee = useCallback((employee: RetirementEmployee) => {
     setEditingEmployee(employee);
     setShowEditModal(true);
-  }, [user]);
+  }, []);
 
   const handleViewEmployee = useCallback((employee: RetirementEmployee) => {
     setViewingEmployee(employee);
     setShowViewModal(true);
-  }, []);
-
-  const handleFileTracking = useCallback((employee: RetirementEmployee) => {
-    setTrackingEmployee(employee);
-    setShowFileTrackingModal(true);
   }, []);
 
   const handleUpdateEmployee = useCallback(async () => {
@@ -1343,16 +1289,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
 
 
                     return (
-                      <tr
-                        key={employee.id}
-                        className={`hover:bg-blue-50 ${
-                          employee.file_tracking_status === 'completed'
-                            ? 'bg-green-50 border-l-4 border-green-400'
-                            : employee.in_file_tracking
-                            ? 'bg-yellow-50 border-l-4 border-yellow-400'
-                            : ''
-                        }`}
-                      >
+                      <tr key={employee.id} className="hover:bg-blue-50">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div>
                             <div className="text-sm font-medium text-gray-900">{employee.employee_name}</div>
@@ -1439,14 +1376,11 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           <div className="flex items-center space-x-2">
-                            <button onClick={() => handleViewEmployee(employee)} className="text-blue-600 hover:text-blue-900 p-1 rounded" title="View Details">
+                            <button onClick={() => handleViewEmployee(employee)} className="text-blue-600 hover:text-blue-900 p-1 rounded">
                               <Eye className="h-4 w-4" />
                             </button>
-                            <button onClick={() => handleEditEmployee(employee)} className="text-green-600 hover:text-green-900 p-1 rounded" title="Edit Details">
+                            <button onClick={() => handleEditEmployee(employee)} className="text-green-600 hover:text-green-900 p-1 rounded">
                               <Edit className="h-4 w-4" />
-                            </button>
-                            <button onClick={() => handleFileTracking(employee)} className="text-orange-600 hover:text-orange-900 p-1 rounded" title="File Tracking">
-                              <FolderOpen className="h-4 w-4" />
                             </button>
                           </div>
                         </td>
@@ -1517,16 +1451,16 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
                     <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.designationAtRetirement')}</label>
                     <select
                       value={editingEmployee.designation_time_of_retirement || ''}
-                      onChange={e => setEditingEmployee({ ...editingEmployee, designation_time_of_retirement: e.target.value })}
+                      onChange={(e) => setEditingEmployee({ ...editingEmployee, designation_time_of_retirement: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
                       <option value="">{t('erms.selectDesignation')}</option>
-                      {designations.map(designation => (
+                      {designations.map((designation) => (
                         <option key={designation.designation_id} value={designation.designation}>{designation.designation}</option>
                       ))}
                     </select>
-
                   </div>
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.assignedClerk')}</label>
                     <input
@@ -1551,15 +1485,14 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
                     <label className="block text-sm font-medium text-gray-700 mb-2">{t('erms.departmentSubmitted')}</label>
                     <select
                       value={editingEmployee.department_submitted || ''}
-                      onChange={e => setEditingEmployee({ ...editingEmployee, department_submitted: e.target.value })}
+                      onChange={(e) => setEditingEmployee({ ...editingEmployee, department_submitted: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
                       <option value="">{t('erms.selectDepartment')}</option>
-                      {departments.map(dept => (
+                      {departments.map((dept) => (
                         <option key={dept.dept_id} value={dept.department}>{dept.department}</option>
                       ))}
                     </select>
-
                   </div>
 
                   <div>
@@ -1569,7 +1502,6 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
                       onChange={(e) => setEditingEmployee({ ...editingEmployee, type_of_pension: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
-                      <option value="">{t('erms.selectTypeOfPension')}</option>
                       <option value="तात्पुरती">तात्पुरती</option>
                       <option value="नियमित">नियमित</option>
                     </select>
@@ -1889,22 +1821,6 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
             </div>
           </div>
         </div>
-      )}
-
-      {/* File Tracking Modal */}
-      {showFileTrackingModal && trackingEmployee && (
-        <FileTracking
-          isOpen={showFileTrackingModal}
-          onClose={() => {
-            setShowFileTrackingModal(false);
-            setTrackingEmployee(null);
-          }}
-          retirementId={trackingEmployee.id}
-          employeeName={trackingEmployee.employee_name}
-          currentUser={user}
-          userRole={userRole}
-          employeeData={trackingEmployee}
-        />
       )}
     </div>
   );
