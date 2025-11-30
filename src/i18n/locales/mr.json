@@ -56,11 +56,11 @@
     "language": "भाषा"
   },
   "dashboard": {
-    "title": "जिल्हा परिषद चंद्रपूर",
-    "subtitle": "एकत्रित अॅप प्रणाली",
-    "welcome": "स्वागत",
-    "overview": "आढावा",
-    "quickActions": "त्वरित क्रिया",
+  "title": "जिल्हा परिषद चंद्रपूर",
+  "subtitle": "एकत्रित अँप प्रणाली",
+  "welcome": "स्वागत",
+  "overview": "आढावा",
+  "quickActions": "त्वरित क्रिया"
     "recentActivity": "अलीकडील कामकाज",
     "systemStatus": "प्रणाली स्थिती",
     "notifications": "सूचना",
