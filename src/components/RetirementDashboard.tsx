@@ -50,6 +50,7 @@ interface RetirementEmployee {
   reason: string;
   designation_time_of_retirement: string | null;
   assigned_clerk: string | null;
+  assigned_officer_id?: string | null;
   department: string | null;
   designation: string | null;
   retirement_progress_status: string | null;
@@ -127,6 +128,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
   const initialState = getInitialState();
   const [isLoading, setIsLoading] = useState(false);
   const [selectedClerk, setSelectedClerk] = useState(initialState.selectedClerk);
+  const [selectedOfficer, setSelectedOfficer] = useState(initialState.selectedOfficer);
   const [selectedMonth, setSelectedMonth] = useState(initialState.selectedMonth);
   const [selectedYear, setSelectedYear] = useState(initialState.selectedYear);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -138,6 +140,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
   const [trackingEmployee, setTrackingEmployee] = useState<RetirementEmployee | null>(null);
   const [retirementEmployees, setRetirementEmployees] = useState<RetirementEmployee[]>([]);
   const [clerks, setClerks] = useState<ClerkData[]>([]);
+  const [officers, setOfficers] = useState<ClerkData[]>([]);
   const [currentPage, setCurrentPage] = useState(initialState.currentPage);
   const [employeesPerPage] = useState(10);
 
@@ -227,7 +230,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
   };
 
   const getProgressStatus = (employee: RetirementEmployee) => {
-    // Only include actual data fields, not status fields
+    // Include date fields + status fields
     const progressFields = [
       employee.date_of_submission,
       employee.department_submitted,
@@ -238,18 +241,31 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
       employee.date_of_actual_benefit_provided_for_leave_encashment,
       employee.date_of_actual_benefit_provided_for_medical_allowance_if_applic,
       employee.date_of_benefit_provided_for_hometown_travel_allowance_if_appli,
-      employee.date_of_actual_benefit_provided_for_pending_travel_allowance_if
-      // employee.retirement_progress_status,
-      // employee.pay_commission_status,
-      // employee.group_insurance_status
+      employee.date_of_actual_benefit_provided_for_pending_travel_allowance_if,
+
+      // STATUS FIELDS
+      employee.retirement_progress_status,
+      employee.pay_commission_status,
+      employee.group_insurance_status
     ];
 
-    const filledFields = progressFields.filter(field => field && field.trim() !== '').length;
+    const filledFields = progressFields.filter((field, idx) => {
+      // Last 3 fields are statuses
+      if (idx >= 10) {
+        // Count only COMPLETED as filled
+        return field === "completed";
+      }
+
+      // All preceding fields are date/data fields → count only if non-empty
+      return field && typeof field === "string" ? field.trim() !== "" : !!field;
+    }).length;
+
     const totalFields = progressFields.length;
 
-    if (filledFields === 0) return 'pending';
-    if (filledFields === totalFields) return 'completed';
-    return 'processing';
+    // Determine status
+    if (filledFields === 0) return "pending";
+    if (filledFields === totalFields) return "completed";
+    return "processing";
   };
 
   const filteredEmployees = useMemo(() => {
@@ -259,6 +275,11 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
       filtered = filtered.filter(emp => emp.assigned_clerk === userProfile.name);
     }
 
+    // ✅ NEW CONDITION (ONLY THIS LINE IS ADDED)
+    if (userRole === 'officer') {
+      filtered = filtered.filter(emp => emp.officer_assigned === user.id);
+    }
+
     if (selectedClerk && userRole !== 'clerk') {
       const selectedClerkName = clerks.find(c => c.user_id === selectedClerk)?.name;
       if (selectedClerkName) {
@@ -266,24 +287,28 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
       }
     }
 
-    // Department filter
+    if (selectedOfficer) {
+      filtered = filtered.filter(emp => emp.officer_assigned === selectedOfficer);
+    }
+
     if (selectedDepartment) {
       filtered = filtered.filter(emp => emp.department === selectedDepartment);
     }
 
-    // Status filter
     if (selectedStatus) {
       filtered = filtered.filter(emp => getProgressStatus(emp) === selectedStatus);
     }
 
-    // Search filter
     if (searchTerm) {
       const lowerSearch = searchTerm.toLowerCase();
       filtered = filtered.filter(emp =>
         (emp.employee_name || '').toLowerCase().includes(lowerSearch) ||
-        (emp.emp_id || '').toString().toLowerCase().includes(lowerSearch)
+        (emp.emp_id || '').toString().toLowerCase().includes(lowerSearch) ||
+        (emp.Shalarth_Id || '').toLowerCase().includes(lowerSearch) ||
+        (emp.panchayatrajsevarth_id || '').toLowerCase().includes(lowerSearch)
       );
     }
+
     return filtered;
   }, [
     retirementEmployees,
@@ -291,10 +316,12 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
     userProfile,
     clerks,
     selectedClerk,
+    selectedOfficer,
     selectedDepartment,
     selectedStatus,
     searchTerm,
   ]);
+
 
   const totalPages = useMemo(() => Math.ceil(filteredEmployees.length / employeesPerPage), [filteredEmployees.length, employeesPerPage]);
 
@@ -459,7 +486,8 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
         fetchDepartments(),
         fetchDesignations(),
         fetchRetirementEmployees(),
-        fetchClerks()
+        fetchClerks(),
+        fetchOfficers()
       ]);
     } catch (error) {
       console.error('Error fetching retirement dashboard data:', error);
@@ -470,72 +498,117 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
 
   const fetchRetirementEmployees = useCallback(async () => {
     try {
-      // Fetch retirement records with related data from all tables
+      // 1️⃣ Fetch main retirement employee data
       const { data: retirementData, error: retirementError } = await ermsClient
         .from('employee_retirement')
         .select(`
-          id,
-          emp_id,
-          employee_name,
-          date_of_birth,
-          age,
-          retirement_date,
-          reason,
-          designation_time_of_retirement,
-          assigned_clerk,
-          department,
-          updated_at,
-          retirement_progress_status,
-          pay_commission_status,
-          group_insurance_status,
-          status,
-          date_of_submission,
-          department_submitted,
-          type_of_pension,
-          date_of_pension_case_approval,
-          date_of_actual_benefit_provided_for_group_insurance,
-          date_of_benefit_provided_for_gratuity,
-          date_of_actual_benefit_provided_for_leave_encashment,
-          date_of_actual_benefit_provided_for_medical_allowance_if_applic,
-          date_of_benefit_provided_for_hometown_travel_allowance_if_appli,
-          date_of_actual_benefit_provided_for_pending_travel_allowance_if,
-          created_at,
-          updated_at,
-          designation
-        `)
+        id,
+        emp_id,
+        employee_name,
+        date_of_birth,
+        age,
+        retirement_date,
+        reason,
+        designation_time_of_retirement,
+        assigned_clerk,
+        department,
+        updated_at,
+        retirement_progress_status,
+        pay_commission_status,
+        group_insurance_status,
+        status,
+        date_of_submission,
+        department_submitted,
+        type_of_pension,
+        date_of_pension_case_approval,
+        date_of_actual_benefit_provided_for_group_insurance,
+        date_of_benefit_provided_for_gratuity,
+        date_of_actual_benefit_provided_for_leave_encashment,
+        date_of_actual_benefit_provided_for_medical_allowance_if_applic,
+        date_of_benefit_provided_for_hometown_travel_allowance_if_appli,
+        date_of_actual_benefit_provided_for_pending_travel_allowance_if,
+        created_at,
+        updated_at,
+        designation
+      `)
         .order('age', { ascending: false });
 
       if (retirementError) throw retirementError;
 
-      // Fetch file tracking status for all retirement IDs
       const retirementIds = retirementData?.map(emp => emp.id) || [];
-      console.log('🔍 Retirement IDs to check:', retirementIds);
+      const empIds = retirementData?.map(emp => emp.emp_id) || [];
 
-      const { data: trackingData, error: trackingError } = await ermsClient
+      // 2️⃣ Fetch file tracking status
+      const { data: trackingData } = await ermsClient
         .from('retirement_file_tracking')
         .select('retirement_id, status, assigned_to_user_id')
         .in('retirement_id', retirementIds)
         .in('status', ['assigned', 'completed']);
 
-      console.log('🔍 Tracking data:', trackingData);
-      console.log('🔍 Tracking error:', trackingError);
-
       const trackingMap = new Map(trackingData?.map(t => [t.retirement_id, t.status]) || []);
-      console.log('🔍 Tracking map:', Array.from(trackingMap.entries()));
+      const assignedOfficerMapTracking =
+        new Map(trackingData?.map(t => [t.retirement_id, t.assigned_to_user_id]) || []);
 
-      // Add file tracking status to each employee
-      const employeesWithTracking = retirementData?.map(emp => ({
-        ...emp,
-        in_file_tracking: trackingMap.has(emp.id),
-        file_tracking_status: trackingMap.get(emp.id) || null
-      })) || [];
+      // 3️⃣ Fetch officer_assigned from retirement_progress table
+      const { data: progressData, error: progressError } = await ermsClient
+        .from('retirement_progress')
+        .select('emp_id, officer_assigned')
+        .in('emp_id', empIds);
 
-      console.log('🔍 Employees with tracking:', employeesWithTracking.filter(e => e.in_file_tracking));
+      if (progressError) throw progressError;
+
+      const officerAssignedMap =
+        new Map(progressData?.map(p => [p.emp_id, p.officer_assigned]) || []);
+
+      // 4️⃣ NEW: Fetch Panchayatraj + Shalarth IDs from employee table
+      const { data: employeeData } = await ermsClient
+        .from('employee')
+        .select(`
+        emp_id,
+        panchayatrajsevarth_id,
+        Shalarth_Id
+      `)
+        .in('emp_id', empIds);
+
+      const idMap = new Map(
+        (employeeData || []).map(e => [
+          e.emp_id,
+          {
+            panchayatrajsevarth_id: e.panchayatrajsevarth_id,
+            Shalarth_Id: e.Shalarth_Id
+          }
+        ])
+      );
+
+      // 5️⃣ Combine all mapped data + NEW ID DATA
+      const employeesWithTracking =
+        retirementData?.map(emp => {
+          const extraIds = idMap.get(emp.emp_id) || {
+            panchayatrajsevarth_id: null,
+            Shalarth_Id: null
+          };
+
+          return {
+            ...emp,
+            in_file_tracking: trackingMap.has(emp.id),
+            file_tracking_status: trackingMap.get(emp.id) || null,
+
+            // officer assigned from retirement_progress table
+            officer_assigned: officerAssignedMap.get(emp.emp_id) || null,
+
+            // optional: officer from tracking table
+            officer_assigned_tracking: assignedOfficerMapTracking.get(emp.id) || null,
+
+            // 🔹 NEW: Attach IDs
+            panchayatrajsevarth_id: extraIds.panchayatrajsevarth_id,
+            Shalarth_Id: extraIds.Shalarth_Id
+          };
+        }) || [];
 
       setRetirementEmployees(employeesWithTracking);
     } catch (error) {
       console.error('Error fetching retirement employees:', error);
-      setRetirementEmployees([]); // Set empty array on error to prevent undefined issues
+      setRetirementEmployees([]);
     }
   }, []);
 
@@ -565,6 +638,32 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
       setClerks([]); // Set empty array on error
     }
   }, []);
+
+  const fetchOfficers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select(`
+            user_id,
+            name,
+            roles!inner(name)
+          `)
+        .eq('roles.name', 'officer')
+        .not('name', 'is', null);
+
+      if (error) throw error;
+
+      const officersData = data?.map(officer => ({
+        user_id: officer.user_id,
+        name: officer.name,
+        role_name: officer.roles?.name || 'officer'
+      })) || [];
+
+      setOfficers(officersData);
+    } catch (error) {
+      console.error('Error fetching officers:', error);
+    }
+  };
 
   const getStatusCounts = useCallback(() => {
     const total = filteredEmployees.length;
@@ -649,6 +748,7 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
   }, [activeTab, filteredEmployees]);
 
   const handleEditEmployee = useCallback(async (employee: RetirementEmployee) => {
+    debugger
     // Check if file is in tracking
     if (employee.in_file_tracking) {
       // Check if current user is assigned to this file
@@ -661,6 +761,10 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
 
       if (trackingData && trackingData.assigned_to_user_id !== user.id) {
         alert('This file is in tracking and can only be edited by the assigned person.');
+        return;
+      }
+      if (employee.file_tracking_status === 'completed') {
+        alert('This file is completed can not be edited.');
         return;
       }
     }
@@ -890,6 +994,20 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
               </p>
             </div>
             <div className="flex items-center space-x-3">
+              {['super_admin', 'admin', 'developer'].includes(userRole ?? '') && (
+                <select
+                  value={selectedOfficer}
+                  onChange={(e) => setSelectedOfficer(e.target.value)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">{t('erms.selectOfficer')}</option>
+                  {officers.map(officer => (
+                    <option key={officer.user_id} value={officer.user_id}>{officer.name}</option>
+                  ))}
+                </select>
+              )}
+
+
               {userRole !== 'clerk' && (
                 <select
                   value={selectedClerk}
@@ -1009,46 +1127,61 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
           </div>
 
           <div className="space-y-3">
-            {monthWiseData.map((item, index) => (
-              <div
-                key={index}
-                className={`flex items-center justify-between ${item.fullDate.getMonth() === selectedMonth && item.fullDate.getFullYear() === selectedYear
-                  ? 'bg-blue-50 border border-blue-200 rounded-lg p-2'
-                  : ''
-                  }`}
-              >
-                <div className="flex items-center space-x-3 w-20">
-                  <span
-                    className={`text-sm font-medium ${item.fullDate.getMonth() === selectedMonth && item.fullDate.getFullYear() === selectedYear
-                      ? 'text-blue-700 font-bold'
-                      : 'text-gray-700'
+            {(() => {
+              // ⭐ FIX 1: Recalculate maxCount only from CURRENT year data
+              const currentYearCounts = monthWiseData.map(d => d.count);
+              const maxCount =
+                currentYearCounts.length > 0
+                  ? Math.max(...currentYearCounts)
+                  : 0;
+
+              return monthWiseData.map((item, index) => {
+                const isSelected = index === selectedMonth;
+
+                // ⭐ FIX 2: If count is 0 → always 5% width
+                const barWidth =
+                  item.count === 0 || maxCount === 0
+                    ? "5%"
+                    : `${Math.max((item.count / maxCount) * 100, 5)}%`;
+
+                return (
+                  <div
+                    key={index}
+                    className={`flex items-center justify-between ${isSelected ? "bg-blue-50 border border-blue-200 rounded-lg p-2" : ""
                       }`}
                   >
-                    {item.month}
-                  </span>
-                </div>
-                <div className="flex-1 mx-4">
-                  <div className="w-full bg-gray-200 rounded-full h-6 relative">
-                    <div
-                      className={`h-6 rounded-full flex items-center justify-center text-white text-xs font-medium ${item.fullDate.getMonth() === selectedMonth && item.fullDate.getFullYear() === selectedYear
-                        ? 'bg-blue-600'
-                        : 'bg-blue-500'
-                        }`}
-                      style={{
-                        width: statusCounts.total
-                          ? `${Math.max((item.count / Math.max(...monthWiseData.map((d) => d.count))) * 100, 5)}%`
-                          : '0%',
-                      }}
-                    >
-                      {item.count > 0 && item.count}
+                    <div className="flex items-center space-x-3 w-20">
+                      <span
+                        className={`text-sm font-medium ${isSelected ? "text-blue-700 font-bold" : "text-gray-700"
+                          }`}
+                      >
+                        {item.month}
+                      </span>
+                    </div>
+
+                    <div className="flex-1 mx-4">
+                      <div className="w-full bg-gray-200 rounded-full h-6 relative">
+                        <div
+                          className={`h-6 rounded-full flex items-center justify-center text-white text-xs font-medium ${item.count === 0
+                            ? ""
+                            : isSelected
+                              ? "bg-blue-600"
+                              : "bg-blue-500"
+                            }`}
+                          style={{ width: barWidth }}
+                        >
+                          {item.count > 0 && item.count}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="w-8 text-right">
+                      <span className="text-sm text-gray-500">{item.count}</span>
                     </div>
                   </div>
-                </div>
-                <div className="w-8 text-right">
-                  <span className="text-sm text-gray-500">{item.count}</span>
-                </div>
-              </div>
-            ))}
+                );
+              });
+            })()}
           </div>
 
           <div className="mt-4 text-center">
@@ -1283,6 +1416,8 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
             <table className="w-full">
               <thead className="bg-blue-50 border-b border-blue-200">
                 <tr>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-blue-700 uppercase tracking-wider">{t('erms.shalarthId')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-blue-700 uppercase tracking-wider">{t('erms.sevarthId')}</th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-blue-700 uppercase tracking-wider">{t('erms.employee')}</th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-blue-700 uppercase tracking-wider">{t('erms.department')}</th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-blue-700 uppercase tracking-wider">{t('erms.designation')}</th>
@@ -1345,14 +1480,15 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
                     return (
                       <tr
                         key={employee.id}
-                        className={`hover:bg-blue-50 ${
-                          employee.file_tracking_status === 'completed'
-                            ? 'bg-green-50 border-l-4 border-green-400'
-                            : employee.in_file_tracking
+                        className={`hover:bg-blue-50 ${employee.file_tracking_status === 'completed'
+                          ? 'bg-green-50 border-l-4 border-green-400'
+                          : employee.in_file_tracking
                             ? 'bg-yellow-50 border-l-4 border-yellow-400'
                             : ''
-                        }`}
+                          }`}
                       >
+                        <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium text-gray-500">{employee.Shalarth_Id || '-'}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium text-gray-500">{employee.panchayatrajsevarth_id || '-'}</td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div>
                             <div className="text-sm font-medium text-gray-900">{employee.employee_name}</div>
