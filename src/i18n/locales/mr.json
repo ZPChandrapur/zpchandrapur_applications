@@ -64,12 +64,12 @@
     "recentActivity": "अलीकडील कामकाज",
     "systemStatus": "प्रणाली स्थिती",
     "notifications": "सूचना",
-    "applicationsHeading": "एकात्मिक अनुप्रयोग प्रणाली विहंगावलोकन"
+    "applicationsHeading": "एकात्मिक अॅप प्रणाली"
   },
   "systems": {
     "erms": {
       "name": "ERMS",
-      "fullName": "कर्मचारी सेवानिवृत्ती व्यवस्थापन प्रणाली",
+      "fullName": "कर्मचारी सेवानिवृत्ती व्यवस्थापन",
       "description": "कर्मचारी सेवानिवृत्ती प्रक्रिया आणि दस्तऐवजीकरण व्यवस्थापित करा",
       "totalEmployees": "एकूण कर्मचारी",
       "upcomingRetirements": "आगामी सेवानिवृत्ती",
