@@ -350,30 +350,43 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
   };
 
   const handleAppClick = (appId: string) => {
+    // Find the system to check permissions
+    const system = systems.find(s => s.id === appId);
+    if (!system) return;
+
+    // Check if user has access to this application
+    const hasPermission = hasAccess(system.applicationName, 'read');
+
+    if (!hasPermission) {
+      // Show access denied message
+      alert(`Access Denied!\n\nYou don't have permission to access ${system.name}.\n\nPlease contact your administrator to request access to this application.`);
+      return;
+    }
+
     // Special handling for E-estimate - pass auth and open in new window
     if (appId === 'estimate') {
       handleEstimateClick();
       return;
     }
-    
+
     // Special handling for FIMS - pass auth and open in new window
     if (appId === 'fims') {
       handleFIMSClick();
       return;
     }
-    
+
     // Special handling for PESA - pass auth and open in new window
     if (appId === 'pesa') {
       handlePESAClick();
       return;
     }
-    
+
     // Special handling for Workflow Management - open in new window
     if (appId === 'workflow') {
       handleWorkflowClick();
       return;
     }
-    
+
     setSelectedApp(appId);
   };
 
@@ -682,29 +695,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
     },
   ];
 
-  // Filter systems based on device type
+  // Show all systems to everyone - access control happens on click
   const getVisibleSystems = () => {
-    
-    let filteredSystems = systems;
-    
-    // Filter by device type - but allow all systems on both platforms for developer role
-    if (isMobile && userRole !== 'developer') {
-      // Mobile: Show only FIMS and E-estimate (unless developer)
-      filteredSystems = systems.filter(system => system.id === 'fims' || system.id === 'estimate');
-    }
-    
-    //console.log('📋 Systems after device filter:', filteredSystems.map(s => s.id));
-    
-    // Filter by user permissions
-    const accessibleSystems = filteredSystems.filter(system => {
-      // Check if user has read access to this application
-      const hasPermission = hasAccess(system.applicationName, 'read');
-      //console.log(`🔐 System ${system.id} (${system.applicationName}): ${hasPermission ? '✅ ALLOWED' : '❌ DENIED'}`);
-      return hasPermission;
-    });
-    
-   // console.log('✅ Final accessible systems:', accessibleSystems.map(s => s.id));
-    return accessibleSystems;
+    // Always show all 4 systems regardless of role or device
+    // Access control is enforced when user clicks on a card
+    return systems;
   };
 
   const getSystemGradient = (systemId: string) => {
@@ -1102,39 +1097,53 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
         )} */}
 
 
-        {visibleSystems.length === 0 ? (
-            renderNoAccessMessage()
-        ) : (
-            <div className={`grid grid-cols-1 ${isMobile ? 'gap-4' : 'md:grid-cols-2 gap-8'}`}>
-                {visibleSystems.map((system) => (
+        <div className={`grid grid-cols-1 ${isMobile ? 'gap-4' : 'md:grid-cols-2 gap-8'}`}>
+            {visibleSystems.map((system) => {
+                const hasPermission = hasAccess(system.applicationName, 'read');
+                return (
                     <div
                         key={system.id}
                         onClick={() => handleAppClick(system.id)}
-                        className="group relative bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:-translate-y-2 border-2 border-yellow-200 hover:border-yellow-400 cursor-pointer"
-                        >
-                    <div className={`absolute inset-0 bg-gradient-to-br ${system.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}></div>
-                    <div className="p-8">
-                        <div className={`inline-flex p-4 rounded-xl bg-gradient-to-br ${system.color} mb-5 shadow-lg transform group-hover:scale-110 transition-transform duration-300`}>
-                        <system.icon className="w-8 h-8 text-white" />
-                        </div>
-                        <h3 className="text-2xl font-bold text-brown-900 mb-1 group-hover:text-green-700 transition-colors">
-                        {system.name}
-                        </h3>
-                        <p className="text-brown-600 mb-2 leading-relaxed font-bold">
-                            {system.fullName}
-                        </p>
-                        <p className="text-brown-600 mb-6 leading-relaxed">
-                        {system.description}
-                        </p>
-                        <div className="flex items-center text-green-700 font-bold group-hover:gap-2 transition-all">
-                        <span>Launch Application</span>
-                        <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                        className={`group relative bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:-translate-y-2 border-2 border-yellow-200 hover:border-yellow-400 cursor-pointer ${!hasPermission ? 'opacity-75' : ''}`}
+                    >
+                        <div className={`absolute inset-0 bg-gradient-to-br ${system.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}></div>
+
+                        {/* Lock icon overlay for restricted access */}
+                        {!hasPermission && (
+                            <div className="absolute top-4 right-4 bg-red-500 text-white p-2 rounded-full shadow-lg z-10">
+                                <Shield className="w-5 h-5" />
+                            </div>
+                        )}
+
+                        <div className="p-8">
+                            <div className={`inline-flex p-4 rounded-xl bg-gradient-to-br ${system.color} mb-5 shadow-lg transform group-hover:scale-110 transition-transform duration-300`}>
+                                <system.icon className="w-8 h-8 text-white" />
+                            </div>
+                            <h3 className="text-2xl font-bold text-brown-900 mb-1 group-hover:text-green-700 transition-colors">
+                                {system.name}
+                            </h3>
+                            <p className="text-brown-600 mb-2 leading-relaxed font-bold">
+                                {system.fullName}
+                            </p>
+                            <p className="text-brown-600 mb-6 leading-relaxed">
+                                {system.description}
+                            </p>
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center text-green-700 font-bold group-hover:gap-2 transition-all">
+                                    <span>Launch Application</span>
+                                    <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                </div>
+                                {!hasPermission && (
+                                    <span className="text-xs text-red-600 font-semibold bg-red-50 px-3 py-1 rounded-full">
+                                        Access Restricted
+                                    </span>
+                                )}
+                            </div>
                         </div>
                     </div>
-                    </div>
-                ))}
-            </div>
-        )}
+                );
+            })}
+        </div>
 
         
 
