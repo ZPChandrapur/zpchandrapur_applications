@@ -354,8 +354,20 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
     const system = systems.find(s => s.id === appId);
     if (!system) return;
 
+    // Special PESA access whitelist - these emails have unrestricted PESA access
+    const pesaWhitelist = [
+      'bdopskorpana@gmail.com',
+      'bdopsrajura@gmail.com',
+      'bdopsjiwati@gmail.com'
+    ];
+
     // Check if user has access to this application
-    const hasPermission = hasAccess(system.applicationName, 'read');
+    let hasPermission = hasAccess(system.applicationName, 'read');
+
+    // Grant PESA access to whitelisted users regardless of role
+    if (appId === 'pesa' && pesaWhitelist.includes(user.email || '')) {
+      hasPermission = true;
+    }
 
     if (!hasPermission) {
       // Show access denied message
@@ -1099,7 +1111,20 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
 
         <div className={`grid grid-cols-1 ${isMobile ? 'gap-4' : 'md:grid-cols-2 gap-8'}`}>
             {visibleSystems.map((system) => {
-                const hasPermission = hasAccess(system.applicationName, 'read');
+                // PESA whitelist - these emails have unrestricted PESA access
+                const pesaWhitelist = [
+                    'bdopskorpana@gmail.com',
+                    'bdopsrajura@gmail.com',
+                    'bdopsjiwati@gmail.com'
+                ];
+
+                let hasPermission = hasAccess(system.applicationName, 'read');
+
+                // Grant PESA access to whitelisted users
+                if (system.id === 'pesa' && pesaWhitelist.includes(user.email || '')) {
+                    hasPermission = true;
+                }
+
                 return (
                     <div
                         key={system.id}
