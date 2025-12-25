@@ -24,7 +24,7 @@ const EEstimateFrame: React.FC<{ user: SupabaseUser; onBack: () => void }> = ({ 
   const [isLoading, setIsLoading] = useState(true);
   
   // E-estimate application URL - replace with actual URL when available
-  const eEstimateUrl = 'https://eestimatemb.zpchandrapurapps.com/';
+  const eEstimateUrl = 'https://estimatemb.zpchandrapurapps.com/';
   
   const handleIframeLoad = () => {
     setIsLoading(false);
@@ -411,7 +411,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
       if (error) {
         console.error('❌ E-estimate: Error getting session:', error);
         // Open without auth if session fetch fails
-        window.open('https://eestimatemb.zpchandrapurapps.com/', '_blank', 'noopener,noreferrer');
+        window.open('https://estimatemb.zpchandrapurapps.com/', '_blank', 'noopener,noreferrer');
         return;
       }
 
@@ -443,7 +443,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
         }
         
         // Method 2: URL parameters as fallback
-        const estimateUrl = new URL('https://eestimatemb.zpchandrapurapps.com/');
+        const estimateUrl = new URL('https://estimatemb.zpchandrapurapps.com/');
         estimateUrl.searchParams.set('auto_login', 'true');
         estimateUrl.searchParams.set('access_token', session.access_token);
         estimateUrl.searchParams.set('refresh_token', session.refresh_token);
@@ -455,12 +455,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
       } else {
         console.warn('⚠️ E-estimate: No valid session found');
         // Open without auth
-        window.open('https://eestimatemb.zpchandrapurapps.com/', '_blank', 'noopener,noreferrer');
+        window.open('https://estimatemb.zpchandrapurapps.com/', '_blank', 'noopener,noreferrer');
       }
     } catch (error) {
       console.error('❌ E-estimate: Error in handleEstimateClick:', error);
       // Fallback: open without auth
-      window.open('https://eestimatemb.zpchandrapurapps.com/', '_blank', 'noopener,noreferrer');
+      window.open('https://estimatemb.zpchandrapurapps.com/', '_blank', 'noopener,noreferrer');
     }
   };
 
