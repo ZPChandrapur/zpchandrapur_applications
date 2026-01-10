@@ -918,85 +918,6 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
     );
   };
 
-  const getRetrospectiveAnalysis = () => {
-    const now = new Date();
-    const oneYearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
-
-    const retiredInLastYear = retirementEmployees.filter(emp => {
-      if (!emp.retirement_date) return false;
-      const retDate = new Date(emp.retirement_date);
-      return retDate >= oneYearAgo && retDate < now;
-    });
-
-    const avgAge = retiredInLastYear.length > 0
-      ? Math.round(retiredInLastYear.reduce((sum, emp) => sum + (emp.age || 0), 0) / retiredInLastYear.length)
-      : 0;
-
-    const completionRate = retiredInLastYear.length > 0
-      ? ((retiredInLastYear.filter(emp => getProgressStatus(emp) === 'completed').length / retiredInLastYear.length) * 100).toFixed(1)
-      : '0';
-
-    const avgProcessingTime = retiredInLastYear.length > 0
-      ? Math.round(retiredInLastYear.reduce((sum, emp) => {
-          if (!emp.retirement_date || !emp.date_of_submission) return sum;
-          const diff = new Date(emp.retirement_date).getTime() - new Date(emp.date_of_submission).getTime();
-          return sum + Math.max(0, diff / (1000 * 60 * 60 * 24));
-        }, 0) / retiredInLastYear.length)
-      : 0;
-
-    return {
-      totalRetired: retiredInLastYear.length,
-      avgAge,
-      completionRate,
-      avgProcessingTime,
-      period: 'Last 12 months'
-    };
-  };
-
-  const getPredictiveAnalysis = (monthData: any[]) => {
-    const now = new Date();
-    const next3Months = new Date(now.getFullYear(), now.getMonth() + 3, now.getDate());
-    const next6Months = new Date(now.getFullYear(), now.getMonth() + 6, now.getDate());
-    const next12Months = new Date(now.getFullYear(), now.getMonth() + 12, now.getDate());
-
-    const upcoming3Months = retirementEmployees.filter(emp => {
-      if (!emp.retirement_date) return false;
-      const retDate = new Date(emp.retirement_date);
-      return retDate >= now && retDate <= next3Months;
-    }).length;
-
-    const upcoming6Months = retirementEmployees.filter(emp => {
-      if (!emp.retirement_date) return false;
-      const retDate = new Date(emp.retirement_date);
-      return retDate >= now && retDate <= next6Months;
-    }).length;
-
-    const upcoming12Months = retirementEmployees.filter(emp => {
-      if (!emp.retirement_date) return false;
-      const retDate = new Date(emp.retirement_date);
-      return retDate >= now && retDate <= next12Months;
-    }).length;
-
-    const peakMonth = monthData.reduce((peak, month) =>
-      month.count > peak.count ? month : peak
-    , { month: '', count: 0 });
-
-    const atRisk = retirementEmployees.filter(emp => {
-      if (!emp.retirement_date) return false;
-      const retDate = new Date(emp.retirement_date);
-      const monthsUntilRetirement = (retDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 30);
-      return monthsUntilRetirement <= 3 && getProgressStatus(emp) === 'pending';
-    }).length;
-
-    return {
-      upcoming3Months,
-      upcoming6Months,
-      upcoming12Months,
-      peakMonth: peakMonth.month,
-      peakCount: peakMonth.count,
-      atRisk
-    };
-  };
 
   const renderBarChart = () => {
     if (reportData.length === 0) return null;
@@ -1067,15 +988,63 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
   const upcomingCount = calculateUpcomingRetirements();
   const monthWiseData = getMonthWiseData();
 
-  const retrospective = getRetrospectiveAnalysis();
-  const predictive = getPredictiveAnalysis(monthWiseData);
-
   const pieChartData = [
     { label: 'Upcoming Retirements', value: upcomingCount, color: '#f97316' },
     { label: 'Processing', value: statusCounts.processing, color: '#fb923c' },
     { label: 'Completed', value: statusCounts.completed, color: '#10b981' },
     { label: 'Pending', value: statusCounts.pending, color: '#a855f7' },
   ];
+
+  // Calculate retrospective analysis
+  const now = new Date();
+  const oneYearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+  const retiredInLastYear = retirementEmployees.filter(emp => {
+    if (!emp.retirement_date) return false;
+    const retDate = new Date(emp.retirement_date);
+    return retDate >= oneYearAgo && retDate < now;
+  });
+  const retrospectiveAvgAge = retiredInLastYear.length > 0
+    ? Math.round(retiredInLastYear.reduce((sum, emp) => sum + (emp.age || 0), 0) / retiredInLastYear.length)
+    : 0;
+  const retrospectiveCompletionRate = retiredInLastYear.length > 0
+    ? ((retiredInLastYear.filter(emp => getProgressStatus(emp) === 'completed').length / retiredInLastYear.length) * 100).toFixed(1)
+    : '0';
+  const retrospectiveAvgProcessingTime = retiredInLastYear.length > 0
+    ? Math.round(retiredInLastYear.reduce((sum, emp) => {
+        if (!emp.retirement_date || !emp.date_of_submission) return sum;
+        const diff = new Date(emp.retirement_date).getTime() - new Date(emp.date_of_submission).getTime();
+        return sum + Math.max(0, diff / (1000 * 60 * 60 * 24));
+      }, 0) / retiredInLastYear.length)
+    : 0;
+
+  // Calculate predictive analysis
+  const next3Months = new Date(now.getFullYear(), now.getMonth() + 3, now.getDate());
+  const next6Months = new Date(now.getFullYear(), now.getMonth() + 6, now.getDate());
+  const next12Months = new Date(now.getFullYear(), now.getMonth() + 12, now.getDate());
+  const predictiveUpcoming3Months = retirementEmployees.filter(emp => {
+    if (!emp.retirement_date) return false;
+    const retDate = new Date(emp.retirement_date);
+    return retDate >= now && retDate <= next3Months;
+  }).length;
+  const predictiveUpcoming6Months = retirementEmployees.filter(emp => {
+    if (!emp.retirement_date) return false;
+    const retDate = new Date(emp.retirement_date);
+    return retDate >= now && retDate <= next6Months;
+  }).length;
+  const predictiveUpcoming12Months = retirementEmployees.filter(emp => {
+    if (!emp.retirement_date) return false;
+    const retDate = new Date(emp.retirement_date);
+    return retDate >= now && retDate <= next12Months;
+  }).length;
+  const peakMonth = monthWiseData.reduce((peak, month) =>
+    month.count > peak.count ? month : peak
+  , { month: '', count: 0 });
+  const predictiveAtRisk = retirementEmployees.filter(emp => {
+    if (!emp.retirement_date) return false;
+    const retDate = new Date(emp.retirement_date);
+    const monthsUntilRetirement = (retDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 30);
+    return monthsUntilRetirement <= 3 && getProgressStatus(emp) === 'pending';
+  }).length;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -1148,7 +1117,7 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
               <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
                 <div>
                   <p className="text-sm text-gray-600">Period</p>
-                  <p className="text-lg font-semibold text-gray-900">{retrospective.period}</p>
+                  <p className="text-lg font-semibold text-gray-900">Last 12 months</p>
                 </div>
                 <Calendar className="h-8 w-8 text-blue-600" />
               </div>
@@ -1156,29 +1125,29 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
               <div className="grid grid-cols-2 gap-4">
                 <div className="p-4 bg-green-50 rounded-lg">
                   <p className="text-sm text-gray-600">Total Retired</p>
-                  <p className="text-2xl font-bold text-green-700">{retrospective.totalRetired}</p>
+                  <p className="text-2xl font-bold text-green-700">{retiredInLastYear.length}</p>
                 </div>
                 <div className="p-4 bg-amber-50 rounded-lg">
                   <p className="text-sm text-gray-600">Average Age</p>
-                  <p className="text-2xl font-bold text-amber-700">{retrospective.avgAge}</p>
+                  <p className="text-2xl font-bold text-amber-700">{retrospectiveAvgAge}</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="p-4 bg-teal-50 rounded-lg">
                   <p className="text-sm text-gray-600">Completion Rate</p>
-                  <p className="text-2xl font-bold text-teal-700">{retrospective.completionRate}%</p>
+                  <p className="text-2xl font-bold text-teal-700">{retrospectiveCompletionRate}%</p>
                 </div>
                 <div className="p-4 bg-purple-50 rounded-lg">
                   <p className="text-sm text-gray-600">Avg Processing</p>
-                  <p className="text-2xl font-bold text-purple-700">{retrospective.avgProcessingTime}d</p>
+                  <p className="text-2xl font-bold text-purple-700">{retrospectiveAvgProcessingTime}d</p>
                 </div>
               </div>
 
               <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
                 <p className="text-sm text-gray-700">
-                  <strong>Insights:</strong> Over the past year, {retrospective.totalRetired} employees retired at an average age of {retrospective.avgAge}.
-                  The completion rate was {retrospective.completionRate}% with an average processing time of {retrospective.avgProcessingTime} days.
+                  <strong>Insights:</strong> Over the past year, {retiredInLastYear.length} employees retired at an average age of {retrospectiveAvgAge}.
+                  The completion rate was {retrospectiveCompletionRate}% with an average processing time of {retrospectiveAvgProcessingTime} days.
                 </p>
               </div>
             </div>
@@ -1194,15 +1163,15 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
               <div className="grid grid-cols-3 gap-3">
                 <div className="p-4 bg-orange-50 rounded-lg text-center">
                   <p className="text-xs text-gray-600 mb-1">Next 3 Months</p>
-                  <p className="text-2xl font-bold text-orange-700">{predictive.upcoming3Months}</p>
+                  <p className="text-2xl font-bold text-orange-700">{predictiveUpcoming3Months}</p>
                 </div>
                 <div className="p-4 bg-blue-50 rounded-lg text-center">
                   <p className="text-xs text-gray-600 mb-1">Next 6 Months</p>
-                  <p className="text-2xl font-bold text-blue-700">{predictive.upcoming6Months}</p>
+                  <p className="text-2xl font-bold text-blue-700">{predictiveUpcoming6Months}</p>
                 </div>
                 <div className="p-4 bg-green-50 rounded-lg text-center">
                   <p className="text-xs text-gray-600 mb-1">Next 12 Months</p>
-                  <p className="text-2xl font-bold text-green-700">{predictive.upcoming12Months}</p>
+                  <p className="text-2xl font-bold text-green-700">{predictiveUpcoming12Months}</p>
                 </div>
               </div>
 
@@ -1212,7 +1181,7 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
                   <div>
                     <p className="text-sm font-semibold text-gray-900">Peak Month Alert</p>
                     <p className="text-xs text-gray-600">
-                      {predictive.peakMonth} will have the highest retirements ({predictive.peakCount} employees)
+                      {peakMonth.month} will have the highest retirements ({peakMonth.count} employees)
                     </p>
                   </div>
                 </div>
@@ -1224,7 +1193,7 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
                   <div>
                     <p className="text-sm font-semibold text-gray-900">At-Risk Cases</p>
                     <p className="text-xs text-gray-600">
-                      {predictive.atRisk} employees retiring within 3 months still have pending status
+                      {predictiveAtRisk} employees retiring within 3 months still have pending status
                     </p>
                   </div>
                 </div>
@@ -1232,9 +1201,9 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
 
               <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
                 <p className="text-sm text-gray-700">
-                  <strong>Forecast:</strong> Expect {predictive.upcoming3Months} retirements in the next quarter.
-                  Plan resources for {predictive.peakMonth} when peak volume occurs.
-                  {predictive.atRisk > 0 && ` Priority attention needed for ${predictive.atRisk} at-risk cases.`}
+                  <strong>Forecast:</strong> Expect {predictiveUpcoming3Months} retirements in the next quarter.
+                  Plan resources for {peakMonth.month} when peak volume occurs.
+                  {predictiveAtRisk > 0 && ` Priority attention needed for ${predictiveAtRisk} at-risk cases.`}
                 </p>
               </div>
             </div>
