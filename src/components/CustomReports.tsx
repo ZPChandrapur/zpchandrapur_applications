@@ -953,7 +953,7 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
     };
   };
 
-  const getPredictiveAnalysis = () => {
+  const getPredictiveAnalysis = (monthData: any[]) => {
     const now = new Date();
     const next3Months = new Date(now.getFullYear(), now.getMonth() + 3, now.getDate());
     const next6Months = new Date(now.getFullYear(), now.getMonth() + 6, now.getDate());
@@ -977,7 +977,7 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
       return retDate >= now && retDate <= next12Months;
     }).length;
 
-    const peakMonth = monthWiseData.reduce((peak, month) =>
+    const peakMonth = monthData.reduce((peak, month) =>
       month.count > peak.count ? month : peak
     , { month: '', count: 0 });
 
@@ -997,9 +997,6 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
       atRisk
     };
   };
-
-  const retrospective = getRetrospectiveAnalysis();
-  const predictive = getPredictiveAnalysis();
 
   const renderBarChart = () => {
     if (reportData.length === 0) return null;
@@ -1069,6 +1066,9 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
   const statusCounts = getStatusCounts();
   const upcomingCount = calculateUpcomingRetirements();
   const monthWiseData = getMonthWiseData();
+
+  const retrospective = getRetrospectiveAnalysis();
+  const predictive = getPredictiveAnalysis(monthWiseData);
 
   const pieChartData = [
     { label: 'Upcoming Retirements', value: upcomingCount, color: '#f97316' },
