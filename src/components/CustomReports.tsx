@@ -322,7 +322,7 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
   const fetchRetirementData = async () => {
     try {
       const { data, error } = await ermsClient
-        .from('employee')
+        .from('employee_retirement')
         .select(`
           id,
           emp_id,
