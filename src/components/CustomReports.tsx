@@ -126,6 +126,11 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
   const [persistenceEnabled, setPersistenceEnabled] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
 
+  // Retirement Dashboard Data
+  const [retirementEmployees, setRetirementEmployees] = useState<any[]>([]);
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+
   // Save state
   const saveState = () => {
     try {
@@ -147,6 +152,7 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
   useEffect(() => {
     fetchAvailableTables();
     fetchSavedTemplates();
+    fetchRetirementData();
 
     setTimeout(() => {
       setPersistenceEnabled(true);
@@ -312,6 +318,107 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
       ]
     }
   ];
+
+  const fetchRetirementData = async () => {
+    try {
+      const { data, error } = await ermsClient
+        .from('employee')
+        .select(`
+          id,
+          emp_id,
+          employee_name,
+          retirement_date,
+          status,
+          date_of_submission,
+          type_of_pension,
+          date_of_pension_case_approval,
+          date_of_actual_benefit_provided_for_group_insurance,
+          date_of_benefit_provided_for_gratuity,
+          date_of_actual_benefit_provided_for_leave_encashment,
+          date_of_actual_benefit_provided_for_medical_allowance_if_applic,
+          date_of_benefit_provided_for_hometown_travel_allowance_if_appli,
+          date_of_actual_benefit_provided_for_pending_travel_allowance_if
+        `)
+        .order('retirement_date', { ascending: true });
+
+      if (error) throw error;
+      setRetirementEmployees(data || []);
+    } catch (error) {
+      console.error('Error fetching retirement data:', error);
+    }
+  };
+
+  const getProgressStatus = (employee: any) => {
+    const progressFields = [
+      employee.date_of_pension_case_approval,
+      employee.date_of_actual_benefit_provided_for_group_insurance,
+      employee.date_of_benefit_provided_for_gratuity,
+      employee.date_of_actual_benefit_provided_for_leave_encashment,
+      employee.date_of_actual_benefit_provided_for_medical_allowance_if_applic,
+      employee.date_of_benefit_provided_for_hometown_travel_allowance_if_appli,
+      employee.date_of_actual_benefit_provided_for_pending_travel_allowance_if,
+    ];
+
+    const filledFields = progressFields.filter((field) => {
+      return field && typeof field === 'string' ? field.trim() !== '' : !!field;
+    }).length;
+
+    const totalFields = progressFields.length;
+
+    if (filledFields === 0) return 'pending';
+    if (filledFields === totalFields) return 'completed';
+    return 'processing';
+  };
+
+  const getStatusCounts = () => {
+    const total = retirementEmployees.length;
+    const processing = retirementEmployees.filter(emp => getProgressStatus(emp) === 'processing').length;
+    const completed = retirementEmployees.filter(emp => getProgressStatus(emp) === 'completed').length;
+    const pending = retirementEmployees.filter(emp => getProgressStatus(emp) === 'pending').length;
+
+    return { total, processing, completed, pending };
+  };
+
+  const calculateUpcomingRetirements = () => {
+    const sixMonthsFromNow = new Date();
+    sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
+
+    return retirementEmployees.filter(emp => {
+      if (!emp.retirement_date) return false;
+      const retirementDate = new Date(emp.retirement_date);
+      const now = new Date();
+      return retirementDate >= now && retirementDate <= sixMonthsFromNow;
+    }).length;
+  };
+
+  const getMonthWiseData = () => {
+    const monthData = [];
+    for (let i = -5; i <= 6; i++) {
+      const targetDate = new Date(selectedYear, selectedMonth + i, 1);
+      const monthName = targetDate.toLocaleString('default', { month: 'short' });
+      const year = targetDate.getFullYear();
+      monthData.push({
+        month: `${monthName} ${year.toString().slice(-2)}`,
+        fullDate: targetDate,
+        count: 0
+      });
+    }
+
+    retirementEmployees.forEach(emp => {
+      if (emp.retirement_date) {
+        const retirementDate = new Date(emp.retirement_date);
+        const monthIndex = monthData.findIndex(m =>
+          m.fullDate.getMonth() === retirementDate.getMonth() &&
+          m.fullDate.getFullYear() === retirementDate.getFullYear()
+        );
+        if (monthIndex !== -1) {
+          monthData[monthIndex].count++;
+        }
+      }
+    });
+
+    return monthData;
+  };
 
   const fetchAvailableTables = async () => {
     setAvailableTables(tableDefinitions);
@@ -625,6 +732,109 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
 };
 
 
+  const renderLineChart = (data: any[]) => {
+    if (data.length === 0) return null;
+
+    const maxValue = Math.max(...data.map(item => item.count));
+    const chartHeight = 300;
+
+    return (
+      <div className="space-y-4">
+        <div className="relative" style={{ height: `${chartHeight}px` }}>
+          <div className="absolute inset-0 flex items-end justify-between space-x-2">
+            {data.map((item, index) => {
+              const height = maxValue > 0 ? (item.count / maxValue) * (chartHeight - 40) : 0;
+              return (
+                <div key={index} className="flex-1 flex flex-col items-center justify-end">
+                  <div className="text-xs font-medium text-gray-700 mb-2">{item.count}</div>
+                  <div
+                    className="w-full bg-gradient-to-t from-blue-500 to-blue-300 rounded-t-lg relative group"
+                    style={{ height: `${Math.max(height, 2)}px` }}
+                  >
+                    <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                      {item.month}: {item.count}
+                    </div>
+                  </div>
+                  <div className="text-xs text-gray-600 mt-2 transform -rotate-45 origin-top-left">{item.month}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        <div className="flex items-center justify-center space-x-2 text-sm text-gray-600">
+          <span className="font-medium">Month</span>
+          <span>→</span>
+        </div>
+      </div>
+    );
+  };
+
+  const renderPieChart = (data: { label: string; value: number; color: string }[]) => {
+    if (data.length === 0) return null;
+
+    const total = data.reduce((sum, item) => sum + item.value, 0);
+    let currentAngle = 0;
+
+    return (
+      <div className="flex flex-col md:flex-row items-center justify-center space-y-6 md:space-y-0 md:space-x-12">
+        <div className="relative" style={{ width: '280px', height: '280px' }}>
+          <svg viewBox="0 0 100 100" className="transform -rotate-90">
+            {data.map((item, index) => {
+              const percentage = (item.value / total) * 100;
+              const angle = (percentage / 100) * 360;
+              const radius = 40;
+              const circumference = 2 * Math.PI * radius;
+              const offset = circumference - (angle / 360) * circumference;
+
+              const slice = (
+                <circle
+                  key={index}
+                  cx="50"
+                  cy="50"
+                  r={radius}
+                  fill="none"
+                  stroke={item.color}
+                  strokeWidth="20"
+                  strokeDasharray={`${circumference} ${circumference}`}
+                  strokeDashoffset={offset}
+                  transform={`rotate(${currentAngle} 50 50)`}
+                  className="transition-all duration-300 hover:opacity-80"
+                />
+              );
+
+              currentAngle += angle;
+              return slice;
+            })}
+          </svg>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-center">
+              <div className="text-3xl font-bold text-gray-900">{total}</div>
+              <div className="text-sm text-gray-600">Total</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          {data.map((item, index) => {
+            const percentage = total > 0 ? ((item.value / total) * 100).toFixed(1) : 0;
+            return (
+              <div key={index} className="flex items-center space-x-3">
+                <div
+                  className="w-4 h-4 rounded-full"
+                  style={{ backgroundColor: item.color }}
+                ></div>
+                <div className="flex-1">
+                  <div className="text-sm font-medium text-gray-900">{item.label}</div>
+                  <div className="text-xs text-gray-500">{item.value} ({percentage}%)</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
   const renderBarChart = () => {
     if (reportData.length === 0) return null;
 
@@ -689,6 +899,18 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
     );
   };
 
+  // Calculate data for charts
+  const statusCounts = getStatusCounts();
+  const upcomingCount = calculateUpcomingRetirements();
+  const monthWiseData = getMonthWiseData();
+
+  const pieChartData = [
+    { label: 'Upcoming Retirements', value: upcomingCount, color: '#f97316' },
+    { label: 'Processing', value: statusCounts.processing, color: '#fb923c' },
+    { label: 'Completed', value: statusCounts.completed, color: '#10b981' },
+    { label: 'Pending', value: statusCounts.pending, color: '#a855f7' },
+  ];
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -713,6 +935,7 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
                 onClick={() => {
                   resetToDefault();
                   fetchSavedTemplates();
+                  fetchRetirementData();
                 }}
                 className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-all duration-200"
               >
@@ -726,6 +949,134 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
       </div>
 
       <div className="p-6">
+        {/* Retirement Dashboard Charts Section */}
+        <div className="mb-6 space-y-6">
+          {/* KPI Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="bg-white rounded-xl shadow-md border border-indigo-300 p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-indigo-700 font-semibold tracking-wide mb-1 uppercase">
+                    Total Retirements
+                  </p>
+                  <p className="text-2xl font-extrabold text-indigo-900">{statusCounts.total}</p>
+                </div>
+                <div className="bg-gradient-to-tr from-indigo-500 to-purple-600 p-3 rounded-2xl shadow-md">
+                  <Users className="h-6 w-6 text-white" />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-md border border-orange-300 p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-orange-700 font-semibold tracking-wide mb-1 uppercase">
+                    Upcoming Retirements
+                  </p>
+                  <p className="text-2xl font-extrabold text-orange-800">{upcomingCount}</p>
+                  <p className="text-xs text-orange-600 font-medium">Next 6 months</p>
+                </div>
+                <div className="bg-gradient-to-tr from-orange-500 to-yellow-500 p-3 rounded-2xl shadow-md">
+                  <Calendar className="h-6 w-6 text-white" />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-md border border-orange-300 p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-orange-700 font-semibold tracking-wide mb-1 uppercase">
+                    Processing
+                  </p>
+                  <p className="text-2xl font-extrabold text-orange-800">{statusCounts.processing}</p>
+                  <p className="text-xs text-orange-600 font-medium">With submission data</p>
+                </div>
+                <div className="bg-gradient-to-tr from-orange-500 to-yellow-500 p-3 rounded-2xl shadow-md">
+                  <Clock className="h-6 w-6 text-white" />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-md border border-green-300 p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-green-700 font-semibold tracking-wide mb-1 uppercase">
+                    Completed
+                  </p>
+                  <p className="text-2xl font-extrabold text-green-900">{statusCounts.completed}</p>
+                  <p className="text-xs text-green-600 font-medium">Pension approved</p>
+                </div>
+                <div className="bg-gradient-to-tr from-green-500 to-teal-500 p-3 rounded-2xl shadow-md">
+                  <CheckCircle className="h-6 w-6 text-white" />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-md border border-purple-300 p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-purple-700 font-semibold tracking-wide mb-1 uppercase">
+                    Pending
+                  </p>
+                  <p className="text-2xl font-extrabold text-purple-600">{statusCounts.pending}</p>
+                  <p className="text-xs text-purple-600 font-medium">Awaiting approval</p>
+                </div>
+                <div className="bg-gradient-to-tr from-purple-500 to-indigo-600 p-3 rounded-2xl shadow-md">
+                  <FileText className="h-6 w-6 text-white" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Charts Row */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Month-wise Retirement Count Line Chart */}
+            <div className="bg-white rounded-lg shadow-md border border-gray-300 p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-semibold text-gray-900">Month-wise Retirement Count</h3>
+                <div className="flex items-center space-x-2">
+                  <select
+                    value={selectedMonth}
+                    onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
+                    className="px-3 py-1 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    {Array.from({ length: 12 }, (_, i) => {
+                      const date = new Date(2024, i, 1);
+                      return (
+                        <option key={i} value={i}>
+                          {date.toLocaleString('default', { month: 'long' })}
+                        </option>
+                      );
+                    })}
+                  </select>
+                  <select
+                    value={selectedYear}
+                    onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                    className="px-3 py-1 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    {Array.from({ length: 5 }, (_, i) => {
+                      const year = new Date().getFullYear() - 2 + i;
+                      return (
+                        <option key={year} value={year}>
+                          {year}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+              </div>
+              {renderLineChart(monthWiseData)}
+            </div>
+
+            {/* Status Distribution Pie Chart */}
+            <div className="bg-white rounded-lg shadow-md border border-gray-300 p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-semibold text-gray-900">Retirement Status Distribution</h3>
+              </div>
+              {renderPieChart(pieChartData)}
+            </div>
+          </div>
+        </div>
         {/* Tabs */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
           <div className="border-b border-gray-200">
