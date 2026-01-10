@@ -26,7 +26,8 @@ import {
   ChevronDown,
   ChevronRight,
   Clock,
-  CheckCircle
+  CheckCircle,
+  AlertCircle
 } from 'lucide-react';
 import { ermsClient, supabase } from '../lib/supabase';
 import { usePermissions } from '../hooks/usePermissions';
@@ -738,36 +739,115 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
   const renderLineChart = (data: any[]) => {
     if (data.length === 0) return null;
 
-    const maxValue = Math.max(...data.map(item => item.count));
-    const chartHeight = 300;
+    const maxValue = Math.max(...data.map(item => item.count), 10);
+    const chartHeight = 280;
+    const chartWidth = 800;
+    const padding = { top: 20, right: 20, bottom: 60, left: 40 };
+    const innerWidth = chartWidth - padding.left - padding.right;
+    const innerHeight = chartHeight - padding.top - padding.bottom;
+
+    const points = data.map((item, index) => {
+      const x = padding.left + (index / (data.length - 1)) * innerWidth;
+      const y = padding.top + innerHeight - (item.count / maxValue) * innerHeight;
+      return { x, y, count: item.count, month: item.month };
+    });
+
+    const pathD = points.map((point, i) =>
+      `${i === 0 ? 'M' : 'L'} ${point.x} ${point.y}`
+    ).join(' ');
+
+    const areaD = `${pathD} L ${points[points.length - 1].x} ${chartHeight - padding.bottom} L ${padding.left} ${chartHeight - padding.bottom} Z`;
 
     return (
       <div className="space-y-4">
-        <div className="relative" style={{ height: `${chartHeight}px` }}>
-          <div className="absolute inset-0 flex items-end justify-between space-x-2">
-            {data.map((item, index) => {
-              const height = maxValue > 0 ? (item.count / maxValue) * (chartHeight - 40) : 0;
-              return (
-                <div key={index} className="flex-1 flex flex-col items-center justify-end">
-                  <div className="text-xs font-medium text-gray-700 mb-2">{item.count}</div>
-                  <div
-                    className="w-full bg-gradient-to-t from-blue-500 to-blue-300 rounded-t-lg relative group"
-                    style={{ height: `${Math.max(height, 2)}px` }}
-                  >
-                    <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                      {item.month}: {item.count}
-                    </div>
-                  </div>
-                  <div className="text-xs text-gray-600 mt-2 transform -rotate-45 origin-top-left">{item.month}</div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-        <div className="flex items-center justify-center space-x-2 text-sm text-gray-600">
-          <span className="font-medium">Month</span>
-          <span>→</span>
-        </div>
+        <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full">
+          <defs>
+            <linearGradient id="lineGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.3" />
+              <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.05" />
+            </linearGradient>
+          </defs>
+
+          {[0, 1, 2, 3, 4].map(i => {
+            const y = padding.top + (i / 4) * innerHeight;
+            const value = Math.round(maxValue * (1 - i / 4));
+            return (
+              <g key={i}>
+                <line
+                  x1={padding.left}
+                  y1={y}
+                  x2={chartWidth - padding.right}
+                  y2={y}
+                  stroke="#e5e7eb"
+                  strokeWidth="1"
+                />
+                <text x={padding.left - 10} y={y + 4} fontSize="10" fill="#6b7280" textAnchor="end">
+                  {value}
+                </text>
+              </g>
+            );
+          })}
+
+          <path d={areaD} fill="url(#lineGradient)" />
+
+          <path
+            d={pathD}
+            fill="none"
+            stroke="#3b82f6"
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+
+          {points.map((point, index) => (
+            <g key={index}>
+              <circle
+                cx={point.x}
+                cy={point.y}
+                r="5"
+                fill="white"
+                stroke="#3b82f6"
+                strokeWidth="2"
+                className="hover:r-6 transition-all cursor-pointer"
+              />
+              <text
+                x={point.x}
+                y={point.y - 12}
+                fontSize="11"
+                fill="#374151"
+                textAnchor="middle"
+                fontWeight="600"
+              >
+                {point.count}
+              </text>
+            </g>
+          ))}
+
+          {points.map((point, index) => (
+            <text
+              key={index}
+              x={point.x}
+              y={chartHeight - padding.bottom + 15}
+              fontSize="9"
+              fill="#6b7280"
+              textAnchor="middle"
+              transform={`rotate(-45 ${point.x} ${chartHeight - padding.bottom + 15})`}
+            >
+              {point.month}
+            </text>
+          ))}
+
+          <text
+            x={chartWidth / 2}
+            y={chartHeight - 5}
+            fontSize="12"
+            fill="#4b5563"
+            textAnchor="middle"
+            fontWeight="500"
+          >
+            Month →
+          </text>
+        </svg>
       </div>
     );
   };
@@ -837,6 +917,89 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
       </div>
     );
   };
+
+  const getRetrospectiveAnalysis = () => {
+    const now = new Date();
+    const oneYearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+
+    const retiredInLastYear = retirementEmployees.filter(emp => {
+      if (!emp.retirement_date) return false;
+      const retDate = new Date(emp.retirement_date);
+      return retDate >= oneYearAgo && retDate < now;
+    });
+
+    const avgAge = retiredInLastYear.length > 0
+      ? Math.round(retiredInLastYear.reduce((sum, emp) => sum + (emp.age || 0), 0) / retiredInLastYear.length)
+      : 0;
+
+    const completionRate = retiredInLastYear.length > 0
+      ? ((retiredInLastYear.filter(emp => getProgressStatus(emp) === 'completed').length / retiredInLastYear.length) * 100).toFixed(1)
+      : '0';
+
+    const avgProcessingTime = retiredInLastYear.length > 0
+      ? Math.round(retiredInLastYear.reduce((sum, emp) => {
+          if (!emp.retirement_date || !emp.date_of_submission) return sum;
+          const diff = new Date(emp.retirement_date).getTime() - new Date(emp.date_of_submission).getTime();
+          return sum + Math.max(0, diff / (1000 * 60 * 60 * 24));
+        }, 0) / retiredInLastYear.length)
+      : 0;
+
+    return {
+      totalRetired: retiredInLastYear.length,
+      avgAge,
+      completionRate,
+      avgProcessingTime,
+      period: 'Last 12 months'
+    };
+  };
+
+  const getPredictiveAnalysis = () => {
+    const now = new Date();
+    const next3Months = new Date(now.getFullYear(), now.getMonth() + 3, now.getDate());
+    const next6Months = new Date(now.getFullYear(), now.getMonth() + 6, now.getDate());
+    const next12Months = new Date(now.getFullYear(), now.getMonth() + 12, now.getDate());
+
+    const upcoming3Months = retirementEmployees.filter(emp => {
+      if (!emp.retirement_date) return false;
+      const retDate = new Date(emp.retirement_date);
+      return retDate >= now && retDate <= next3Months;
+    }).length;
+
+    const upcoming6Months = retirementEmployees.filter(emp => {
+      if (!emp.retirement_date) return false;
+      const retDate = new Date(emp.retirement_date);
+      return retDate >= now && retDate <= next6Months;
+    }).length;
+
+    const upcoming12Months = retirementEmployees.filter(emp => {
+      if (!emp.retirement_date) return false;
+      const retDate = new Date(emp.retirement_date);
+      return retDate >= now && retDate <= next12Months;
+    }).length;
+
+    const peakMonth = monthWiseData.reduce((peak, month) =>
+      month.count > peak.count ? month : peak
+    , { month: '', count: 0 });
+
+    const atRisk = retirementEmployees.filter(emp => {
+      if (!emp.retirement_date) return false;
+      const retDate = new Date(emp.retirement_date);
+      const monthsUntilRetirement = (retDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 30);
+      return monthsUntilRetirement <= 3 && getProgressStatus(emp) === 'pending';
+    }).length;
+
+    return {
+      upcoming3Months,
+      upcoming6Months,
+      upcoming12Months,
+      peakMonth: peakMonth.month,
+      peakCount: peakMonth.count,
+      atRisk
+    };
+  };
+
+  const retrospective = getRetrospectiveAnalysis();
+  const predictive = getPredictiveAnalysis();
 
   const renderBarChart = () => {
     if (reportData.length === 0) return null;
@@ -972,6 +1135,112 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
             </div>
           </div>
         </div>
+
+        {/* Analytics Section */}
+        <div className="mb-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Retrospective Analysis */}
+          <div className="bg-white rounded-lg shadow-md border border-gray-300 p-6">
+            <div className="flex items-center space-x-2 mb-6">
+              <TrendingUp className="h-5 w-5 text-blue-600" />
+              <h3 className="text-lg font-semibold text-gray-900">Retrospective Analysis</h3>
+            </div>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
+                <div>
+                  <p className="text-sm text-gray-600">Period</p>
+                  <p className="text-lg font-semibold text-gray-900">{retrospective.period}</p>
+                </div>
+                <Calendar className="h-8 w-8 text-blue-600" />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-4 bg-green-50 rounded-lg">
+                  <p className="text-sm text-gray-600">Total Retired</p>
+                  <p className="text-2xl font-bold text-green-700">{retrospective.totalRetired}</p>
+                </div>
+                <div className="p-4 bg-amber-50 rounded-lg">
+                  <p className="text-sm text-gray-600">Average Age</p>
+                  <p className="text-2xl font-bold text-amber-700">{retrospective.avgAge}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-4 bg-teal-50 rounded-lg">
+                  <p className="text-sm text-gray-600">Completion Rate</p>
+                  <p className="text-2xl font-bold text-teal-700">{retrospective.completionRate}%</p>
+                </div>
+                <div className="p-4 bg-purple-50 rounded-lg">
+                  <p className="text-sm text-gray-600">Avg Processing</p>
+                  <p className="text-2xl font-bold text-purple-700">{retrospective.avgProcessingTime}d</p>
+                </div>
+              </div>
+
+              <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <p className="text-sm text-gray-700">
+                  <strong>Insights:</strong> Over the past year, {retrospective.totalRetired} employees retired at an average age of {retrospective.avgAge}.
+                  The completion rate was {retrospective.completionRate}% with an average processing time of {retrospective.avgProcessingTime} days.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Predictive Analysis */}
+          <div className="bg-white rounded-lg shadow-md border border-gray-300 p-6">
+            <div className="flex items-center space-x-2 mb-6">
+              <TrendingUp className="h-5 w-5 text-orange-600" />
+              <h3 className="text-lg font-semibold text-gray-900">Predictive Analysis</h3>
+            </div>
+            <div className="space-y-4">
+              <div className="grid grid-cols-3 gap-3">
+                <div className="p-4 bg-orange-50 rounded-lg text-center">
+                  <p className="text-xs text-gray-600 mb-1">Next 3 Months</p>
+                  <p className="text-2xl font-bold text-orange-700">{predictive.upcoming3Months}</p>
+                </div>
+                <div className="p-4 bg-blue-50 rounded-lg text-center">
+                  <p className="text-xs text-gray-600 mb-1">Next 6 Months</p>
+                  <p className="text-2xl font-bold text-blue-700">{predictive.upcoming6Months}</p>
+                </div>
+                <div className="p-4 bg-green-50 rounded-lg text-center">
+                  <p className="text-xs text-gray-600 mb-1">Next 12 Months</p>
+                  <p className="text-2xl font-bold text-green-700">{predictive.upcoming12Months}</p>
+                </div>
+              </div>
+
+              <div className="p-4 bg-yellow-50 rounded-lg border-l-4 border-yellow-400">
+                <div className="flex items-center space-x-2">
+                  <AlertCircle className="h-5 w-5 text-yellow-600" />
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">Peak Month Alert</p>
+                    <p className="text-xs text-gray-600">
+                      {predictive.peakMonth} will have the highest retirements ({predictive.peakCount} employees)
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4 bg-red-50 rounded-lg border-l-4 border-red-400">
+                <div className="flex items-center space-x-2">
+                  <AlertCircle className="h-5 w-5 text-red-600" />
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">At-Risk Cases</p>
+                    <p className="text-xs text-gray-600">
+                      {predictive.atRisk} employees retiring within 3 months still have pending status
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <p className="text-sm text-gray-700">
+                  <strong>Forecast:</strong> Expect {predictive.upcoming3Months} retirements in the next quarter.
+                  Plan resources for {predictive.peakMonth} when peak volume occurs.
+                  {predictive.atRisk > 0 && ` Priority attention needed for ${predictive.atRisk} at-risk cases.`}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Tabs */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
           <div className="border-b border-gray-200">
