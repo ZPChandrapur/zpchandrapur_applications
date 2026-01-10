@@ -24,7 +24,9 @@ import {
   X,
   Search,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  Clock,
+  CheckCircle
 } from 'lucide-react';
 import { ermsClient, supabase } from '../lib/supabase';
 import { usePermissions } from '../hooks/usePermissions';
