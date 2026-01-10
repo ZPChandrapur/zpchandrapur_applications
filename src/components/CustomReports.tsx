@@ -130,8 +130,6 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
 
   // Retirement Dashboard Data
   const [retirementEmployees, setRetirementEmployees] = useState<any[]>([]);
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
   // Save state
   const saveState = () => {
@@ -395,8 +393,11 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
 
   const getMonthWiseData = () => {
     const monthData = [];
-    for (let i = -5; i <= 6; i++) {
-      const targetDate = new Date(selectedYear, selectedMonth + i, 1);
+    const currentDate = new Date();
+
+    // Get 12 months: current month and 11 months forward
+    for (let i = 0; i < 12; i++) {
+      const targetDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + i, 1);
       const monthName = targetDate.toLocaleString('default', { month: 'short' });
       const year = targetDate.getFullYear();
       monthData.push({
@@ -952,127 +953,19 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
 
       <div className="p-6">
         {/* Retirement Dashboard Charts Section */}
-        <div className="mb-6 space-y-6">
-          {/* KPI Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-            <div className="bg-white rounded-xl shadow-md border border-indigo-300 p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-indigo-700 font-semibold tracking-wide mb-1 uppercase">
-                    Total Retirements
-                  </p>
-                  <p className="text-2xl font-extrabold text-indigo-900">{statusCounts.total}</p>
-                </div>
-                <div className="bg-gradient-to-tr from-indigo-500 to-purple-600 p-3 rounded-2xl shadow-md">
-                  <Users className="h-6 w-6 text-white" />
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-md border border-orange-300 p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-orange-700 font-semibold tracking-wide mb-1 uppercase">
-                    Upcoming Retirements
-                  </p>
-                  <p className="text-2xl font-extrabold text-orange-800">{upcomingCount}</p>
-                  <p className="text-xs text-orange-600 font-medium">Next 6 months</p>
-                </div>
-                <div className="bg-gradient-to-tr from-orange-500 to-yellow-500 p-3 rounded-2xl shadow-md">
-                  <Calendar className="h-6 w-6 text-white" />
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-md border border-orange-300 p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-orange-700 font-semibold tracking-wide mb-1 uppercase">
-                    Processing
-                  </p>
-                  <p className="text-2xl font-extrabold text-orange-800">{statusCounts.processing}</p>
-                  <p className="text-xs text-orange-600 font-medium">With submission data</p>
-                </div>
-                <div className="bg-gradient-to-tr from-orange-500 to-yellow-500 p-3 rounded-2xl shadow-md">
-                  <Clock className="h-6 w-6 text-white" />
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-md border border-green-300 p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-green-700 font-semibold tracking-wide mb-1 uppercase">
-                    Completed
-                  </p>
-                  <p className="text-2xl font-extrabold text-green-900">{statusCounts.completed}</p>
-                  <p className="text-xs text-green-600 font-medium">Pension approved</p>
-                </div>
-                <div className="bg-gradient-to-tr from-green-500 to-teal-500 p-3 rounded-2xl shadow-md">
-                  <CheckCircle className="h-6 w-6 text-white" />
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-md border border-purple-300 p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-purple-700 font-semibold tracking-wide mb-1 uppercase">
-                    Pending
-                  </p>
-                  <p className="text-2xl font-extrabold text-purple-600">{statusCounts.pending}</p>
-                  <p className="text-xs text-purple-600 font-medium">Awaiting approval</p>
-                </div>
-                <div className="bg-gradient-to-tr from-purple-500 to-indigo-600 p-3 rounded-2xl shadow-md">
-                  <FileText className="h-6 w-6 text-white" />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Charts Row */}
+        <div className="mb-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Month-wise Retirement Count Line Chart */}
             <div className="bg-white rounded-lg shadow-md border border-gray-300 p-6">
-              <div className="flex items-center justify-between mb-6">
+              <div className="mb-6">
                 <h3 className="text-lg font-semibold text-gray-900">Month-wise Retirement Count</h3>
-                <div className="flex items-center space-x-2">
-                  <select
-                    value={selectedMonth}
-                    onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
-                    className="px-3 py-1 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    {Array.from({ length: 12 }, (_, i) => {
-                      const date = new Date(2024, i, 1);
-                      return (
-                        <option key={i} value={i}>
-                          {date.toLocaleString('default', { month: 'long' })}
-                        </option>
-                      );
-                    })}
-                  </select>
-                  <select
-                    value={selectedYear}
-                    onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-                    className="px-3 py-1 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    {Array.from({ length: 5 }, (_, i) => {
-                      const year = new Date().getFullYear() - 2 + i;
-                      return (
-                        <option key={year} value={year}>
-                          {year}
-                        </option>
-                      );
-                    })}
-                  </select>
-                </div>
               </div>
               {renderLineChart(monthWiseData)}
             </div>
 
             {/* Status Distribution Pie Chart */}
             <div className="bg-white rounded-lg shadow-md border border-gray-300 p-6">
-              <div className="flex items-center justify-between mb-6">
+              <div className="mb-6">
                 <h3 className="text-lg font-semibold text-gray-900">Retirement Status Distribution</h3>
               </div>
               {renderPieChart(pieChartData)}
