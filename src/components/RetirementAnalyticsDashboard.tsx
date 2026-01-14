@@ -190,12 +190,16 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
     return 'in_progress';
   };
 
+  const getRetirementEmployees = () => {
+    return allEmployees.filter(emp => emp.retirement_date);
+  };
+
   const calculateUpcomingRetirements = () => {
     const sixMonthsFromNow = new Date();
     sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
+    const retirementEmployees = getRetirementEmployees();
 
-    return allEmployees.filter(emp => {
-      if (!emp.retirement_date) return false;
+    return retirementEmployees.filter(emp => {
       const retirementDate = new Date(emp.retirement_date);
       const now = new Date();
       return retirementDate >= now && retirementDate <= sixMonthsFromNow;
@@ -207,7 +211,9 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
     let inProgress = 0;
     let pending = 0;
 
-    allEmployees.forEach(emp => {
+    const retirementEmployees = getRetirementEmployees();
+
+    retirementEmployees.forEach(emp => {
       const status = getProgressStatus(emp.emp_id);
       if (status === 'completed') completed++;
       else if (status === 'in_progress') inProgress++;
@@ -219,8 +225,9 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
 
   const getTopPerformingClerks = () => {
     const clerkPerformance: { [key: string]: { name: string; completed: number; inProgress: number; total: number } } = {};
+    const retirementEmployees = getRetirementEmployees();
 
-    allEmployees.forEach(emp => {
+    retirementEmployees.forEach(emp => {
       if (!emp.assigned_clerk) return;
 
       const status = getProgressStatus(emp.emp_id);
@@ -250,8 +257,9 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
 
   const getTopPerformingOfficers = () => {
     const officerPerformance: { [key: string]: { name: string; completed: number; inProgress: number; total: number } } = {};
+    const retirementEmployees = getRetirementEmployees();
 
-    allEmployees.forEach(emp => {
+    retirementEmployees.forEach(emp => {
       if (!emp.officer_assigned) return;
 
       const status = getProgressStatus(emp.emp_id);
@@ -294,16 +302,15 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
       });
     }
 
-    allEmployees.forEach(emp => {
-      if (emp.retirement_date) {
-        const retirementDate = new Date(emp.retirement_date);
-        const monthIndex = monthData.findIndex(m =>
-          m.fullDate.getMonth() === retirementDate.getMonth() &&
-          m.fullDate.getFullYear() === retirementDate.getFullYear()
-        );
-        if (monthIndex !== -1) {
-          monthData[monthIndex].count++;
-        }
+    const retirementEmployees = getRetirementEmployees();
+    retirementEmployees.forEach(emp => {
+      const retirementDate = new Date(emp.retirement_date);
+      const monthIndex = monthData.findIndex(m =>
+        m.fullDate.getMonth() === retirementDate.getMonth() &&
+        m.fullDate.getFullYear() === retirementDate.getFullYear()
+      );
+      if (monthIndex !== -1) {
+        monthData[monthIndex].count++;
       }
     });
 
@@ -314,8 +321,8 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
     const now = new Date();
     const twelveMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 12, 1);
 
-    const retiredInLast12Months = allEmployees.filter(emp => {
-      if (!emp.retirement_date) return false;
+    const retirementEmployees = getRetirementEmployees();
+    const retiredInLast12Months = retirementEmployees.filter(emp => {
       const retirementDate = new Date(emp.retirement_date);
       return retirementDate >= twelveMonthsAgo && retirementDate <= now;
     });
@@ -354,32 +361,29 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
 
   const getPredictiveAnalysis = () => {
     const now = new Date();
+    const retirementEmployees = getRetirementEmployees();
 
     const next3Months = new Date(now.getFullYear(), now.getMonth() + 3, 1);
     const next6Months = new Date(now.getFullYear(), now.getMonth() + 6, 1);
     const next12Months = new Date(now.getFullYear(), now.getMonth() + 12, 1);
 
-    const count3Months = allEmployees.filter(emp => {
-      if (!emp.retirement_date) return false;
+    const count3Months = retirementEmployees.filter(emp => {
       const retirementDate = new Date(emp.retirement_date);
       return retirementDate >= now && retirementDate < next3Months;
     }).length;
 
-    const count6Months = allEmployees.filter(emp => {
-      if (!emp.retirement_date) return false;
+    const count6Months = retirementEmployees.filter(emp => {
       const retirementDate = new Date(emp.retirement_date);
       return retirementDate >= now && retirementDate < next6Months;
     }).length;
 
-    const count12Months = allEmployees.filter(emp => {
-      if (!emp.retirement_date) return false;
+    const count12Months = retirementEmployees.filter(emp => {
       const retirementDate = new Date(emp.retirement_date);
       return retirementDate >= now && retirementDate < next12Months;
     }).length;
 
     const monthCounts: { [key: string]: { count: number; fullDate: Date } } = {};
-    allEmployees.forEach(emp => {
-      if (!emp.retirement_date) return;
+    retirementEmployees.forEach(emp => {
       const retirementDate = new Date(emp.retirement_date);
       if (retirementDate >= now && retirementDate < next12Months) {
         const monthKey = retirementDate.toLocaleString('en-US', { month: 'short', day: 'numeric' });
@@ -393,8 +397,7 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
     const peakMonth = Object.entries(monthCounts)
       .sort((a, b) => b[1].count - a[1].count)[0];
 
-    const atRiskEmployees = allEmployees.filter(emp => {
-      if (!emp.retirement_date) return false;
+    const atRiskEmployees = retirementEmployees.filter(emp => {
       const retirementDate = new Date(emp.retirement_date);
       if (retirementDate < now || retirementDate >= next3Months) return false;
       const status = getProgressStatus(emp.emp_id);
@@ -414,8 +417,9 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
 
   const getWeeklyDataUpdateMatrix = () => {
     const weeklyData: { [key: string]: { clerk: string; updates: number; lastUpdate: Date | null } } = {};
+    const retirementEmployees = getRetirementEmployees();
 
-    allEmployees.forEach(emp => {
+    retirementEmployees.forEach(emp => {
       if (!emp.assigned_clerk) return;
 
       const clerk = clerks.find(c => c.user_id === emp.assigned_clerk);
@@ -674,6 +678,7 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
   const topOfficers = getTopPerformingOfficers();
   const retrospective = getRetrospectiveAnalysis();
   const predictive = getPredictiveAnalysis();
+  const totalRetirementEmployees = getRetirementEmployees().length;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -711,9 +716,9 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-blue-700 font-semibold">
-                  {isMarathi ? 'एकूण कर्मचारी' : 'Total Employees'}
+                  {isMarathi ? 'एकूण सेवानिवृत्ती' : 'Total Retirement'}
                 </p>
-                <p className="text-3xl font-bold text-blue-900 mt-2">{allEmployees.length}</p>
+                <p className="text-3xl font-bold text-blue-900 mt-2">{totalRetirementEmployees}</p>
               </div>
               <div className="bg-blue-100 p-3 rounded-lg">
                 <Users className="h-8 w-8 text-blue-600" />
@@ -742,11 +747,11 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-yellow-700 font-semibold">
-                  {isMarathi ? 'प्रक्रिया' : 'In Progress'}
+                  {isMarathi ? 'प्रक्रिया' : 'Processing'}
                 </p>
                 <p className="text-3xl font-bold text-yellow-600 mt-2">{statusCounts.inProgress}</p>
                 <p className="text-xs text-yellow-600 mt-1">
-                  {isMarathi ? 'प्रलंबित प्रकरण' : 'Active cases'}
+                  {isMarathi ? 'सेवानिवृत्त डेटासेट' : 'Retirement Dataset'}
                 </p>
               </div>
               <div className="bg-yellow-100 p-3 rounded-lg">
@@ -763,7 +768,7 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
                 </p>
                 <p className="text-3xl font-bold text-green-600 mt-2">{statusCounts.completed}</p>
                 <p className="text-xs text-green-600 mt-1">
-                  {isMarathi ? 'प्रकरण बंद' : 'Cases closed'}
+                  {isMarathi ? 'मंजूरी मंजूर' : 'Approval Granted'}
                 </p>
               </div>
               <div className="bg-green-100 p-3 rounded-lg">
@@ -780,7 +785,7 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
                 </p>
                 <p className="text-3xl font-bold text-purple-600 mt-2">{statusCounts.pending}</p>
                 <p className="text-xs text-purple-600 mt-1">
-                  {isMarathi ? 'प्रारंभ नाही' : 'Not started'}
+                  {isMarathi ? 'मंजूरीची प्रतीक्षा' : 'Awaiting Approval'}
                 </p>
               </div>
               <div className="bg-purple-100 p-3 rounded-lg">
