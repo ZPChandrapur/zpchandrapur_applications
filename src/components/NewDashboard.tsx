@@ -971,13 +971,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
 
             {/* Right side navigation with proper spacing */}
             <div className="flex items-center space-x-8">
-            {/* Maharashtra Government Logo */}
-            <div className="bg-white/10 backdrop-blur-sm p-2 rounded-xl border-2 border-white/30 shadow-xl">
-              <img
-                src="govtmh_logo.png"
-                alt="Government of Maharashtra"
-                className="h-20 w-auto object-contain"/>
-            </div>
             <LanguageSwitcher />
             {/* <a href="#dashboard" className="text-white hover:text-yellow-300 transition-colors font-semibold drop-shadow">Dashboard</a> */}
             {/* <a href="#reports" className="text-white hover:text-yellow-300 transition-colors font-semibold drop-shadow">Reports</a> */}
@@ -1054,7 +1047,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
                 </div>
             )}
             </div>
+               {/* Maharashtra Government Logo */}
+            <div className="bg-white/10 backdrop-blur-sm p-2 rounded-xl border-2 border-white/30 shadow-xl">
+              <img
+                src="govtmh_logo.png"
+                alt="Government of Maharashtra"
+                className="h-20 w-auto object-contain"/>
             </div>
+            </div>
+          
         </nav>
 
         {/* Hero Image Slider */}
