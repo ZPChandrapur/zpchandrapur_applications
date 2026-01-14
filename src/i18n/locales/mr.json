@@ -139,6 +139,8 @@
     "mobileApp": "मोबाइल अॅप"
   },
   "erms": {
+    "analyticsDashboard": "डॅशबोर्ड",
+    "analyticsDashboardDesc": "सेवानिवृत्ती विश्लेषण आणि मुख्य मेट्रिक्स",
     "organizationSetup": "संस्था सेटअप",
     "organizationSetupDesc": "संस्थात्मक रचना आणि मास्टर डेटा व्यवस्थापित करा",
     "retirementDashboard": "सेवानिवृत्ती डॅशबोर्ड",

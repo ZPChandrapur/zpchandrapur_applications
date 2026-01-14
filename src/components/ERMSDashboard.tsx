@@ -89,8 +89,8 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user }) => {
   const modules = [
     {
       id: 'analytics-dashboard',
-      name: 'Dashboard',
-      description: 'Retirement analytics and insights',
+      name: t('erms.analyticsDashboard'),
+      description: t('erms.analyticsDashboardDesc'),
       icon: BarChart3,
       color: 'bg-indigo-600',
       hoverColor: 'hover:bg-indigo-700',

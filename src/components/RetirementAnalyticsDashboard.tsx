@@ -202,13 +202,11 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
   };
 
   const getStatusCounts = () => {
-    const employeesWithRetirement = allEmployees.filter(emp => emp.retirement_date);
-
     let completed = 0;
     let inProgress = 0;
     let pending = 0;
 
-    employeesWithRetirement.forEach(emp => {
+    allEmployees.forEach(emp => {
       const status = getProgressStatus(emp.emp_id);
       if (status === 'completed') completed++;
       else if (status === 'in_progress') inProgress++;
@@ -515,7 +513,7 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-blue-700 font-semibold">
-                  {isMarathi ? 'एकूण सेवानिवृत्ती' : 'Total Employees'}
+                  {isMarathi ? 'एकूण कर्मचारी' : 'Total Employees'}
                 </p>
                 <p className="text-3xl font-bold text-blue-900 mt-2">{allEmployees.length}</p>
               </div>

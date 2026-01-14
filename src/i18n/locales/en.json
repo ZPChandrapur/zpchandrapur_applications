@@ -140,6 +140,8 @@
     "mobileApp": "Mobile App"
   },
   "erms": {
+    "analyticsDashboard": "Dashboard",
+    "analyticsDashboardDesc": "Retirement analytics and insights",
     "organizationSetup": "Organization Setup",
     "organizationSetupDesc": "Manage organizational structure and master data",
     "departments": "Departments",
