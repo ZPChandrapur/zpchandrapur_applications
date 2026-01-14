@@ -88,21 +88,21 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user }) => {
 
   const modules = [
     {
-      id: 'employee-dashboard',
-      name: t('erms.employeeDashboard'),
-      description: t('erms.employeeDashboardDesc'),
-      icon: Users,
-      color: 'bg-blue-600',
-      hoverColor: 'hover:bg-blue-700',
-      requiredPermission: 'read'
-    },
-    {
       id: 'analytics-dashboard',
       name: 'Dashboard',
       description: 'Retirement analytics and insights',
       icon: BarChart3,
       color: 'bg-indigo-600',
       hoverColor: 'hover:bg-indigo-700',
+      requiredPermission: 'read'
+    },
+    {
+      id: 'employee-dashboard',
+      name: t('erms.employeeDashboard'),
+      description: t('erms.employeeDashboardDesc'),
+      icon: Users,
+      color: 'bg-blue-600',
+      hoverColor: 'hover:bg-blue-700',
       requiredPermission: 'read'
     },
     {
