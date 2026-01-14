@@ -1045,20 +1045,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
 
         {/* Hero Image Slider */}
         <ImageSlider />
-
-
-        {/* Stats Section */}
-        <section className="relative -mt-22 z-30 max-w-7xl mx-auto px-8">
-        <div className="bg-gradient-to-r from-yellow-400 via-green-400 to-amber-500 rounded-2xl shadow-2xl p-1">
-            <div className="bg-white rounded-xl overflow-hidden">
-            <img
-                src="Chanda.png"
-                alt="Statistics Header"
-                className="w-full h-full object-cover"
-            />
-            </div>
-        </div>
-        </section>
       
 
       {/* Officials Section */}
