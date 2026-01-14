@@ -24,6 +24,7 @@ import { RetirementDashboard } from './RetirementDashboard';
 import { RetirementTracker } from './RetirementTracker';
 import { InstructionsDashboard } from './InstructionsDashboard';
 import { CustomReports } from './CustomReports';
+import { RetirementAnalyticsDashboard } from './RetirementAnalyticsDashboard';
 import { usePermissions } from '../hooks/usePermissions';
 import { supabase } from "../lib/supabase"; // adjust import path if needed
 import type { User as SupabaseUser } from '@supabase/supabase-js';
@@ -96,6 +97,15 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user }) => {
       requiredPermission: 'read'
     },
     {
+      id: 'analytics-dashboard',
+      name: 'Dashboard',
+      description: 'Retirement analytics and insights',
+      icon: BarChart3,
+      color: 'bg-indigo-600',
+      hoverColor: 'hover:bg-indigo-700',
+      requiredPermission: 'read'
+    },
+    {
       id: 'organization-setup',
       name: t('erms.organizationSetup'),
       description: t('erms.organizationSetupDesc'),
@@ -122,20 +132,11 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user }) => {
       hoverColor: 'hover:bg-purple-700',
       requiredPermission: 'write'
     },
-    // {
-    //   id: 'retirement-file-tracker',
-    //   name: t('erms.retirementFileTracker'),
-    //   description: t('erms.retirementFileTrackerDesc'),
-    //   icon: FolderOpen,
-    //   color: 'bg-indigo-600',
-    //   hoverColor: 'hover:bg-indigo-700',
-    //   requiredPermission: 'read'
-    // },
     {
       id: 'custom-reports',
       name: t('erms.customReports'),
       description: t('erms.customReportsDesc'),
-      icon: BarChart3,
+      icon: ClipboardList,
       color: 'bg-teal-600',
       hoverColor: 'hover:bg-teal-700',
       requiredPermission: 'read'
@@ -187,6 +188,9 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user }) => {
       <>
         <div style={{ display: activeModule === 'employee-dashboard' ? 'block' : 'none' }}>
           <EmployeeDashboard onBack={handleBackToMain} />
+        </div>
+        <div style={{ display: activeModule === 'analytics-dashboard' ? 'block' : 'none' }}>
+          <RetirementAnalyticsDashboard user={user} onBack={handleBackToMain} />
         </div>
         <div style={{ display: activeModule === 'organization-setup' ? 'block' : 'none' }}>
           <OrganizationSetup onBack={handleBackToMain} />
