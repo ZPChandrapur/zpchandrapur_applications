@@ -939,18 +939,26 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-yellow-50 to-green-50">
       {/* Navigation Header */}
         <nav className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between px-8 py-6">
-            
-            {/* Logo and Title */}
-            <div className="flex items-center space-x-3">
-            {/* <div className="bg-gradient-to-br from-yellow-400 to-amber-500 p-3 rounded-lg shadow-lg border-2 border-yellow-300"> */}
-                <div className="bg-transparent p-0 rounded-lg shadow-lg border-2 border-white/30">
-                {/* <Building2 className="w-8 h-8 text-brown-900" /> */}
-                <img 
-                src="Zpchandrapurlogo.png" 
-                alt="ZP Chandrapur Logo" 
-                className="h-24 w-24 object-contain rounded-2xl shadow-lg"/>
-            </div>
-            <div className="flex items-center space-x-3">
+
+            {/* Left side - Emblem and ZP Logo with Title */}
+            <div className="flex items-center space-x-4">
+              {/* Emblem */}
+              <div className="bg-white/10 backdrop-blur-sm p-2 rounded-xl border-2 border-white/30 shadow-xl">
+                <img
+                  src="emblem.svg"
+                  alt="Government Emblem"
+                  className="h-20 w-20 object-contain"/>
+              </div>
+
+              {/* ZP Chandrapur Logo */}
+              <div className="bg-transparent p-0 rounded-lg shadow-lg border-2 border-white/30">
+                <img
+                  src="Zpchandrapurlogo.png"
+                  alt="ZP Chandrapur Logo"
+                  className="h-24 w-24 object-contain rounded-2xl shadow-lg"/>
+              </div>
+
+              {/* Title */}
               <div>
                 <h1 className="text-white text-3xl font-bold tracking-tight drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)]">
                   {t('dashboard.title')}
@@ -960,10 +968,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
                 </p>
               </div>
             </div>
-            </div>
 
             {/* Right side navigation with proper spacing */}
             <div className="flex items-center space-x-8">
+            {/* Maharashtra Government Logo */}
+            <div className="bg-white/10 backdrop-blur-sm p-2 rounded-xl border-2 border-white/30 shadow-xl">
+              <img
+                src="govtmh_logo.png"
+                alt="Government of Maharashtra"
+                className="h-20 w-auto object-contain"/>
+            </div>
             <LanguageSwitcher />
             {/* <a href="#dashboard" className="text-white hover:text-yellow-300 transition-colors font-semibold drop-shadow">Dashboard</a> */}
             {/* <a href="#reports" className="text-white hover:text-yellow-300 transition-colors font-semibold drop-shadow">Reports</a> */}
@@ -1045,21 +1059,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
 
         {/* Hero Image Slider */}
         <ImageSlider />
-
-
-        {/* Stats Section */}
-        <section className="relative -mt-22 z-30 max-w-7xl mx-auto px-8">
-        <div className="bg-gradient-to-r from-yellow-400 via-green-400 to-amber-500 rounded-2xl shadow-2xl p-1">
-            <div className="bg-white rounded-xl overflow-hidden">
-            <img
-                src="Chanda.png"
-                alt="Statistics Header"
-                className="w-full h-full object-cover"
-            />
-            </div>
-        </div>
-        </section>
-      
 
       {/* Officials Section */}
       <section className="max-w-7xl mx-auto px-8 py-12">
@@ -1214,7 +1213,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
         )} */}
 
 
-        <div className={`grid grid-cols-1 ${isMobile ? 'gap-4' : 'md:grid-cols-2 gap-8'}`}>
+        <div className={`flex ${isMobile ? 'flex-col gap-4' : 'flex-row gap-6 justify-center items-stretch'} flex-wrap`}>
             {visibleSystems.map((system) => {
                 // PESA whitelist - these emails have unrestricted PESA access
                 const pesaWhitelist = [
@@ -1234,7 +1233,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
                     <div
                         key={system.id}
                         onClick={() => handleAppClick(system.id)}
-                        className={`group relative bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:-translate-y-2 border-2 border-yellow-200 hover:border-yellow-400 cursor-pointer ${!hasPermission ? 'opacity-75' : ''}`}
+                        className={`group relative bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:-translate-y-2 border-2 border-yellow-200 hover:border-yellow-400 cursor-pointer ${!hasPermission ? 'opacity-75' : ''} ${isMobile ? 'w-full' : 'flex-1 min-w-[280px] max-w-[320px]'}`}
                     >
                         <div className={`absolute inset-0 bg-gradient-to-br ${system.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}></div>
 
@@ -1245,23 +1244,23 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
                             </div>
                         )}
 
-                        <div className="p-8">
-                            <div className={`inline-flex p-4 rounded-xl bg-gradient-to-br ${system.color} mb-5 shadow-lg transform group-hover:scale-110 transition-transform duration-300`}>
+                        <div className="p-6">
+                            <div className={`inline-flex p-4 rounded-xl bg-gradient-to-br ${system.color} mb-4 shadow-lg transform group-hover:scale-110 transition-transform duration-300`}>
                                 <system.icon className="w-8 h-8 text-white" />
                             </div>
-                            <h3 className="text-2xl font-bold text-brown-900 mb-1 group-hover:text-green-700 transition-colors">
+                            <h3 className="text-xl font-bold text-brown-900 mb-1 group-hover:text-green-700 transition-colors">
                                 {system.name}
                             </h3>
-                            <p className="text-brown-600 mb-2 leading-relaxed font-bold">
+                            <p className="text-brown-600 mb-2 leading-relaxed font-bold text-sm">
                                 {system.fullName}
                             </p>
-                            <p className="text-brown-600 mb-6 leading-relaxed">
+                            <p className="text-brown-600 mb-4 leading-relaxed text-sm">
                                 {system.description}
                             </p>
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center text-green-700 font-bold group-hover:gap-2 transition-all">
+                            <div className="flex items-center justify-between mt-auto">
+                                <div className="flex items-center text-green-700 font-bold group-hover:gap-2 transition-all text-sm">
                                     <span>Launch Application</span>
-                                    <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                    <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                                 </div>
                                 {!hasPermission && (
                                     <span className="text-xs text-red-600 font-semibold bg-red-50 px-3 py-1 rounded-full">
