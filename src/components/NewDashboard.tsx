@@ -654,6 +654,19 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
 
   const systems = [
     {
+      id: 'pesa',
+      name: t('systems.pesa.name'),
+      fullName: t('systems.pesa.fullName'),
+      description: t('systems.pesa.description'),
+      icon: TrendingUp,
+      color: 'bg-gradient-to-br from-sky-300 via-blue-400 to-indigo-500',
+      hoverColor: 'hover:from-sky-200 hover:via-blue-300 hover:to-indigo-400',
+      headerColor: 'bg-gradient-to-r from-sky-300 to-indigo-400',
+      type: t('systems.pesa.webApplication'),
+      mobileOnly: false,
+      applicationName: 'pesa'
+    },
+    {
       id: 'erms',
       name: t('systems.erms.name'),
       fullName: t('systems.erms.fullName'),
@@ -665,19 +678,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
       type: t('systems.erms.webApplication'),
       mobileOnly: false,
       applicationName: 'erms'
-    },
-    {
-      id: 'estimate',
-      name: t('systems.estimate.name'),
-      fullName: t('systems.estimate.fullName'),
-      description: t('systems.estimate.description'),
-      icon: FileText,
-      color: 'bg-gradient-to-br from-emerald-400 via-green-500 to-teal-600',
-      hoverColor: 'hover:from-emerald-300 hover:via-green-400 hover:to-teal-500',
-      headerColor: 'bg-gradient-to-r from-emerald-300 to-teal-400',
-      type: t('systems.estimate.mobileApplication'),
-      mobileOnly: true,
-      applicationName: 'estimate'
     },
     {
       id: 'fims',
@@ -693,17 +693,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
       applicationName: 'fims'
     },
     {
-      id: 'pesa',
-      name: t('systems.pesa.name'),
-      fullName: t('systems.pesa.fullName'),
-      description: t('systems.pesa.description'),
-      icon: TrendingUp,
-      color: 'bg-gradient-to-br from-sky-300 via-blue-400 to-indigo-500',
-      hoverColor: 'hover:from-sky-200 hover:via-blue-300 hover:to-indigo-400',
-      headerColor: 'bg-gradient-to-r from-sky-300 to-indigo-400',
-      type: t('systems.pesa.webApplication'),
-      mobileOnly: false,
-      applicationName: 'pesa'
+      id: 'estimate',
+      name: t('systems.estimate.name'),
+      fullName: t('systems.estimate.fullName'),
+      description: t('systems.estimate.description'),
+      icon: FileText,
+      color: 'bg-gradient-to-br from-emerald-400 via-green-500 to-teal-600',
+      hoverColor: 'hover:from-emerald-300 hover:via-green-400 hover:to-teal-500',
+      headerColor: 'bg-gradient-to-r from-emerald-300 to-teal-400',
+      type: t('systems.estimate.mobileApplication'),
+      mobileOnly: true,
+      applicationName: 'estimate'
     },
   ];
 
