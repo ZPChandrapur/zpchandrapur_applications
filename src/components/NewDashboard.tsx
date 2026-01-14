@@ -404,189 +404,213 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
 
   const handleEstimateClick = async () => {
     try {
-      //console.log('🚀 E-estimate: Starting authentication transfer...');
+      console.log('🚀 E-estimate: Starting SSO authentication transfer...');
+
       // Get current session
       const { data: { session }, error } = await supabase.auth.getSession();
-      
+
       if (error) {
         console.error('❌ E-estimate: Error getting session:', error);
-        // Open without auth if session fetch fails
+        alert('Authentication Error: Unable to get current session. Please try logging in directly to E-estimate.');
         window.open('https://estimatemb.zpchandrapurapps.com/', '_blank', 'noopener,noreferrer');
         return;
       }
 
       if (session?.access_token && session?.refresh_token) {
-        //console.log('🔑 E-estimate: Valid session found, preparing auth transfer...');
-        // Method 1: Try localStorage approach
+        console.log('🔑 E-estimate: Valid session found, transferring credentials...');
+
+        // Method 1: LocalStorage (works for same-origin or if apps share domain)
         try {
           const authData = {
             access_token: session.access_token,
             refresh_token: session.refresh_token,
-            user: session.user,
+            user: {
+              id: session.user.id,
+              email: session.user.email,
+              user_metadata: session.user.user_metadata
+            },
             expires_at: session.expires_at,
             auto_login: true,
             source_app: 'zp_chandrapur_main',
             timestamp: Date.now()
           };
-          
+
           localStorage.setItem('estimate_auth_transfer', JSON.stringify(authData));
-          //console.log('💾 E-estimate: Auth data stored in localStorage');
-          
-          // Clean up after 30 seconds
+          console.log('💾 E-estimate: Auth data stored in localStorage');
+
+          // Auto cleanup after 30 seconds for security
           setTimeout(() => {
             localStorage.removeItem('estimate_auth_transfer');
             console.log('🧹 E-estimate: Auth data cleaned up from localStorage');
           }, 30000);
-          
+
         } catch (storageError) {
           console.warn('⚠️ E-estimate: localStorage not available:', storageError);
         }
-        
-        // Method 2: URL parameters as fallback
+
+        // Method 2: URL parameters (more reliable for cross-origin)
         const estimateUrl = new URL('https://estimatemb.zpchandrapurapps.com/');
         estimateUrl.searchParams.set('auto_login', 'true');
         estimateUrl.searchParams.set('access_token', session.access_token);
         estimateUrl.searchParams.set('refresh_token', session.refresh_token);
         estimateUrl.searchParams.set('source', 'zp_main');
-        
-        //console.log('🌐 E-estimate: Opening with auth data...');
+        estimateUrl.searchParams.set('user_email', session.user.email || '');
+
+        console.log('🌐 E-estimate: Opening with SSO credentials...');
+        console.log('✅ E-estimate: User should be automatically logged in');
+
         // Open E-estimate with auth data
         window.open(estimateUrl.toString(), '_blank', 'noopener,noreferrer');
       } else {
         console.warn('⚠️ E-estimate: No valid session found');
-        // Open without auth
+        alert('No active session found. You will need to login to E-estimate separately.');
         window.open('https://estimatemb.zpchandrapurapps.com/', '_blank', 'noopener,noreferrer');
       }
     } catch (error) {
-      console.error('❌ E-estimate: Error in handleEstimateClick:', error);
-      // Fallback: open without auth
+      console.error('❌ E-estimate: Error in SSO transfer:', error);
+      alert('Error during authentication transfer. Opening E-estimate - you may need to login.');
       window.open('https://estimatemb.zpchandrapurapps.com/', '_blank', 'noopener,noreferrer');
     }
   };
 
   const handleFIMSClick = async () => {
     try {
-     // console.log('🚀 FIMS: Starting authentication transfer...');
+      console.log('🚀 FIMS: Starting SSO authentication transfer...');
+
       // Get current session
       const { data: { session }, error } = await supabase.auth.getSession();
-      
+
       if (error) {
         console.error('❌ FIMS: Error getting session:', error);
-        // Open without auth if session fetch fails
+        alert('Authentication Error: Unable to get current session. Please try logging in directly to FIMS.');
         window.open('https://fieldinspection.zpchandrapurapps.com/', '_blank', 'noopener,noreferrer');
         return;
       }
 
       if (session?.access_token && session?.refresh_token) {
-        console.log('🔑 FIMS: Valid session found, preparing auth transfer...');
-        
-        // Method 1: Try localStorage approach
+        console.log('🔑 FIMS: Valid session found, transferring credentials...');
+
+        // Method 1: LocalStorage (works for same-origin or if apps share domain)
         try {
           const authData = {
             access_token: session.access_token,
             refresh_token: session.refresh_token,
-            user: session.user,
+            user: {
+              id: session.user.id,
+              email: session.user.email,
+              user_metadata: session.user.user_metadata
+            },
             expires_at: session.expires_at,
             auto_login: true,
             source_app: 'zp_chandrapur_main',
             timestamp: Date.now()
           };
-          
+
           localStorage.setItem('fims_auth_transfer', JSON.stringify(authData));
-         // console.log('💾 FIMS: Auth data stored in localStorage');
-          
-          // Clean up after 30 seconds
+          console.log('💾 FIMS: Auth data stored in localStorage');
+
+          // Auto cleanup after 30 seconds for security
           setTimeout(() => {
             localStorage.removeItem('fims_auth_transfer');
-            //console.log('🧹 FIMS: Auth data cleaned up from localStorage');
+            console.log('🧹 FIMS: Auth data cleaned up from localStorage');
           }, 30000);
-          
+
         } catch (storageError) {
           console.warn('⚠️ FIMS: localStorage not available:', storageError);
         }
-        
-        // Method 2: URL parameters as fallback
+
+        // Method 2: URL parameters (more reliable for cross-origin)
         const fimsUrl = new URL('https://fieldinspection.zpchandrapurapps.com/');
         fimsUrl.searchParams.set('auto_login', 'true');
         fimsUrl.searchParams.set('access_token', session.access_token);
         fimsUrl.searchParams.set('refresh_token', session.refresh_token);
         fimsUrl.searchParams.set('source', 'zp_main');
-        
-       // console.log('🌐 FIMS: Opening with auth data...');
+        fimsUrl.searchParams.set('user_email', session.user.email || '');
+
+        console.log('🌐 FIMS: Opening with SSO credentials...');
+        console.log('✅ FIMS: User should be automatically logged in');
+
         // Open FIMS with auth data
         window.open(fimsUrl.toString(), '_blank', 'noopener,noreferrer');
       } else {
         console.warn('⚠️ FIMS: No valid session found');
-        // Open without auth
+        alert('No active session found. You will need to login to FIMS separately.');
         window.open('https://fieldinspection.zpchandrapurapps.com/', '_blank', 'noopener,noreferrer');
       }
     } catch (error) {
-      console.error('❌ FIMS: Error in handleFIMSClick:', error);
-      // Fallback: open without auth
+      console.error('❌ FIMS: Error in SSO transfer:', error);
+      alert('Error during authentication transfer. Opening FIMS - you may need to login.');
       window.open('https://fieldinspection.zpchandrapurapps.com/', '_blank', 'noopener,noreferrer');
     }
   };
 
   const handlePESAClick = async () => {
     try {
-     // console.log('🚀 PESA: Starting authentication transfer...');
+      console.log('🚀 PESA: Starting SSO authentication transfer...');
+
       // Get current session
       const { data: { session }, error } = await supabase.auth.getSession();
-      
+
       if (error) {
         console.error('❌ PESA: Error getting session:', error);
-        // Open without auth if session fetch fails
+        alert('Authentication Error: Unable to get current session. Please try logging in directly to PESA.');
         window.open('https://pesaworks.zpchandrapurapps.com/', '_blank', 'noopener,noreferrer');
         return;
       }
 
-      //https://zpchandrapur-pesa-fi-r90q.bolt.host
       if (session?.access_token && session?.refresh_token) {
-        console.log('🔑 PESA: Valid session found, preparing auth transfer...');
-        
-        // Method 1: Try localStorage approach
+        console.log('🔑 PESA: Valid session found, transferring credentials...');
+
+        // Method 1: LocalStorage (works for same-origin or if apps share domain)
         try {
           const authData = {
             access_token: session.access_token,
             refresh_token: session.refresh_token,
-            user: session.user,
+            user: {
+              id: session.user.id,
+              email: session.user.email,
+              user_metadata: session.user.user_metadata
+            },
             expires_at: session.expires_at,
             auto_login: true,
             source_app: 'zp_chandrapur_main',
             timestamp: Date.now()
           };
-          
+
           localStorage.setItem('pesa_auth_transfer', JSON.stringify(authData));
           console.log('💾 PESA: Auth data stored in localStorage');
-          
-          // Clean up after 30 seconds
+
+          // Auto cleanup after 30 seconds for security
           setTimeout(() => {
             localStorage.removeItem('pesa_auth_transfer');
             console.log('🧹 PESA: Auth data cleaned up from localStorage');
           }, 30000);
-          
+
         } catch (storageError) {
           console.warn('⚠️ PESA: localStorage not available:', storageError);
         }
-        
-        // Method 2: URL parameters as fallback
+
+        // Method 2: URL parameters (more reliable for cross-origin)
         const pesaUrl = new URL('https://pesaworks.zpchandrapurapps.com/');
         pesaUrl.searchParams.set('auto_login', 'true');
         pesaUrl.searchParams.set('access_token', session.access_token);
         pesaUrl.searchParams.set('refresh_token', session.refresh_token);
         pesaUrl.searchParams.set('source', 'zp_main');
-        
-        //console.log('🌐 PESA: Opening with auth data...');
+        pesaUrl.searchParams.set('user_email', session.user.email || '');
+
+        console.log('🌐 PESA: Opening with SSO credentials...');
+        console.log('✅ PESA: User should be automatically logged in');
+
         // Open PESA with auth data
         window.open(pesaUrl.toString(), '_blank', 'noopener,noreferrer');
       } else {
         console.warn('⚠️ PESA: No valid session found');
-        // Open without auth
+        alert('No active session found. You will need to login to PESA separately.');
         window.open('https://pesaworks.zpchandrapurapps.com/', '_blank', 'noopener,noreferrer');
       }
     } catch (error) {
-      console.error('❌ PESA: Error in handlePESAClick:', error);
-      // Fallback: open without auth
+      console.error('❌ PESA: Error in SSO transfer:', error);
+      alert('Error during authentication transfer. Opening PESA - you may need to login.');
       window.open('https://pesaworks.zpchandrapurapps.com/', '_blank', 'noopener,noreferrer');
     }
   };
