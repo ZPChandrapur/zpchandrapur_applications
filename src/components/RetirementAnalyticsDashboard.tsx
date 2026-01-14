@@ -3,15 +3,15 @@ import { useTranslation } from 'react-i18next';
 import {
   Users,
   Calendar,
-  Building2,
   TrendingUp,
-  AlertCircle,
   RefreshCw,
   CheckCircle,
   Clock,
   Award,
   Download,
-  FileText
+  FileText,
+  TrendingDown,
+  AlertTriangle
 } from 'lucide-react';
 import { ermsClient, supabase } from '../lib/supabase';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
@@ -216,21 +216,6 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
     return { completed, inProgress, pending };
   };
 
-  const getDepartmentWiseCount = () => {
-    const deptCount: { [key: string]: number } = {};
-
-    allEmployees.forEach(emp => {
-      const dept = departments.find(d => d.dept_id === emp.dept_id);
-      const deptName = dept?.department || 'Unknown';
-      deptCount[deptName] = (deptCount[deptName] || 0) + 1;
-    });
-
-    return Object.entries(deptCount)
-      .map(([department, count]) => ({ department, count }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 5);
-  };
-
   const getTopPerformingClerks = () => {
     const clerkPerformance: { [key: string]: { name: string; completed: number; inProgress: number; total: number } } = {};
 
@@ -322,6 +307,75 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
     });
 
     return monthData;
+  };
+
+  const getRetrospectiveAnalysis = () => {
+    const now = new Date();
+    const twelveMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 12, 1);
+
+    const retiredInLast12Months = allEmployees.filter(emp => {
+      if (!emp.retirement_date) return false;
+      const retirementDate = new Date(emp.retirement_date);
+      return retirementDate >= twelveMonthsAgo && retirementDate <= now;
+    });
+
+    const totalRetired = retiredInLast12Months.length;
+    const avgAge = totalRetired > 0
+      ? retiredInLast12Months.reduce((sum, emp) => {
+          const age = emp.age || 0;
+          return sum + age;
+        }, 0) / totalRetired
+      : 0;
+
+    return {
+      totalRetired,
+      avgAge: Math.round(avgAge)
+    };
+  };
+
+  const getPredictiveAnalysis = () => {
+    const now = new Date();
+
+    const next3Months = new Date(now.getFullYear(), now.getMonth() + 3, 1);
+    const next6Months = new Date(now.getFullYear(), now.getMonth() + 6, 1);
+    const next12Months = new Date(now.getFullYear(), now.getMonth() + 12, 1);
+
+    const count3Months = allEmployees.filter(emp => {
+      if (!emp.retirement_date) return false;
+      const retirementDate = new Date(emp.retirement_date);
+      return retirementDate >= now && retirementDate < next3Months;
+    }).length;
+
+    const count6Months = allEmployees.filter(emp => {
+      if (!emp.retirement_date) return false;
+      const retirementDate = new Date(emp.retirement_date);
+      return retirementDate >= now && retirementDate < next6Months;
+    }).length;
+
+    const count12Months = allEmployees.filter(emp => {
+      if (!emp.retirement_date) return false;
+      const retirementDate = new Date(emp.retirement_date);
+      return retirementDate >= now && retirementDate < next12Months;
+    }).length;
+
+    const monthCounts: { [key: string]: number } = {};
+    allEmployees.forEach(emp => {
+      if (!emp.retirement_date) return;
+      const retirementDate = new Date(emp.retirement_date);
+      if (retirementDate >= now && retirementDate < next12Months) {
+        const monthKey = retirementDate.toLocaleString('en-US', { month: 'short', year: '2-digit' });
+        monthCounts[monthKey] = (monthCounts[monthKey] || 0) + 1;
+      }
+    });
+
+    const peakMonth = Object.entries(monthCounts).sort((a, b) => b[1] - a[1])[0];
+
+    return {
+      count3Months,
+      count6Months,
+      count12Months,
+      peakMonth: peakMonth ? { month: peakMonth[0], count: peakMonth[1] } : null
+    };
   };
 
   const getWeeklyDataUpdateMatrix = () => {
@@ -470,12 +524,116 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
     );
   };
 
+  const renderDonutChart = (data: { completed: number; inProgress: number; pending: number }) => {
+    const total = data.completed + data.inProgress + data.pending;
+    const upcomingCount = calculateUpcomingRetirements();
+
+    if (total === 0) return null;
+
+    const segments = [
+      { label: isMarathi ? 'आगामी सेवानिवृत्ती' : 'Upcoming Retirements', value: upcomingCount, color: '#fb923c', percentage: (upcomingCount / total) * 100 },
+      { label: isMarathi ? 'प्रक्रिया' : 'Processing', value: data.inProgress, color: '#f97316', percentage: (data.inProgress / total) * 100 },
+      { label: isMarathi ? 'पूर्ण' : 'Completed', value: data.completed, color: '#10b981', percentage: (data.completed / total) * 100 },
+      { label: isMarathi ? 'प्रलंबित' : 'Pending', value: data.pending, color: '#a855f7', percentage: (data.pending / total) * 100 }
+    ];
+
+    const size = 320;
+    const centerX = size / 2;
+    const centerY = size / 2;
+    const radius = 100;
+    const innerRadius = 65;
+
+    let currentAngle = -90;
+    const paths = segments.map((segment) => {
+      const angle = (segment.value / total) * 360;
+      const startAngle = (currentAngle * Math.PI) / 180;
+      const endAngle = ((currentAngle + angle) * Math.PI) / 180;
+
+      const x1 = centerX + radius * Math.cos(startAngle);
+      const y1 = centerY + radius * Math.sin(startAngle);
+      const x2 = centerX + radius * Math.cos(endAngle);
+      const y2 = centerY + radius * Math.sin(endAngle);
+
+      const ix1 = centerX + innerRadius * Math.cos(startAngle);
+      const iy1 = centerY + innerRadius * Math.sin(startAngle);
+      const ix2 = centerX + innerRadius * Math.cos(endAngle);
+      const iy2 = centerY + innerRadius * Math.sin(endAngle);
+
+      const largeArc = angle > 180 ? 1 : 0;
+
+      const pathData = [
+        `M ${x1} ${y1}`,
+        `A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2}`,
+        `L ${ix2} ${iy2}`,
+        `A ${innerRadius} ${innerRadius} 0 ${largeArc} 0 ${ix1} ${iy1}`,
+        'Z'
+      ].join(' ');
+
+      currentAngle += angle;
+
+      return { ...segment, pathData };
+    });
+
+    return (
+      <div className="flex flex-col lg:flex-row items-center justify-center gap-8">
+        <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+          {paths.map((segment, index) => (
+            <path
+              key={index}
+              d={segment.pathData}
+              fill={segment.color}
+              stroke="white"
+              strokeWidth="2"
+            />
+          ))}
+          <text
+            x={centerX}
+            y={centerY - 10}
+            textAnchor="middle"
+            fontSize="36"
+            fontWeight="bold"
+            fill="#1f2937"
+          >
+            {total}
+          </text>
+          <text
+            x={centerX}
+            y={centerY + 15}
+            textAnchor="middle"
+            fontSize="14"
+            fill="#6b7280"
+          >
+            {isMarathi ? 'एकूण' : 'Total'}
+          </text>
+        </svg>
+
+        <div className="space-y-3">
+          {segments.map((segment, index) => (
+            <div key={index} className="flex items-center space-x-3">
+              <div
+                className="w-4 h-4 rounded-full"
+                style={{ backgroundColor: segment.color }}
+              ></div>
+              <div>
+                <div className="text-sm font-medium text-gray-900">{segment.label}</div>
+                <div className="text-xs text-gray-500">
+                  {segment.value} ({segment.percentage.toFixed(1)}%)
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   const statusCounts = getStatusCounts();
   const upcomingCount = calculateUpcomingRetirements();
   const monthWiseData = getMonthWiseData();
-  const departmentWiseData = getDepartmentWiseCount();
   const topClerks = getTopPerformingClerks();
   const topOfficers = getTopPerformingOfficers();
+  const retrospective = getRetrospectiveAnalysis();
+  const predictive = getPredictiveAnalysis();
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -592,43 +750,109 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
           </div>
         </div>
 
-        {/* Month-wise Chart */}
-        <div className="mb-6">
+        {/* Month-wise Chart and Status Distribution */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           <div className="bg-white rounded-lg shadow-md border border-gray-300 p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-gray-900">
-                {isMarathi ? 'महिनानुसार सेवानिवृत्ती संख्या' : 'Month-wise Retirement Count'}
-              </h3>
-            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-6">
+              {isMarathi ? 'महिनानुसार सेवानिवृत्ती संख्या' : 'Month-wise Retirement Count'}
+            </h3>
             {renderLineChart(monthWiseData)}
+          </div>
+
+          <div className="bg-white rounded-lg shadow-md border border-gray-300 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-6">
+              {isMarathi ? 'सेवानिवृत्ती स्थिती वितरण' : 'Retirement Status Distribution'}
+            </h3>
+            {renderDonutChart(statusCounts)}
           </div>
         </div>
 
-        {/* Department-wise Count */}
-        <div className="mb-6">
+        {/* Retrospective and Predictive Analysis */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           <div className="bg-white rounded-lg shadow-md border border-gray-300 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              {isMarathi ? 'शीर्ष 5 विभाग' : 'Top 5 Departments by Employee Count'}
-            </h3>
-            <div className="space-y-3">
-              {departmentWiseData.map((dept, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <div className="bg-blue-100 p-2 rounded-lg">
-                      <Building2 className="h-5 w-5 text-blue-600" />
-                    </div>
-                    <span className="text-sm font-medium text-gray-900">{dept.department}</span>
-                  </div>
-                  <span className="text-lg font-bold text-blue-600">{dept.count}</span>
-                </div>
-              ))}
+            <div className="flex items-center space-x-2 mb-6">
+              <TrendingDown className="h-5 w-5 text-blue-600" />
+              <h3 className="text-lg font-semibold text-gray-900">
+                {isMarathi ? 'भूतकाळीन विश्लेषण' : 'Retrospective Analysis'}
+              </h3>
             </div>
+            <div className="bg-blue-50 p-4 rounded-lg mb-4">
+              <div className="flex items-center space-x-2 mb-2">
+                <Calendar className="h-5 w-5 text-blue-600" />
+                <span className="text-sm font-medium text-gray-700">
+                  {isMarathi ? 'कालावधी' : 'Period'}
+                </span>
+              </div>
+              <p className="text-2xl font-bold text-blue-900">
+                {isMarathi ? 'मागील 12 महिने' : 'Last 12 months'}
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-green-50 p-4 rounded-lg">
+                <p className="text-sm text-gray-600 mb-2">
+                  {isMarathi ? 'एकूण निवृत्त झाले' : 'Total Retired'}
+                </p>
+                <p className="text-3xl font-bold text-green-600">{retrospective.totalRetired}</p>
+              </div>
+              <div className="bg-orange-50 p-4 rounded-lg">
+                <p className="text-sm text-gray-600 mb-2">
+                  {isMarathi ? 'सरासरी वय' : 'Average Age'}
+                </p>
+                <p className="text-3xl font-bold text-orange-600">{retrospective.avgAge}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-md border border-gray-300 p-6">
+            <div className="flex items-center space-x-2 mb-6">
+              <TrendingUp className="h-5 w-5 text-orange-600" />
+              <h3 className="text-lg font-semibold text-gray-900">
+                {isMarathi ? 'भविष्यकालीन विश्लेषण' : 'Predictive Analysis'}
+              </h3>
+            </div>
+            <div className="grid grid-cols-3 gap-4 mb-4">
+              <div className="bg-orange-50 p-4 rounded-lg text-center">
+                <p className="text-xs text-gray-600 mb-2">
+                  {isMarathi ? 'पुढील 3 महिने' : 'Next 3 Months'}
+                </p>
+                <p className="text-2xl font-bold text-orange-600">{predictive.count3Months}</p>
+              </div>
+              <div className="bg-blue-50 p-4 rounded-lg text-center">
+                <p className="text-xs text-gray-600 mb-2">
+                  {isMarathi ? 'पुढील 6 महिने' : 'Next 6 Months'}
+                </p>
+                <p className="text-2xl font-bold text-blue-600">{predictive.count6Months}</p>
+              </div>
+              <div className="bg-green-50 p-4 rounded-lg text-center">
+                <p className="text-xs text-gray-600 mb-2">
+                  {isMarathi ? 'पुढील 12 महिने' : 'Next 12 Months'}
+                </p>
+                <p className="text-2xl font-bold text-green-600">{predictive.count12Months}</p>
+              </div>
+            </div>
+            {predictive.peakMonth && (
+              <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+                <div className="flex items-start">
+                  <AlertTriangle className="h-5 w-5 text-yellow-600 mr-3 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-semibold text-yellow-800 mb-1">
+                      {isMarathi ? 'शिखर महिना सूचना' : 'Peak Month Alert'}
+                    </p>
+                    <p className="text-xs text-yellow-700">
+                      {isMarathi
+                        ? `${predictive.peakMonth.month} मध्ये सर्वाधिक सेवानिवृत्ती होतील (${predictive.peakMonth.count} कर्मचारी)`
+                        : `${predictive.peakMonth.month} will have the highest retirements (${predictive.peakMonth.count} employees)`
+                      }
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Performance Analysis Section */}
         <div className="mb-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Top Performing Clerks */}
           <div className="bg-white rounded-lg shadow-md border border-gray-300 p-6">
             <div className="flex items-center space-x-2 mb-6">
               <Award className="h-5 w-5 text-amber-600" />
@@ -662,7 +886,6 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
             </div>
           </div>
 
-          {/* Top Performing Officers */}
           <div className="bg-white rounded-lg shadow-md border border-gray-300 p-6">
             <div className="flex items-center space-x-2 mb-6">
               <Award className="h-5 w-5 text-blue-600" />
