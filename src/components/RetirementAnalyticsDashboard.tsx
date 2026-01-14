@@ -11,7 +11,8 @@ import {
   Download,
   FileText,
   TrendingDown,
-  AlertTriangle
+  AlertTriangle,
+  AlertCircle
 } from 'lucide-react';
 import { ermsClient, supabase } from '../lib/supabase';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
@@ -320,16 +321,34 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
     });
 
     const totalRetired = retiredInLast12Months.length;
-    const avgAge = totalRetired > 0
-      ? retiredInLast12Months.reduce((sum, emp) => {
-          const age = emp.age || 0;
-          return sum + age;
-        }, 0) / totalRetired
+
+    const totalAge = retiredInLast12Months.reduce((sum, emp) => sum + (emp.age || 0), 0);
+    const avgAge = totalRetired > 0 ? Math.round(totalAge / totalRetired) : 0;
+
+    const completedCount = retiredInLast12Months.filter(emp =>
+      getProgressStatus(emp.emp_id) === 'completed'
+    ).length;
+    const completionRate = totalRetired > 0 ? (completedCount / totalRetired) * 100 : 0;
+
+    const processingTimes = retiredInLast12Months
+      .map(emp => {
+        const progress = retirementProgress.find(p => p.emp_id === emp.emp_id);
+        if (!progress || !progress.created_at || !progress.updated_at) return 0;
+        const created = new Date(progress.created_at);
+        const updated = new Date(progress.updated_at);
+        return Math.floor((updated.getTime() - created.getTime()) / (1000 * 60 * 60 * 24));
+      })
+      .filter(days => days > 0);
+
+    const avgProcessingDays = processingTimes.length > 0
+      ? Math.round(processingTimes.reduce((sum, days) => sum + days, 0) / processingTimes.length)
       : 0;
 
     return {
       totalRetired,
-      avgAge: Math.round(avgAge)
+      avgAge,
+      completionRate: completionRate.toFixed(1),
+      avgProcessingDays
     };
   };
 
@@ -358,23 +377,38 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
       return retirementDate >= now && retirementDate < next12Months;
     }).length;
 
-    const monthCounts: { [key: string]: number } = {};
+    const monthCounts: { [key: string]: { count: number; fullDate: Date } } = {};
     allEmployees.forEach(emp => {
       if (!emp.retirement_date) return;
       const retirementDate = new Date(emp.retirement_date);
       if (retirementDate >= now && retirementDate < next12Months) {
-        const monthKey = retirementDate.toLocaleString('en-US', { month: 'short', year: '2-digit' });
-        monthCounts[monthKey] = (monthCounts[monthKey] || 0) + 1;
+        const monthKey = retirementDate.toLocaleString('en-US', { month: 'short', day: 'numeric' });
+        if (!monthCounts[monthKey]) {
+          monthCounts[monthKey] = { count: 0, fullDate: retirementDate };
+        }
+        monthCounts[monthKey].count++;
       }
     });
 
-    const peakMonth = Object.entries(monthCounts).sort((a, b) => b[1] - a[1])[0];
+    const peakMonth = Object.entries(monthCounts)
+      .sort((a, b) => b[1].count - a[1].count)[0];
+
+    const atRiskEmployees = allEmployees.filter(emp => {
+      if (!emp.retirement_date) return false;
+      const retirementDate = new Date(emp.retirement_date);
+      if (retirementDate < now || retirementDate >= next3Months) return false;
+      const status = getProgressStatus(emp.emp_id);
+      return status === 'pending';
+    });
+
+    const atRiskCount = atRiskEmployees.length;
 
     return {
       count3Months,
       count6Months,
       count12Months,
-      peakMonth: peakMonth ? { month: peakMonth[0], count: peakMonth[1] } : null
+      peakMonth: peakMonth ? { month: peakMonth[0], count: peakMonth[1].count } : null,
+      atRiskCount
     };
   };
 
@@ -525,17 +559,23 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
   };
 
   const renderDonutChart = (data: { completed: number; inProgress: number; pending: number }) => {
-    const total = data.completed + data.inProgress + data.pending;
     const upcomingCount = calculateUpcomingRetirements();
+
+    const segments = [
+      { label: isMarathi ? 'आगामी सेवानिवृत्ती' : 'Upcoming Retirements', value: upcomingCount, color: '#fb923c' },
+      { label: isMarathi ? 'प्रक्रिया' : 'Processing', value: data.inProgress, color: '#f97316' },
+      { label: isMarathi ? 'पूर्ण' : 'Completed', value: data.completed, color: '#10b981' },
+      { label: isMarathi ? 'प्रलंबित' : 'Pending', value: data.pending, color: '#a855f7' }
+    ];
+
+    const total = segments.reduce((sum, seg) => sum + seg.value, 0);
 
     if (total === 0) return null;
 
-    const segments = [
-      { label: isMarathi ? 'आगामी सेवानिवृत्ती' : 'Upcoming Retirements', value: upcomingCount, color: '#fb923c', percentage: (upcomingCount / total) * 100 },
-      { label: isMarathi ? 'प्रक्रिया' : 'Processing', value: data.inProgress, color: '#f97316', percentage: (data.inProgress / total) * 100 },
-      { label: isMarathi ? 'पूर्ण' : 'Completed', value: data.completed, color: '#10b981', percentage: (data.completed / total) * 100 },
-      { label: isMarathi ? 'प्रलंबित' : 'Pending', value: data.pending, color: '#a855f7', percentage: (data.pending / total) * 100 }
-    ];
+    const segmentsWithPercentage = segments.map(seg => ({
+      ...seg,
+      percentage: (seg.value / total) * 100
+    }));
 
     const size = 320;
     const centerX = size / 2;
@@ -544,7 +584,7 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
     const innerRadius = 65;
 
     let currentAngle = -90;
-    const paths = segments.map((segment) => {
+    const paths = segmentsWithPercentage.map((segment) => {
       const angle = (segment.value / total) * 360;
       const startAngle = (currentAngle * Math.PI) / 180;
       const endAngle = ((currentAngle + angle) * Math.PI) / 180;
@@ -608,7 +648,7 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
         </svg>
 
         <div className="space-y-3">
-          {segments.map((segment, index) => (
+          {segmentsWithPercentage.map((segment, index) => (
             <div key={index} className="flex items-center space-x-3">
               <div
                 className="w-4 h-4 rounded-full"
@@ -769,6 +809,7 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
 
         {/* Retrospective and Predictive Analysis */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          {/* Retrospective Analysis */}
           <div className="bg-white rounded-lg shadow-md border border-gray-300 p-6">
             <div className="flex items-center space-x-2 mb-6">
               <TrendingDown className="h-5 w-5 text-blue-600" />
@@ -776,18 +817,22 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
                 {isMarathi ? 'भूतकाळीन विश्लेषण' : 'Retrospective Analysis'}
               </h3>
             </div>
+
+            {/* Period Section */}
             <div className="bg-blue-50 p-4 rounded-lg mb-4">
-              <div className="flex items-center space-x-2 mb-2">
-                <Calendar className="h-5 w-5 text-blue-600" />
-                <span className="text-sm font-medium text-gray-700">
-                  {isMarathi ? 'कालावधी' : 'Period'}
-                </span>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">{isMarathi ? 'कालावधी' : 'Period'}</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {isMarathi ? 'मागील 12 महिने' : 'Last 12 months'}
+                  </p>
+                </div>
+                <Calendar className="h-10 w-10 text-blue-600" />
               </div>
-              <p className="text-2xl font-bold text-blue-900">
-                {isMarathi ? 'मागील 12 महिने' : 'Last 12 months'}
-              </p>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+
+            {/* Metrics Grid */}
+            <div className="grid grid-cols-2 gap-4 mb-4">
               <div className="bg-green-50 p-4 rounded-lg">
                 <p className="text-sm text-gray-600 mb-2">
                   {isMarathi ? 'एकूण निवृत्त झाले' : 'Total Retired'}
@@ -801,8 +846,37 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
                 <p className="text-3xl font-bold text-orange-600">{retrospective.avgAge}</p>
               </div>
             </div>
+
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="bg-teal-50 p-4 rounded-lg">
+                <p className="text-sm text-gray-600 mb-2">
+                  {isMarathi ? 'पूर्णता दर' : 'Completion Rate'}
+                </p>
+                <p className="text-3xl font-bold text-teal-600">{retrospective.completionRate}%</p>
+              </div>
+              <div className="bg-purple-50 p-4 rounded-lg">
+                <p className="text-sm text-gray-600 mb-2">
+                  {isMarathi ? 'सरासरी प्रक्रिया' : 'Avg Processing'}
+                </p>
+                <p className="text-3xl font-bold text-purple-600">{retrospective.avgProcessingDays}d</p>
+              </div>
+            </div>
+
+            {/* Insights Section */}
+            <div className="bg-gray-50 p-4 rounded-lg border-l-4 border-blue-500">
+              <p className="text-sm font-semibold text-gray-700 mb-2">
+                {isMarathi ? 'अंतर्दृष्टी:' : 'Insights:'}
+              </p>
+              <p className="text-sm text-gray-600">
+                {isMarathi
+                  ? `मागील वर्षात, ${retrospective.totalRetired} कर्मचारी ${retrospective.avgAge} च्या सरासरी वयात निवृत्त झाले. पूर्णता दर ${retrospective.completionRate}% होता आणि सरासरी प्रक्रिया कालावधी ${retrospective.avgProcessingDays} दिवस होता.`
+                  : `Over the past year, ${retrospective.totalRetired} employees retired at an average age of ${retrospective.avgAge}. The completion rate was ${retrospective.completionRate}% with an average processing time of ${retrospective.avgProcessingDays} days.`
+                }
+              </p>
+            </div>
           </div>
 
+          {/* Predictive Analysis */}
           <div className="bg-white rounded-lg shadow-md border border-gray-300 p-6">
             <div className="flex items-center space-x-2 mb-6">
               <TrendingUp className="h-5 w-5 text-orange-600" />
@@ -810,35 +884,39 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
                 {isMarathi ? 'भविष्यकालीन विश्लेषण' : 'Predictive Analysis'}
               </h3>
             </div>
+
+            {/* Three Period Boxes */}
             <div className="grid grid-cols-3 gap-4 mb-4">
               <div className="bg-orange-50 p-4 rounded-lg text-center">
                 <p className="text-xs text-gray-600 mb-2">
                   {isMarathi ? 'पुढील 3 महिने' : 'Next 3 Months'}
                 </p>
-                <p className="text-2xl font-bold text-orange-600">{predictive.count3Months}</p>
+                <p className="text-3xl font-bold text-orange-600">{predictive.count3Months}</p>
               </div>
               <div className="bg-blue-50 p-4 rounded-lg text-center">
                 <p className="text-xs text-gray-600 mb-2">
                   {isMarathi ? 'पुढील 6 महिने' : 'Next 6 Months'}
                 </p>
-                <p className="text-2xl font-bold text-blue-600">{predictive.count6Months}</p>
+                <p className="text-3xl font-bold text-blue-600">{predictive.count6Months}</p>
               </div>
               <div className="bg-green-50 p-4 rounded-lg text-center">
                 <p className="text-xs text-gray-600 mb-2">
                   {isMarathi ? 'पुढील 12 महिने' : 'Next 12 Months'}
                 </p>
-                <p className="text-2xl font-bold text-green-600">{predictive.count12Months}</p>
+                <p className="text-3xl font-bold text-green-600">{predictive.count12Months}</p>
               </div>
             </div>
+
+            {/* Peak Month Alert */}
             {predictive.peakMonth && (
-              <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+              <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
                 <div className="flex items-start">
-                  <AlertTriangle className="h-5 w-5 text-yellow-600 mr-3 mt-0.5" />
+                  <AlertCircle className="h-5 w-5 text-yellow-600 mr-3 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="text-sm font-semibold text-yellow-800 mb-1">
+                    <p className="text-sm font-semibold text-gray-900 mb-1">
                       {isMarathi ? 'शिखर महिना सूचना' : 'Peak Month Alert'}
                     </p>
-                    <p className="text-xs text-yellow-700">
+                    <p className="text-sm text-gray-700">
                       {isMarathi
                         ? `${predictive.peakMonth.month} मध्ये सर्वाधिक सेवानिवृत्ती होतील (${predictive.peakMonth.count} कर्मचारी)`
                         : `${predictive.peakMonth.month} will have the highest retirements (${predictive.peakMonth.count} employees)`
@@ -848,6 +926,37 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
                 </div>
               </div>
             )}
+
+            {/* At-Risk Cases */}
+            <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-4">
+              <div className="flex items-start">
+                <AlertTriangle className="h-5 w-5 text-red-600 mr-3 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-sm font-semibold text-gray-900 mb-1">
+                    {isMarathi ? 'जोखमीच्या प्रकरणे' : 'At-Risk Cases'}
+                  </p>
+                  <p className="text-sm text-gray-700">
+                    {isMarathi
+                      ? `${predictive.atRiskCount} कर्मचारी 3 महिन्यात निवृत्त होत आहेत आणि अद्याप प्रलंबित स्थितीत आहेत`
+                      : `${predictive.atRiskCount} employees retiring within 3 months still have pending status`
+                    }
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Forecast Section */}
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <p className="text-sm font-semibold text-gray-700 mb-2">
+                {isMarathi ? 'अंदाज:' : 'Forecast:'}
+              </p>
+              <p className="text-sm text-gray-600">
+                {isMarathi
+                  ? `पुढील तिमाहीत ${predictive.count3Months} सेवानिवृत्तीची अपेक्षा आहे. ${predictive.peakMonth?.month || 'शिखर महिन्यासाठी'} साठी संसाधनांचे नियोजन करा जेव्हा सर्वाधिक प्रमाण होईल. ${predictive.atRiskCount} जोखीम प्रकरणांसाठी प्राधान्य लक्ष आवश्यक आहे.`
+                  : `Expect ${predictive.count3Months} retirements in the next quarter. Plan resources for ${predictive.peakMonth?.month || 'peak month'} when peak volume occurs. Priority attention needed for ${predictive.atRiskCount} at-risk cases.`
+                }
+              </p>
+            </div>
           </div>
         </div>
 
