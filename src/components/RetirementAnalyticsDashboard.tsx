@@ -209,7 +209,7 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
   const getStatusCounts = () => {
     let completed = 0;
     let inProgress = 0;
-    let pending = 0;
+    // let pending = 0;
 
     const retirementEmployees = getRetirementEmployees();
 
@@ -217,10 +217,10 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
       const status = getProgressStatus(emp.emp_id);
       if (status === 'completed') completed++;
       else if (status === 'in_progress') inProgress++;
-      else pending++;
+      // else pending++;
     });
 
-    return { completed, inProgress, pending };
+    return { completed, inProgress };
   };
 
   const getTopPerformingClerks = () => {
@@ -569,7 +569,7 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
       { label: isMarathi ? 'आगामी सेवानिवृत्ती' : 'Upcoming Retirements', value: upcomingCount, color: '#fb923c' },
       { label: isMarathi ? 'प्रक्रिया' : 'Processing', value: data.inProgress, color: '#f97316' },
       { label: isMarathi ? 'पूर्ण' : 'Completed', value: data.completed, color: '#10b981' },
-      { label: isMarathi ? 'प्रलंबित' : 'Pending', value: data.pending, color: '#a855f7' }
+      // { label: isMarathi ? 'प्रलंबित' : 'Pending', value: data.pending, color: '#a855f7' }
     ];
 
     const total = segments.reduce((sum, seg) => sum + seg.value, 0);
