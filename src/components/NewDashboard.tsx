@@ -402,7 +402,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
     setSelectedApp(appId);
   };
 
-  const handleEstimateClick = async () => {
+  const handleEstimateClick = async () => {debugger;
     try {
       console.log('🚀 E-estimate: Starting SSO authentication transfer...');
 
