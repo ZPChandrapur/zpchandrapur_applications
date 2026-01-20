@@ -191,7 +191,7 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
   };
 
   const getRetirementEmployees = () => {
-    return allEmployees.filter(emp => emp.retirement_date);
+    return retirementEmployees.filter(emp => emp.retirement_date);
   };
 
   const calculateUpcomingRetirements = () => {
@@ -679,6 +679,7 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
   const retrospective = getRetrospectiveAnalysis();
   const predictive = getPredictiveAnalysis();
   const totalRetirementEmployees = getRetirementEmployees().length;
+  const totalEmployees = allEmployees.length;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -712,6 +713,21 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
       <div className="p-6">
         {/* Main KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+
+           <div className="bg-white rounded-lg shadow-md border-2 border-blue-300 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-blue-700 font-semibold">
+                  {isMarathi ? 'एकूण कर्मचारी' : 'Total Employees'}
+                </p>
+                <p className="text-3xl font-bold text-blue-900 mt-2">{totalEmployees}</p>
+              </div>
+              <div className="bg-blue-100 p-3 rounded-lg">
+                <Users className="h-8 w-8 text-blue-600" />
+              </div>
+            </div>
+          </div>
+
           <div className="bg-white rounded-lg shadow-md border-2 border-blue-300 p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -777,7 +793,7 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-md border-2 border-purple-300 p-6">
+          {/* <div className="bg-white rounded-lg shadow-md border-2 border-purple-300 p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-purple-700 font-semibold">
@@ -792,7 +808,7 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
                 <FileText className="h-8 w-8 text-purple-600" />
               </div>
             </div>
-          </div>
+          </div> */}
         </div>
 
         {/* Month-wise Chart and Status Distribution */}
