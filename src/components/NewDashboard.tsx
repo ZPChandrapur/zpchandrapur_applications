@@ -473,7 +473,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
     }
   };
 
-  const handleFIMSClick = async () => {
+  const handleFIMSClick = async () => {debugger;
     try {
       console.log('🚀 FIMS: Starting SSO authentication transfer...');
 
