@@ -562,7 +562,7 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
     );
   };
 
-  const renderDonutChart = (data: { completed: number; inProgress: number; pending: number }) => {
+  const renderDonutChart = (data: { completed: number; inProgress: number }) => {
     const upcomingCount = calculateUpcomingRetirements();
 
     const segments = [
