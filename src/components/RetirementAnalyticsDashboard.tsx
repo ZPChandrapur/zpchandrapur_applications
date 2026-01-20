@@ -841,12 +841,7 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
                 </p>
                 <p className="text-3xl font-bold text-green-600">{retrospective.totalRetired}</p>
               </div>
-              <div className="bg-orange-50 p-4 rounded-lg">
-                <p className="text-sm text-gray-600 mb-2">
-                  {isMarathi ? 'सरासरी वय' : 'Average Age'}
-                </p>
-                <p className="text-3xl font-bold text-orange-600">{retrospective.avgAge}</p>
-              </div>
+             
             </div>
 
             <div className="grid grid-cols-2 gap-4 mb-4">
