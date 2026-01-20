@@ -24,6 +24,7 @@ import { RetirementDashboard } from './RetirementDashboard';
 import { RetirementTracker } from './RetirementTracker';
 import { InstructionsDashboard } from './InstructionsDashboard';
 import { CustomReports } from './CustomReports';
+import { RetirementAnalyticsDashboard } from './RetirementAnalyticsDashboard';
 import { usePermissions } from '../hooks/usePermissions';
 import { supabase } from "../lib/supabase"; // adjust import path if needed
 import type { User as SupabaseUser } from '@supabase/supabase-js';
@@ -63,9 +64,7 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, isInspector 
   };
 
   const handleBackToMain = () => {
-    if (onBack) {
-      onBack();
-    } else if (window && window.location) {
+    if (window && window.location) {
       localStorage.removeItem('ermsActiveModule');
       window.location.reload(); // or redirect to login
     }
@@ -90,6 +89,15 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, isInspector 
   };
 
   const modules = [
+    {
+      id: 'analytics-dashboard',
+      name: t('erms.analyticsDashboard'),
+      description: t('erms.analyticsDashboardDesc'),
+      icon: BarChart3,
+      color: 'bg-indigo-600',
+      hoverColor: 'hover:bg-indigo-700',
+      requiredPermission: 'read'
+    },
     {
       id: 'employee-dashboard',
       name: t('erms.employeeDashboard'),
@@ -126,20 +134,11 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, isInspector 
       hoverColor: 'hover:bg-purple-700',
       requiredPermission: 'write'
     },
-    // {
-    //   id: 'retirement-file-tracker',
-    //   name: t('erms.retirementFileTracker'),
-    //   description: t('erms.retirementFileTrackerDesc'),
-    //   icon: FolderOpen,
-    //   color: 'bg-indigo-600',
-    //   hoverColor: 'hover:bg-indigo-700',
-    //   requiredPermission: 'read'
-    // },
     {
       id: 'custom-reports',
       name: t('erms.customReports'),
       description: t('erms.customReportsDesc'),
-      icon: BarChart3,
+      icon: ClipboardList,
       color: 'bg-teal-600',
       hoverColor: 'hover:bg-teal-700',
       requiredPermission: 'read'
@@ -158,7 +157,7 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, isInspector 
 
   const getAccessibleModules = () => {
     return modules.filter(module => {
-      // Inspector role gets access to all 'read' permission modules and 'write' modules like retirement-tracker
+         // Inspector role gets access to all 'read' permission modules and 'write' modules like retirement-tracker
       if (isInspector && (module.requiredPermission === 'read' || module.requiredPermission === 'write')) {
         return true;
       }
@@ -170,7 +169,7 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, isInspector 
 
   const renderModuleContent = () => {
     const activeModuleConfig = modules.find(m => m.id === activeModule);
-    let hasModuleAccess = false;
+        let hasModuleAccess = false;
     if (activeModuleConfig) {
       // Inspector role gets access to all 'read' permission modules and 'write' modules
       if (isInspector && (activeModuleConfig.requiredPermission === 'read' || activeModuleConfig.requiredPermission === 'write')) {
@@ -179,6 +178,7 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, isInspector 
         hasModuleAccess = hasAccess('erms', activeModuleConfig.requiredPermission);
       }
     }
+    // const hasModuleAccess = activeModuleConfig && hasAccess('erms', activeModuleConfig.requiredPermission);
 
     if (!hasModuleAccess && activeModuleConfig) {
       return (
@@ -202,16 +202,20 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, isInspector 
     return (
       <>
         <div style={{ display: activeModule === 'employee-dashboard' ? 'block' : 'none' }}>
-          <EmployeeDashboard onBack={handleBackToMain} user={user} isInspector={isInspector} />
+
+          <EmployeeDashboard onBack={handleBackToMain} user={user} isInspector={isInspector
+        </div>
+        <div style={{ display: activeModule === 'analytics-dashboard' ? 'block' : 'none' }}>
+          <RetirementAnalyticsDashboard user={user} onBack={handleBackToMain} />
         </div>
         <div style={{ display: activeModule === 'organization-setup' ? 'block' : 'none' }}>
           <OrganizationSetup onBack={handleBackToMain} />
         </div>
         <div style={{ display: activeModule === 'retirement-dashboard' ? 'block' : 'none' }}>
-          <RetirementDashboard user={user} onBack={handleBackToMain} isInspector={isInspector} />
+          <RetirementDashboard user={user} onBack={handleBackToMain} />
         </div>
         <div style={{ display: activeModule === 'retirement-tracker' ? 'block' : 'none' }}>
-          <RetirementTracker user={user} onBack={handleBackToMain} isInspector={isInspector} />
+          <RetirementTracker user={user} onBack={handleBackToMain} />
         </div>
         <div style={{ display: activeModule === 'retirement-file-tracker' ? 'block' : 'none' }}>
           <div className="p-8 text-center">
@@ -221,7 +225,7 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, isInspector 
           </div>
         </div>
         <div style={{ display: activeModule === 'custom-reports' ? 'block' : 'none' }}>
-          <CustomReports user={user} onBack={handleBackToMain} isInspector={isInspector} />
+          <CustomReports user={user} onBack={handleBackToMain} />
         </div>
         <div style={{ display: activeModule === 'instructions' ? 'block' : 'none' }}>
           <InstructionsDashboard user={user} onBack={handleBackToMain} />
@@ -229,6 +233,7 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, isInspector 
       </>
     );
   };
+
 
   useEffect(() => {
     if (user) {
