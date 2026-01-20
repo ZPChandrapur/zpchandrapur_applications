@@ -453,7 +453,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
         estimateUrl.searchParams.set('auto_login', 'true');
         estimateUrl.searchParams.set('access_token', session.access_token);
         estimateUrl.searchParams.set('refresh_token', session.refresh_token);
-        estimateUrl.searchParams.set('source', 'zp_main');
+        estimateUrl.searchParams.set('source', 'zp_chandrapur_main');
         estimateUrl.searchParams.set('user_email', session.user.email || '');
 
         console.log('🌐 E-estimate: Opening with SSO credentials...');
