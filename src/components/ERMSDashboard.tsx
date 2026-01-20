@@ -202,7 +202,7 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, isInspector 
     return (
       <>
         <div style={{ display: activeModule === 'employee-dashboard' ? 'block' : 'none' }}>
-          <EmployeeDashboard onBack={handleBackToMain} user={user} isInspector={isInspector}>
+          <EmployeeDashboard onBack={handleBackToMain} user={user} onBack={handleBackToMain} isInspector={isInspector} />
         </div>
         <div style={{ display: activeModule === 'analytics-dashboard' ? 'block' : 'none' }}>
           <RetirementAnalyticsDashboard user={user} onBack={handleBackToMain} isInspector={isInspector} />
