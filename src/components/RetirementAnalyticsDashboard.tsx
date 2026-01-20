@@ -630,25 +630,6 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
               strokeWidth="2"
             />
           ))}
-          <text
-            x={centerX}
-            y={centerY - 10}
-            textAnchor="middle"
-            fontSize="36"
-            fontWeight="bold"
-            fill="#1f2937"
-          >
-            {total}
-          </text>
-          <text
-            x={centerX}
-            y={centerY + 15}
-            textAnchor="middle"
-            fontSize="14"
-            fill="#6b7280"
-          >
-            {isMarathi ? 'एकूण' : 'Total'}
-          </text>
         </svg>
 
         <div className="space-y-3">
