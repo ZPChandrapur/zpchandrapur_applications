@@ -202,7 +202,7 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, isInspector 
     return (
       <>
         <div style={{ display: activeModule === 'employee-dashboard' ? 'block' : 'none' }}>
-          <EmployeeDashboard onBack={handleBackToMain} user={user} onBack={handleBackToMain} isInspector={isInspector} />
+          <EmployeeDashboard onBack={handleBackToMain} user={user} isInspector={isInspector}>
         </div>
         <div style={{ display: activeModule === 'analytics-dashboard' ? 'block' : 'none' }}>
           <RetirementAnalyticsDashboard user={user} onBack={handleBackToMain} isInspector={isInspector} />
@@ -214,7 +214,7 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, isInspector 
           <RetirementDashboard user={user} onBack={handleBackToMain} />
         </div>
         <div style={{ display: activeModule === 'retirement-tracker' ? 'block' : 'none' }}>
-          <RetirementTracker user={user} onBack={handleBackToMain} />
+          <RetirementTracker user={user} user={user} onBack={handleBackToMain} isInspector={isInspector} />
         </div>
         <div style={{ display: activeModule === 'retirement-file-tracker' ? 'block' : 'none' }}>
           <div className="p-8 text-center">
