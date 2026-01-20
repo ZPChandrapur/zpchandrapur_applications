@@ -118,6 +118,7 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
         role_name: clerk.roles?.name || 'clerk'
       })) || [];
 
+      console.log('Fetched clerks:', clerksData.length, 'clerks');
       setClerks(clerksData);
     } catch (error) {
       console.error('Error fetching clerks:', error);
@@ -133,7 +134,7 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
           name,
           roles!inner(name)
         `)
-        .eq('roles.name', 'officer')
+        .in('roles.name', ['officer', 'inspector'])
         .not('name', 'is', null);
 
       if (error) throw error;
@@ -144,6 +145,7 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
         role_name: officer.roles?.name || 'officer'
       })) || [];
 
+      console.log('Fetched officers:', officersData.length, 'officers/inspectors');
       setOfficers(officersData);
     } catch (error) {
       console.error('Error fetching officers:', error);
@@ -232,9 +234,9 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
 
       const status = getProgressStatus(emp.emp_id);
       if (!clerkPerformance[emp.assigned_clerk]) {
-        const clerk = clerks.find(c => c.user_id === emp.assigned_clerk);
+        const clerk = clerks.find(c => c.user_id === emp.assigned_clerk || c.user_id === String(emp.assigned_clerk));
         clerkPerformance[emp.assigned_clerk] = {
-          name: clerk?.name || 'Unknown',
+          name: clerk?.name || `Clerk ${String(emp.assigned_clerk).slice(0, 8)}`,
           completed: 0,
           inProgress: 0,
           total: 0
@@ -247,6 +249,7 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
     });
 
     return Object.values(clerkPerformance)
+      .filter(clerk => clerk.total > 0)
       .map(clerk => ({
         ...clerk,
         completionRate: clerk.total > 0 ? (clerk.completed / clerk.total) * 100 : 0
@@ -264,9 +267,9 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
 
       const status = getProgressStatus(emp.emp_id);
       if (!officerPerformance[emp.officer_assigned]) {
-        const officer = officers.find(o => o.user_id === emp.officer_assigned);
+        const officer = officers.find(o => o.user_id === emp.officer_assigned || o.user_id === String(emp.officer_assigned));
         officerPerformance[emp.officer_assigned] = {
-          name: officer?.name || 'Unknown',
+          name: officer?.name || `Officer ${String(emp.officer_assigned).slice(0, 8)}`,
           completed: 0,
           inProgress: 0,
           total: 0
@@ -279,6 +282,7 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
     });
 
     return Object.values(officerPerformance)
+      .filter(officer => officer.total > 0)
       .map(officer => ({
         ...officer,
         completionRate: officer.total > 0 ? (officer.completed / officer.total) * 100 : 0
@@ -329,10 +333,17 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
 
     const totalRetired = retiredInLast12Months.length;
 
-     const totalAge = retiredInLast12Months.reduce((sum, emp) => {
+    const totalAge = retiredInLast12Months.reduce((sum, emp) => {
       const employee = allEmployees.find(e => e.emp_id === emp.emp_id);
-      const age = employee?.age || employee?.dob ? new Date().getFullYear() - new Date(employee.dob).getFullYear() : 0;
-      return sum + (age || 0);
+      let age = 0;
+
+      if (employee?.age) {
+        age = employee.age;
+      } else if (employee?.dob) {
+        age = new Date().getFullYear() - new Date(employee.dob).getFullYear();
+      }
+
+      return sum + age;
     }, 0);
     
     const avgAge = totalRetired > 0 ? Math.round(totalAge / totalRetired) : 0;
@@ -423,34 +434,35 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
   const getWeeklyDataUpdateMatrix = () => {
     const weeklyData: { [key: string]: { clerk: string; updates: number; lastUpdate: Date | null } } = {};
     const retirementEmployees = getRetirementEmployees();
+    const now = new Date();
+    const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
     retirementEmployees.forEach(emp => {
       if (!emp.assigned_clerk) return;
 
-      const clerk = clerks.find(c => c.user_id === emp.assigned_clerk);
-      const clerkName = clerk?.name || 'Unknown';
       const lastUpdate = emp.updated_at ? new Date(emp.updated_at) : null;
 
-      if (!weeklyData[emp.assigned_clerk]) {
-        weeklyData[emp.assigned_clerk] = {
-          clerk: clerkName,
-          updates: 0,
-          lastUpdate: null
-        };
-      }
+      if (lastUpdate && lastUpdate >= oneWeekAgo) {
+        const clerk = clerks.find(c => c.user_id === emp.assigned_clerk);
+        const clerkName = clerk?.name || 'Unknown';
 
-      if (lastUpdate) {
-        const weeksDiff = Math.floor((new Date().getTime() - lastUpdate.getTime()) / (1000 * 60 * 60 * 24 * 7));
-        if (weeksDiff === 0) {
-          weeklyData[emp.assigned_clerk].updates++;
+        if (!weeklyData[emp.assigned_clerk]) {
+          weeklyData[emp.assigned_clerk] = {
+            clerk: clerkName,
+            updates: 0,
+            lastUpdate: null
+          };
         }
+
+        weeklyData[emp.assigned_clerk].updates++;
+
         if (!weeklyData[emp.assigned_clerk].lastUpdate || lastUpdate > weeklyData[emp.assigned_clerk].lastUpdate) {
           weeklyData[emp.assigned_clerk].lastUpdate = lastUpdate;
         }
       }
     });
 
-    return Object.values(weeklyData);
+    return Object.values(weeklyData).filter(item => item.updates > 0);
   };
 
   const downloadWeeklyMatrix = () => {
