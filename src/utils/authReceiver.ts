@@ -55,6 +55,7 @@ export const handleAutoLogin = async (appName: string = 'estimate'): Promise<boo
       switch (app) {
         case 'fims': return 'fims_auth_transfer';
         case 'pesa': return 'pesa_auth_transfer';
+          
         case 'workflow': return 'workflow_auth_transfer';
         default: return 'estimate_auth_transfer';
       }
