@@ -1120,13 +1120,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
             <div className="flex flex-col items-center max-w-[200px]">
               <div className="w-40 h-40 rounded-full overflow-hidden border-4 border-orange-400 shadow-lg mb-4">
                 <img
-                  src="/अजित_पवार.jpg"
-                  alt="अजित पवार"
+                  src="/202602091853645623.jpg"
+                  alt="सुनेत्रा अजित पवार"
                   className="w-full h-full object-cover"
                 />
               </div>
               <h3 className="text-center font-bold text-gray-900 text-base mb-1">माननीय उपमुख्यमंत्री</h3>
-              <p className="text-center text-gray-700 text-sm">श्री. अजित पवार</p>
+              <p className="text-center text-gray-700 text-sm">श्रीमती सुनेत्रा अजित पवार</p>
             </div>
 
             {/* Minister */}
