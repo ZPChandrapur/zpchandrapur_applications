@@ -303,37 +303,107 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
 
     setIsLoading(true);
     try {
-      let query = ermsClient
+      const { data: retirementData, error: retirementError } = await ermsClient
         .from('employee_retirement')
-        .select(`
-          *
-        `)
+        .select('*')
         .order('retirement_date', { ascending: true });
 
-      const { data: retirementData, error: retirementError } = await query;
       if (retirementError) throw retirementError;
 
-      const empIds = retirementData?.map(r => r.emp_id) || [];
+      if (!retirementData || retirementData.length === 0) {
+        setRetirementReportData([]);
+        setIsLoading(false);
+        return;
+      }
 
-      let employeeQuery = ermsClient
-        .from('employee')
-        .select('emp_id, dept_id, sevarth_id')
-        .in('emp_id', empIds);
+      const empIds = retirementData.map(r => r.emp_id);
 
-      const { data: employeeData, error: empError } = await employeeQuery;
-      if (empError) throw empError;
+      const [employeeResult, progressResult, payCommResult, groupInsResult] = await Promise.all([
+        ermsClient
+          .from('employee')
+          .select('emp_id, dept_id, sevarth_id')
+          .in('emp_id', empIds),
+        ermsClient
+          .from('retirement_progress')
+          .select('emp_id, status')
+          .in('emp_id', empIds),
+        ermsClient
+          .from('pay_commission')
+          .select('emp_id, fourth_pay_comission, fifth_pay_comission, sixth_pay_comission, seventh_pay_comission')
+          .in('emp_id', empIds),
+        ermsClient
+          .from('group_insurance')
+          .select('emp_id, year_1990, year_2003, year_2010, year_2020')
+          .in('emp_id', empIds)
+      ]);
 
-      let enrichedData = retirementData?.map(retirement => {
-        const employee = employeeData?.find(e => e.emp_id === retirement.emp_id);
+      if (employeeResult.error) throw employeeResult.error;
+      if (progressResult.error) throw progressResult.error;
+      if (payCommResult.error) throw payCommResult.error;
+      if (groupInsResult.error) throw groupInsResult.error;
+
+      const employeeData = employeeResult.data || [];
+      const progressData = progressResult.data || [];
+      const payCommData = payCommResult.data || [];
+      const groupInsData = groupInsResult.data || [];
+
+      const getProgressStatus = (empId: number) => {
+        const progress = progressData.find(p => p.emp_id === empId);
+        return progress?.status || 'Pending';
+      };
+
+      const getPayCommissionStatus = (empId: number) => {
+        const payComm = payCommData.find(p => p.emp_id === empId);
+        if (!payComm) return 'Not Started';
+
+        const fields = [
+          payComm.fourth_pay_comission,
+          payComm.fifth_pay_comission,
+          payComm.sixth_pay_comission,
+          payComm.seventh_pay_comission
+        ];
+
+        const completed = fields.filter(f => f && f !== 'Pending' && f !== '').length;
+        const total = fields.length;
+
+        if (completed === 0) return 'Not Started';
+        if (completed === total) return 'Completed';
+        return 'In Progress';
+      };
+
+      const getGroupInsuranceStatus = (empId: number) => {
+        const groupIns = groupInsData.find(g => g.emp_id === empId);
+        if (!groupIns) return 'Not Started';
+
+        const fields = [
+          groupIns.year_1990,
+          groupIns.year_2003,
+          groupIns.year_2010,
+          groupIns.year_2020
+        ];
+
+        const completed = fields.filter(f => f && f !== 'Pending' && f !== '').length;
+        const total = fields.length;
+
+        if (completed === 0) return 'Not Started';
+        if (completed === total) return 'Completed';
+        return 'In Progress';
+      };
+
+      let enrichedData = retirementData.map(retirement => {
+        const employee = employeeData.find(e => e.emp_id === retirement.emp_id);
         const dept = departments.find(d => String(d.dept_id) === String(employee?.dept_id));
 
         return {
           ...retirement,
           dept_id: employee?.dept_id,
           sevarth_id: employee?.sevarth_id || 'N/A',
-          department: dept?.department || 'N/A'
+          department: dept?.department || 'N/A',
+          retirement_progress_status: getProgressStatus(retirement.emp_id),
+          pay_commission_status: getPayCommissionStatus(retirement.emp_id),
+          group_insurance_status: getGroupInsuranceStatus(retirement.emp_id)
         };
-      }) || [];
+      });
 
       if (selectedDepartment) {
         enrichedData = enrichedData.filter(emp => String(emp.dept_id) === selectedDepartment);
@@ -342,6 +412,7 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
       setRetirementReportData(enrichedData);
     } catch (error) {
       console.error('Error fetching retirement report data:', error);
+      setRetirementReportData([]);
     } finally {
       setIsLoading(false);
     }
@@ -381,14 +452,20 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
       isMarathi ? 'विभाग' : 'Department',
       isMarathi ? 'कर्मचारी नाव' : 'Employee Name',
       isMarathi ? 'सेवार्थ/शालार्थ आयडी' : 'Sevarth/Shalarth ID',
-      isMarathi ? 'सेवानिवृत्ती तारीख' : 'Date of Retirement'
+      isMarathi ? 'सेवानिवृत्ती तारीख' : 'Date of Retirement',
+      isMarathi ? 'सेवानिवृत्ती प्रगती स्थिती' : 'Retirement Progress Status',
+      isMarathi ? 'वेतन आयोग स्थिती' : 'Pay Commission Status',
+      isMarathi ? 'गट विमा स्थिती' : 'Group Insurance Status'
     ];
 
     const dataForExport = retirementReportData.map(emp => ({
       [headers[0]]: emp.department || '',
       [headers[1]]: emp.employee_name || '',
       [headers[2]]: emp.sevarth_id || '',
-      [headers[3]]: emp.retirement_date || ''
+      [headers[3]]: emp.retirement_date || '',
+      [headers[4]]: emp.retirement_progress_status || '',
+      [headers[5]]: emp.pay_commission_status || '',
+      [headers[6]]: emp.group_insurance_status || ''
     }));
 
     const ws = XLSX.utils.json_to_sheet(dataForExport);
@@ -397,7 +474,10 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
       { wch: 30 },
       { wch: 30 },
       { wch: 20 },
-      { wch: 15 }
+      { wch: 15 },
+      { wch: 25 },
+      { wch: 25 },
+      { wch: 25 }
     ];
     ws['!cols'] = colWidths;
 
@@ -1333,6 +1413,15 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
                       <th className="border border-gray-300 px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                         {isMarathi ? 'सेवानिवृत्ती तारीख' : 'Date of Retirement'}
                       </th>
+                      <th className="border border-gray-300 px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        {isMarathi ? 'सेवानिवृत्ती प्रगती स्थिती' : 'Retirement Progress Status'}
+                      </th>
+                      <th className="border border-gray-300 px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        {isMarathi ? 'वेतन आयोग स्थिती' : 'Pay Commission Status'}
+                      </th>
+                      <th className="border border-gray-300 px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        {isMarathi ? 'गट विमा स्थिती' : 'Group Insurance Status'}
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
@@ -1349,6 +1438,33 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
                         </td>
                         <td className="border border-gray-300 px-4 py-3 text-sm text-gray-900">
                           {emp.retirement_date || 'N/A'}
+                        </td>
+                        <td className="border border-gray-300 px-4 py-3 text-sm">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            emp.retirement_progress_status === 'Completed' ? 'bg-green-100 text-green-800' :
+                            emp.retirement_progress_status === 'In Progress' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {emp.retirement_progress_status || 'Pending'}
+                          </span>
+                        </td>
+                        <td className="border border-gray-300 px-4 py-3 text-sm">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            emp.pay_commission_status === 'Completed' ? 'bg-green-100 text-green-800' :
+                            emp.pay_commission_status === 'In Progress' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {emp.pay_commission_status || 'Not Started'}
+                          </span>
+                        </td>
+                        <td className="border border-gray-300 px-4 py-3 text-sm">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            emp.group_insurance_status === 'Completed' ? 'bg-green-100 text-green-800' :
+                            emp.group_insurance_status === 'In Progress' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {emp.group_insurance_status || 'Not Started'}
+                          </span>
                         </td>
                       </tr>
                     ))}
