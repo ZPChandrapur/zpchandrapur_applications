@@ -80,7 +80,7 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
 
   const initialState = getInitialState();
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'create' | 'templates' | 'results' | 'retirement_reports'>(initialState.activeTab as any);
+  const [activeTab, setActiveTab] = useState<'create' | 'templates' | 'results'>(initialState.activeTab as any);
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [reportData, setReportData] = useState<any[]>([]);
   const [reportColumns, setReportColumns] = useState<string[]>([]);
@@ -166,10 +166,8 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
   }, [selectedTables, availableTables]);
 
   useEffect(() => {
-    if (activeTab === 'retirement_reports') {
-      fetchRetirementReportData();
-    }
-  }, [activeTab, selectedDepartment, departments]);
+    fetchRetirementReportData();
+  }, [selectedDepartment, departments]);
 
 
   // Start of New changes to deploy
@@ -301,36 +299,47 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
   ];
 
   const fetchRetirementReportData = async () => {
+    if (departments.length === 0) return;
+
     setIsLoading(true);
     try {
       let query = ermsClient
-        .from('employee')
+        .from('employee_retirement')
         .select(`
-          emp_id,
-          employee_name,
-          sevarth_id,
-          retirement_date,
-          dept_id
+          *
         `)
         .order('retirement_date', { ascending: true });
 
-      if (selectedDepartment) {
-        query = query.eq('dept_id', selectedDepartment);
-      }
+      const { data: retirementData, error: retirementError } = await query;
+      if (retirementError) throw retirementError;
 
-      const { data: employeeData, error: empError } = await query;
+      const empIds = retirementData?.map(r => r.emp_id) || [];
 
+      let employeeQuery = ermsClient
+        .from('employee')
+        .select('emp_id, dept_id, sevarth_id')
+        .in('emp_id', empIds);
+
+      const { data: employeeData, error: empError } = await employeeQuery;
       if (empError) throw empError;
 
-      const enrichedData = employeeData?.map(emp => {
-        const dept = departments.find(d => String(d.dept_id) === String(emp.dept_id));
+      let enrichedData = retirementData?.map(retirement => {
+        const employee = employeeData?.find(e => e.emp_id === retirement.emp_id);
+        const dept = departments.find(d => String(d.dept_id) === String(employee?.dept_id));
+
         return {
-          ...emp,
+          ...retirement,
+          dept_id: employee?.dept_id,
+          sevarth_id: employee?.sevarth_id || 'N/A',
           department: dept?.department || 'N/A'
         };
-      });
+      }) || [];
 
-      setRetirementReportData(enrichedData || []);
+      if (selectedDepartment) {
+        enrichedData = enrichedData.filter(emp => String(emp.dept_id) === selectedDepartment);
+      }
+
+      setRetirementReportData(enrichedData);
     } catch (error) {
       console.error('Error fetching retirement report data:', error);
     } finally {
@@ -843,16 +852,6 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
                 <Eye className="h-4 w-4" />
                 <span>{t('customReports.results', 'Results')}</span>
               </button>
-              <button
-                onClick={() => setActiveTab('retirement_reports')}
-                className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${activeTab === 'retirement_reports'
-                  ? 'border-teal-500 text-teal-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-              >
-                <FileText className="h-4 w-4" />
-                <span>{isMarathi ? 'सेवानिवृत्ती अहवाल' : 'Retirement Reports'}</span>
-              </button>
             </nav>
           </div>
 
@@ -1206,126 +1205,6 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
               </div>
             )}
 
-            {/* Retirement Reports Tab */}
-            {activeTab === 'retirement_reports' && (
-              <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    {isMarathi ? 'विभागनिहाय सेवानिवृत्ती अहवाल' : 'Department-wise Retirement Report'}
-                  </h3>
-                  <div className="flex items-center space-x-2">
-                    <button
-                      onClick={fetchRetirementReportData}
-                      className="flex items-center space-x-2 px-4 py-2 text-teal-600 hover:bg-teal-50 rounded-lg transition-all duration-200"
-                      disabled={isLoading}
-                    >
-                      <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-                      <span className="text-sm">{isMarathi ? 'रिफ्रेश' : 'Refresh'}</span>
-                    </button>
-                    <button
-                      onClick={downloadRetirementReport}
-                      className="flex items-center space-x-2 px-4 py-2 bg-teal-600 text-white hover:bg-teal-700 rounded-lg transition-all duration-200"
-                      disabled={isLoading || retirementReportData.length === 0}
-                    >
-                      <Download className="h-4 w-4" />
-                      <span className="text-sm">{isMarathi ? 'डाउनलोड' : 'Download'}</span>
-                    </button>
-                  </div>
-                </div>
-
-                <div className="bg-white border border-gray-200 rounded-lg p-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {isMarathi ? 'विभाग निवडा' : 'Select Department'}
-                  </label>
-                  <select
-                    value={selectedDepartment}
-                    onChange={(e) => setSelectedDepartment(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                  >
-                    <option value="">{isMarathi ? 'सर्व विभाग' : 'All Departments'}</option>
-                    {departments.map(dept => (
-                      <option key={dept.dept_id} value={String(dept.dept_id)}>{dept.department}</option>
-                    ))}
-                  </select>
-                </div>
-
-                {isLoading ? (
-                  <div className="text-center py-12">
-                    <RefreshCw className="h-12 w-12 text-teal-600 mx-auto mb-4 animate-spin" />
-                    <p className="text-gray-600">{isMarathi ? 'डेटा लोड होत आहे...' : 'Loading data...'}</p>
-                  </div>
-                ) : retirementReportData.length === 0 ? (
-                  <div className="text-center py-12 bg-gray-50 rounded-lg">
-                    <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">
-                      {isMarathi ? 'कोणताही डेटा उपलब्ध नाही' : 'No data available'}
-                    </h3>
-                    <p className="text-gray-500">
-                      {isMarathi ? 'निवडलेल्या फिल्टरसाठी कोणताही रेकॉर्ड सापडला नाही' : 'No records found for the selected filters'}
-                    </p>
-                  </div>
-                ) : (
-                  <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-                    <div className="overflow-x-auto">
-                      <table className="w-full border-collapse">
-                        <thead className="bg-teal-50">
-                          <tr>
-                            <th className="border border-gray-300 px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                              {isMarathi ? 'विभाग' : 'Department'}
-                            </th>
-                            <th className="border border-gray-300 px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                              {isMarathi ? 'कर्मचारी नाव' : 'Employee Name'}
-                            </th>
-                            <th className="border border-gray-300 px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                              {isMarathi ? 'सेवार्थ/शालार्थ आयडी' : 'Sevarth/Shalarth ID'}
-                            </th>
-                            <th className="border border-gray-300 px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                              {isMarathi ? 'सेवानिवृत्ती तारीख' : 'Date of Retirement'}
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                          {retirementReportData.map((emp, index) => (
-                            <tr key={index} className="hover:bg-gray-50 transition-colors">
-                              <td className="border border-gray-300 px-4 py-3 text-sm text-gray-900">
-                                {emp.department || 'N/A'}
-                              </td>
-                              <td className="border border-gray-300 px-4 py-3 text-sm text-gray-900">
-                                {emp.employee_name || 'N/A'}
-                              </td>
-                              <td className="border border-gray-300 px-4 py-3 text-sm text-gray-900">
-                                {emp.sevarth_id || 'N/A'}
-                              </td>
-                              <td className="border border-gray-300 px-4 py-3 text-sm text-gray-900">
-                                {emp.retirement_date || 'N/A'}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-
-                    <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
-                      <div className="flex items-center justify-between">
-                        <div className="text-sm text-gray-600">
-                          <p className="font-semibold">
-                            {isMarathi ? 'एकूण रेकॉर्ड' : 'Total Records'}: <span className="text-teal-600">{retirementReportData.length}</span>
-                          </p>
-                        </div>
-                        <button
-                          onClick={downloadRetirementReport}
-                          className="flex items-center space-x-2 px-4 py-2 bg-teal-600 text-white hover:bg-teal-700 rounded-lg transition-all duration-200 text-sm"
-                        >
-                          <Download className="h-4 w-4" />
-                          <span>{isMarathi ? 'एक्सेल डाउनलोड करा' : 'Download Excel'}</span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
             {/* Results Tab */}
             {activeTab === 'results' && (
               <div className="space-y-6">
@@ -1374,6 +1253,126 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
               </div>
             )}
           </div>
+        </div>
+      </div>
+
+      {/* Retirement Reports Section - Separate from Tabs */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mt-6">
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-gray-900">
+              {isMarathi ? 'विभागनिहाय सेवानिवृत्ती अहवाल' : 'Department-wise Retirement Report'}
+            </h3>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={fetchRetirementReportData}
+                className="flex items-center space-x-2 px-4 py-2 text-teal-600 hover:bg-teal-50 rounded-lg transition-all duration-200"
+                disabled={isLoading}
+              >
+                <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                <span className="text-sm">{isMarathi ? 'रिफ्रेश' : 'Refresh'}</span>
+              </button>
+              <button
+                onClick={downloadRetirementReport}
+                className="flex items-center space-x-2 px-4 py-2 bg-teal-600 text-white hover:bg-teal-700 rounded-lg transition-all duration-200"
+                disabled={isLoading || retirementReportData.length === 0}
+              >
+                <Download className="h-4 w-4" />
+                <span className="text-sm">{isMarathi ? 'डाउनलोड' : 'Download'}</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {isMarathi ? 'विभाग निवडा' : 'Select Department'}
+            </label>
+            <select
+              value={selectedDepartment}
+              onChange={(e) => setSelectedDepartment(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+            >
+              <option value="">{isMarathi ? 'सर्व विभाग' : 'All Departments'}</option>
+              {departments.map(dept => (
+                <option key={dept.dept_id} value={String(dept.dept_id)}>{dept.department}</option>
+              ))}
+            </select>
+          </div>
+
+          {isLoading ? (
+            <div className="text-center py-12">
+              <RefreshCw className="h-12 w-12 text-teal-600 mx-auto mb-4 animate-spin" />
+              <p className="text-gray-600">{isMarathi ? 'डेटा लोड होत आहे...' : 'Loading data...'}</p>
+            </div>
+          ) : retirementReportData.length === 0 ? (
+            <div className="text-center py-12 bg-gray-50 rounded-lg">
+              <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                {isMarathi ? 'कोणताही डेटा उपलब्ध नाही' : 'No data available'}
+              </h3>
+              <p className="text-gray-500">
+                {isMarathi ? 'निवडलेल्या फिल्टरसाठी कोणताही रेकॉर्ड सापडला नाही' : 'No records found for the selected filters'}
+              </p>
+            </div>
+          ) : (
+            <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead className="bg-teal-50">
+                    <tr>
+                      <th className="border border-gray-300 px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        {isMarathi ? 'विभाग' : 'Department'}
+                      </th>
+                      <th className="border border-gray-300 px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        {isMarathi ? 'कर्मचारी नाव' : 'Employee Name'}
+                      </th>
+                      <th className="border border-gray-300 px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        {isMarathi ? 'सेवार्थ/शालार्थ आयडी' : 'Sevarth/Shalarth ID'}
+                      </th>
+                      <th className="border border-gray-300 px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        {isMarathi ? 'सेवानिवृत्ती तारीख' : 'Date of Retirement'}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {retirementReportData.map((emp, index) => (
+                      <tr key={index} className="hover:bg-gray-50 transition-colors">
+                        <td className="border border-gray-300 px-4 py-3 text-sm text-gray-900">
+                          {emp.department || 'N/A'}
+                        </td>
+                        <td className="border border-gray-300 px-4 py-3 text-sm text-gray-900">
+                          {emp.employee_name || 'N/A'}
+                        </td>
+                        <td className="border border-gray-300 px-4 py-3 text-sm text-gray-900">
+                          {emp.sevarth_id || 'N/A'}
+                        </td>
+                        <td className="border border-gray-300 px-4 py-3 text-sm text-gray-900">
+                          {emp.retirement_date || 'N/A'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-gray-600">
+                    <p className="font-semibold">
+                      {isMarathi ? 'एकूण रेकॉर्ड' : 'Total Records'}: <span className="text-teal-600">{retirementReportData.length}</span>
+                    </p>
+                  </div>
+                  <button
+                    onClick={downloadRetirementReport}
+                    className="flex items-center space-x-2 px-4 py-2 bg-teal-600 text-white hover:bg-teal-700 rounded-lg transition-all duration-200 text-sm"
+                  >
+                    <Download className="h-4 w-4" />
+                    <span>{isMarathi ? 'एक्सेल डाउनलोड करा' : 'Download Excel'}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
