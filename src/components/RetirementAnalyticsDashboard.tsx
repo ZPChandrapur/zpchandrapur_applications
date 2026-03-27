@@ -1004,12 +1004,12 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
             <div className="space-y-3 max-h-96 overflow-y-auto">
               {topClerks.map((clerk, index) => (
                 <div key={index} className="p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-xl font-bold text-amber-600">#{index + 1}</span>
-                      <span className="text-sm font-medium text-gray-900">{clerk.name}</span>
+                  <div className="flex items-start justify-between mb-2 gap-3">
+                    <div className="flex items-start space-x-2 flex-1 min-w-0">
+                      <span className="text-xl font-bold text-amber-600 flex-shrink-0">#{index + 1}</span>
+                      <span className="text-sm font-medium text-gray-900 break-words">{clerk.name}</span>
                     </div>
-                    <span className="text-lg font-bold text-green-600">{clerk.completionRate.toFixed(1)}%</span>
+                    <span className="text-lg font-bold text-green-600 flex-shrink-0">{clerk.completionRate.toFixed(1)}%</span>
                   </div>
                   <div className="flex items-center space-x-4 text-xs text-gray-600">
                     <span>{isMarathi ? 'एकूण' : 'Total'}: {clerk.total}</span>
@@ -1037,12 +1037,12 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
             <div className="space-y-3 max-h-96 overflow-y-auto">
               {topOfficers.map((officer, index) => (
                 <div key={index} className="p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-xl font-bold text-blue-600">#{index + 1}</span>
-                      <span className="text-sm font-medium text-gray-900">{officer.name}</span>
+                  <div className="flex items-start justify-between mb-2 gap-3">
+                    <div className="flex items-start space-x-2 flex-1 min-w-0">
+                      <span className="text-xl font-bold text-blue-600 flex-shrink-0">#{index + 1}</span>
+                      <span className="text-sm font-medium text-gray-900 break-words">{officer.name}</span>
                     </div>
-                    <span className="text-lg font-bold text-green-600">{officer.completionRate.toFixed(1)}%</span>
+                    <span className="text-lg font-bold text-green-600 flex-shrink-0">{officer.completionRate.toFixed(1)}%</span>
                   </div>
                   <div className="flex items-center space-x-4 text-xs text-gray-600">
                     <span>{isMarathi ? 'एकूण' : 'Total'}: {officer.total}</span>
