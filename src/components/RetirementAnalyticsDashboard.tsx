@@ -225,6 +225,16 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
     return { completed, inProgress };
   };
 
+  const cleanName = (name: string): string => {
+    if (!name) return name;
+
+    const cleanedName = name
+      .replace(/^(Clerk|Officer|Inspector)\s+/i, '')
+      .trim();
+
+    return cleanedName || name;
+  };
+
   const getTopPerformingClerks = () => {
     const clerkPerformance: { [key: string]: { name: string; completed: number; inProgress: number; total: number } } = {};
     const retirementEmployees = getRetirementEmployees();
@@ -235,8 +245,9 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
       const status = getProgressStatus(emp.emp_id);
       if (!clerkPerformance[emp.assigned_clerk]) {
         const clerk = clerks.find(c => c.user_id === emp.assigned_clerk || c.user_id === String(emp.assigned_clerk));
+        const rawName = clerk?.name || `Clerk ${String(emp.assigned_clerk).slice(0, 8)}`;
         clerkPerformance[emp.assigned_clerk] = {
-          name: clerk?.name || `Clerk ${String(emp.assigned_clerk).slice(0, 8)}`,
+          name: cleanName(rawName),
           completed: 0,
           inProgress: 0,
           total: 0
@@ -268,8 +279,9 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
       const status = getProgressStatus(emp.emp_id);
       if (!officerPerformance[emp.officer_assigned]) {
         const officer = officers.find(o => o.user_id === emp.officer_assigned || o.user_id === String(emp.officer_assigned));
+        const rawName = officer?.name || `Officer ${String(emp.officer_assigned).slice(0, 8)}`;
         officerPerformance[emp.officer_assigned] = {
-          name: officer?.name || `Officer ${String(emp.officer_assigned).slice(0, 8)}`,
+          name: cleanName(rawName),
           completed: 0,
           inProgress: 0,
           total: 0
@@ -444,7 +456,8 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
 
       if (lastUpdate && lastUpdate >= oneWeekAgo) {
         const clerk = clerks.find(c => c.user_id === emp.assigned_clerk);
-        const clerkName = clerk?.name || 'Unknown';
+        const rawClerkName = clerk?.name || 'Unknown';
+        const clerkName = cleanName(rawClerkName);
 
         if (!weeklyData[emp.assigned_clerk]) {
           weeklyData[emp.assigned_clerk] = {
