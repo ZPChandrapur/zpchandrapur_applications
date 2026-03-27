@@ -1,34 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  BarChart3,
-  Table,
-  PieChart,
-  TrendingUp,
-  Filter,
-  Save,
-  Play,
-  Download,
-  RefreshCw,
-  Plus,
-  Edit,
-  Trash2,
-  Eye,
-  Settings,
-  Database,
-  Users,
-  Calendar,
-  Building2,
-  MapPin,
-  FileText,
-  X,
-  Search,
-  ChevronDown,
-  ChevronRight,
-  Clock,
-  CheckCircle,
-  AlertCircle
-} from 'lucide-react';
+import { BarChart3, Table, PieChart, TrendingUp, Filter, Save, Play, Download, RefreshCw, Plus, CreditCard as Edit, Trash2, Eye, Settings, Database, Users, Calendar, Building2, MapPin, FileText, X, Search, ChevronDown, ChevronRight, Clock, CheckCircle, AlertCircle } from 'lucide-react';
 import { ermsClient, supabase } from '../lib/supabase';
 import { usePermissions } from '../hooks/usePermissions';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
@@ -66,8 +38,9 @@ interface ColumnInfo {
 }
 
 export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { userRole, userProfile } = usePermissions(user);
+  const isMarathi = i18n.language === 'mr';
 
   // Comprehensive state persistence system
   const STORAGE_KEYS = {
@@ -107,16 +80,14 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
 
   const initialState = getInitialState();
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'create' | 'templates' | 'results' | 'tracking'>(initialState.activeTab as any);
+  const [activeTab, setActiveTab] = useState<'create' | 'templates' | 'results' | 'retirement_reports'>(initialState.activeTab as any);
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [reportData, setReportData] = useState<any[]>([]);
   const [reportColumns, setReportColumns] = useState<string[]>([]);
 
-  const [trackingData, setTrackingData] = useState<any[]>([]);
-  const [selectedTrackingDept, setSelectedTrackingDept] = useState('');
-  const [selectedTrackingClerk, setSelectedTrackingClerk] = useState('');
+  const [retirementReportData, setRetirementReportData] = useState<any[]>([]);
+  const [selectedDepartment, setSelectedDepartment] = useState('');
   const [departments, setDepartments] = useState<any[]>([]);
-  const [clerks, setClerks] = useState<any[]>([]);
 
   // Report Builder States
   const [selectedTables, setSelectedTables] = useState<string[]>(initialState.reportBuilder.selectedTables);
@@ -134,9 +105,6 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
 
   const [persistenceEnabled, setPersistenceEnabled] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
-
-  // Retirement Dashboard Data
-  const [retirementEmployees, setRetirementEmployees] = useState<any[]>([]);
 
   // Save state
   const saveState = () => {
@@ -159,9 +127,7 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
   useEffect(() => {
     fetchAvailableTables();
     fetchSavedTemplates();
-    fetchRetirementData();
     fetchDepartments();
-    fetchClerks();
 
     setTimeout(() => {
       setPersistenceEnabled(true);
@@ -200,10 +166,10 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
   }, [selectedTables, availableTables]);
 
   useEffect(() => {
-    if (activeTab === 'tracking') {
-      fetchTrackingReport();
+    if (activeTab === 'retirement_reports') {
+      fetchRetirementReportData();
     }
-  }, [activeTab, selectedTrackingDept, selectedTrackingClerk, departments, clerks]);
+  }, [activeTab, selectedDepartment, departments]);
 
 
   // Start of New changes to deploy
@@ -334,32 +300,41 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
     }
   ];
 
-  const fetchRetirementData = async () => {
+  const fetchRetirementReportData = async () => {
+    setIsLoading(true);
     try {
-      const { data, error } = await ermsClient
-        .from('employee_retirement')
+      let query = ermsClient
+        .from('employee')
         .select(`
-          id,
           emp_id,
           employee_name,
+          sevarth_id,
           retirement_date,
-          status,
-          date_of_submission,
-          type_of_pension,
-          date_of_pension_case_approval,
-          date_of_actual_benefit_provided_for_group_insurance,
-          date_of_benefit_provided_for_gratuity,
-          date_of_actual_benefit_provided_for_leave_encashment,
-          date_of_actual_benefit_provided_for_medical_allowance_if_applic,
-          date_of_benefit_provided_for_hometown_travel_allowance_if_appli,
-          date_of_actual_benefit_provided_for_pending_travel_allowance_if
+          dept_id
         `)
         .order('retirement_date', { ascending: true });
 
-      if (error) throw error;
-      setRetirementEmployees(data || []);
+      if (selectedDepartment) {
+        query = query.eq('dept_id', selectedDepartment);
+      }
+
+      const { data: employeeData, error: empError } = await query;
+
+      if (empError) throw empError;
+
+      const enrichedData = employeeData?.map(emp => {
+        const dept = departments.find(d => String(d.dept_id) === String(emp.dept_id));
+        return {
+          ...emp,
+          department: dept?.department || 'N/A'
+        };
+      });
+
+      setRetirementReportData(enrichedData || []);
     } catch (error) {
-      console.error('Error fetching retirement data:', error);
+      console.error('Error fetching retirement report data:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -377,186 +352,50 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
     }
   };
 
-  const fetchClerks = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select(`
-          user_id,
-          name,
-          roles!inner(name)
-        `)
-        .eq('roles.name', 'clerk')
-        .not('name', 'is', null);
 
-      if (error) throw error;
 
-      const clerksData = data?.map(clerk => ({
-        user_id: clerk.user_id,
-        name: clerk.name,
-        role_name: clerk.roles?.name || 'clerk'
-      })) || [];
-
-      setClerks(clerksData);
-    } catch (error) {
-      console.error('Error fetching clerks:', error);
-    }
-  };
-
-  const fetchTrackingReport = async () => {
-    setIsLoading(true);
-    try {
-      const { data: employeeData, error: empError } = await ermsClient
-        .from('employee')
-        .select(`
-          emp_id,
-          employee_name,
-          retirement_date,
-          dept_id,
-          assigned_clerk,
-          updated_at
-        `);
-
-      if (empError) throw empError;
-
-      const { data: progressData, error: progError } = await ermsClient
-        .from('retirement_progress')
-        .select('*');
-
-      if (progError) throw progError;
-
-      const combined = employeeData?.map(emp => {
-        const progress = progressData?.find(p => p.emp_id === emp.emp_id);
-
-        const progressFields = [
-          progress?.date_of_birth_verification,
-          progress?.birth_certificate_doc_submitted,
-          progress?.medical_certificate,
-          progress?.nomination,
-          progress?.permanent_registration,
-          progress?.post_service_exam,
-          progress?.computer_exam_passed,
-          progress?.marathi_hindi_exam_exemption,
-          progress?.verification_completed,
-          progress?.has_undertaking_been_taken_on_21_12_2021,
-          progress?.no_objection_no_inquiry_certificate,
-          progress?.retirement_order
-        ];
-
-        const completedCount = progressFields.filter(f => f && f !== 'Pending').length;
-        const totalCount = progressFields.length;
-        const isPending = completedCount < totalCount;
-
-        const lastUpdate = emp.updated_at ? new Date(emp.updated_at) : null;
-        const weeksSinceUpdate = lastUpdate
-          ? Math.floor((new Date().getTime() - lastUpdate.getTime()) / (1000 * 60 * 60 * 24 * 7))
-          : null;
-
-        return {
-          ...emp,
-          ...progress,
-          completedCount,
-          totalCount,
-          isPending,
-          weeksSinceUpdate,
-          department: departments.find(d => d.dept_id === emp.dept_id)?.department || 'Unknown',
-          clerkName: clerks.find(c => c.user_id === emp.assigned_clerk)?.name || 'Unassigned'
-        };
-      }).filter(emp => emp.isPending) || [];
-
-      let filtered = combined;
-      if (selectedTrackingDept) {
-        filtered = filtered.filter(emp => String(emp.dept_id) === selectedTrackingDept);
-      }
-      if (selectedTrackingClerk) {
-        filtered = filtered.filter(emp => emp.assigned_clerk === selectedTrackingClerk);
-      }
-
-      setTrackingData(filtered);
-    } catch (error) {
-      console.error('Error fetching tracking report:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const getProgressStatus = (employee: any) => {
-    const progressFields = [
-      employee.date_of_pension_case_approval,
-      employee.date_of_actual_benefit_provided_for_group_insurance,
-      employee.date_of_benefit_provided_for_gratuity,
-      employee.date_of_actual_benefit_provided_for_leave_encashment,
-      employee.date_of_actual_benefit_provided_for_medical_allowance_if_applic,
-      employee.date_of_benefit_provided_for_hometown_travel_allowance_if_appli,
-      employee.date_of_actual_benefit_provided_for_pending_travel_allowance_if,
-    ];
-
-    const filledFields = progressFields.filter((field) => {
-      return field && typeof field === 'string' ? field.trim() !== '' : !!field;
-    }).length;
-
-    const totalFields = progressFields.length;
-
-    if (filledFields === 0) return 'pending';
-    if (filledFields === totalFields) return 'completed';
-    return 'processing';
-  };
-
-  const getStatusCounts = () => {
-    const total = retirementEmployees.length;
-    const processing = retirementEmployees.filter(emp => getProgressStatus(emp) === 'processing').length;
-    const completed = retirementEmployees.filter(emp => getProgressStatus(emp) === 'completed').length;
-    const pending = retirementEmployees.filter(emp => getProgressStatus(emp) === 'pending').length;
-
-    return { total, processing, completed, pending };
-  };
-
-  const calculateUpcomingRetirements = () => {
-    const sixMonthsFromNow = new Date();
-    sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
-
-    return retirementEmployees.filter(emp => {
-      if (!emp.retirement_date) return false;
-      const retirementDate = new Date(emp.retirement_date);
-      const now = new Date();
-      return retirementDate >= now && retirementDate <= sixMonthsFromNow;
-    }).length;
-  };
-
-  const getMonthWiseData = () => {
-    const monthData = [];
-    const currentDate = new Date();
-
-    // Get 12 months: current month and 11 months forward
-    for (let i = 0; i < 12; i++) {
-      const targetDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + i, 1);
-      const monthName = targetDate.toLocaleString('default', { month: 'short' });
-      const year = targetDate.getFullYear();
-      monthData.push({
-        month: `${monthName} ${year.toString().slice(-2)}`,
-        fullDate: targetDate,
-        count: 0
-      });
-    }
-
-    retirementEmployees.forEach(emp => {
-      if (emp.retirement_date) {
-        const retirementDate = new Date(emp.retirement_date);
-        const monthIndex = monthData.findIndex(m =>
-          m.fullDate.getMonth() === retirementDate.getMonth() &&
-          m.fullDate.getFullYear() === retirementDate.getFullYear()
-        );
-        if (monthIndex !== -1) {
-          monthData[monthIndex].count++;
-        }
-      }
-    });
-
-    return monthData;
-  };
 
   const fetchAvailableTables = async () => {
     setAvailableTables(tableDefinitions);
+  };
+
+  const downloadRetirementReport = () => {
+    if (retirementReportData.length === 0) {
+      alert(isMarathi ? 'डाउनलोड करण्यासाठी कोणताही डेटा उपलब्ध नाही' : 'No data available to download');
+      return;
+    }
+
+    const XLSX = require('xlsx');
+
+    const headers = [
+      isMarathi ? 'विभाग' : 'Department',
+      isMarathi ? 'कर्मचारी नाव' : 'Employee Name',
+      isMarathi ? 'सेवार्थ/शालार्थ आयडी' : 'Sevarth/Shalarth ID',
+      isMarathi ? 'सेवानिवृत्ती तारीख' : 'Date of Retirement'
+    ];
+
+    const dataForExport = retirementReportData.map(emp => ({
+      [headers[0]]: emp.department || '',
+      [headers[1]]: emp.employee_name || '',
+      [headers[2]]: emp.sevarth_id || '',
+      [headers[3]]: emp.retirement_date || ''
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(dataForExport);
+
+    const colWidths = [
+      { wch: 30 },
+      { wch: 30 },
+      { wch: 20 },
+      { wch: 15 }
+    ];
+    ws['!cols'] = colWidths;
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, isMarathi ? 'सेवानिवृत्ती अहवाल' : 'Retirement Report');
+
+    const fileName = `${isMarathi ? 'सेवानिवृत्ती_अहवाल' : 'Retirement_Report'}_${new Date().toISOString().split('T')[0]}.xlsx`;
+    XLSX.writeFile(wb, fileName, { bookType: 'xlsx', type: 'binary', cellStyles: true });
   };
 
   const fetchSavedTemplates = async () => {
@@ -957,7 +796,6 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
                 onClick={() => {
                   resetToDefault();
                   fetchSavedTemplates();
-                  fetchRetirementData();
                 }}
                 className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-all duration-200"
               >
@@ -1006,14 +844,14 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
                 <span>{t('customReports.results', 'Results')}</span>
               </button>
               <button
-                onClick={() => setActiveTab('tracking')}
-                className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${activeTab === 'tracking'
+                onClick={() => setActiveTab('retirement_reports')}
+                className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${activeTab === 'retirement_reports'
                   ? 'border-teal-500 text-teal-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
               >
-                <Clock className="h-4 w-4" />
-                <span>Retirement Tracking</span>
+                <FileText className="h-4 w-4" />
+                <span>{isMarathi ? 'सेवानिवृत्ती अहवाल' : 'Retirement Reports'}</span>
               </button>
             </nav>
           </div>
@@ -1368,54 +1206,62 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
               </div>
             )}
 
-            {/* Retirement Tracking Tab */}
-            {activeTab === 'tracking' && (
+            {/* Retirement Reports Tab */}
+            {activeTab === 'retirement_reports' && (
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-semibold text-gray-900">
-                    Clerk & Department-wise Retirement Tracking (Pending Cases)
+                    {isMarathi ? 'विभागनिहाय सेवानिवृत्ती अहवाल' : 'Department-wise Retirement Report'}
                   </h3>
-                  <button
-                    onClick={fetchTrackingReport}
-                    className="flex items-center space-x-2 px-3 py-2 text-teal-600 hover:bg-teal-50 rounded-lg transition-all duration-200"
-                  >
-                    <RefreshCw className="h-4 w-4" />
-                    <span className="text-sm">Refresh</span>
-                  </button>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={fetchRetirementReportData}
+                      className="flex items-center space-x-2 px-4 py-2 text-teal-600 hover:bg-teal-50 rounded-lg transition-all duration-200"
+                      disabled={isLoading}
+                    >
+                      <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                      <span className="text-sm">{isMarathi ? 'रिफ्रेश' : 'Refresh'}</span>
+                    </button>
+                    <button
+                      onClick={downloadRetirementReport}
+                      className="flex items-center space-x-2 px-4 py-2 bg-teal-600 text-white hover:bg-teal-700 rounded-lg transition-all duration-200"
+                      disabled={isLoading || retirementReportData.length === 0}
+                    >
+                      <Download className="h-4 w-4" />
+                      <span className="text-sm">{isMarathi ? 'डाउनलोड' : 'Download'}</span>
+                    </button>
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {isMarathi ? 'विभाग निवडा' : 'Select Department'}
+                  </label>
                   <select
-                    value={selectedTrackingDept}
-                    onChange={(e) => setSelectedTrackingDept(e.target.value)}
-                    className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                    value={selectedDepartment}
+                    onChange={(e) => setSelectedDepartment(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                   >
-                    <option value="">All Departments</option>
+                    <option value="">{isMarathi ? 'सर्व विभाग' : 'All Departments'}</option>
                     {departments.map(dept => (
                       <option key={dept.dept_id} value={String(dept.dept_id)}>{dept.department}</option>
                     ))}
                   </select>
-
-                  <select
-                    value={selectedTrackingClerk}
-                    onChange={(e) => setSelectedTrackingClerk(e.target.value)}
-                    className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                  >
-                    <option value="">All Clerks</option>
-                    {clerks.map(clerk => (
-                      <option key={clerk.user_id} value={clerk.user_id}>{clerk.name}</option>
-                    ))}
-                  </select>
                 </div>
 
-                {trackingData.length === 0 ? (
-                  <div className="text-center py-8">
-                    <Clock className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                {isLoading ? (
+                  <div className="text-center py-12">
+                    <RefreshCw className="h-12 w-12 text-teal-600 mx-auto mb-4 animate-spin" />
+                    <p className="text-gray-600">{isMarathi ? 'डेटा लोड होत आहे...' : 'Loading data...'}</p>
+                  </div>
+                ) : retirementReportData.length === 0 ? (
+                  <div className="text-center py-12 bg-gray-50 rounded-lg">
+                    <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                     <h3 className="text-lg font-medium text-gray-900 mb-2">
-                      No pending retirement cases found
+                      {isMarathi ? 'कोणताही डेटा उपलब्ध नाही' : 'No data available'}
                     </h3>
                     <p className="text-gray-500">
-                      All retirement cases are completed or no data matches the filters.
+                      {isMarathi ? 'निवडलेल्या फिल्टरसाठी कोणताही रेकॉर्ड सापडला नाही' : 'No records found for the selected filters'}
                     </p>
                   </div>
                 ) : (
@@ -1424,43 +1270,34 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
                       <table className="w-full border-collapse">
                         <thead className="bg-teal-50">
                           <tr>
-                            <th className="border border-gray-300 px-4 py-2 text-left text-xs font-medium text-gray-700 uppercase">Emp ID</th>
-                            <th className="border border-gray-300 px-4 py-2 text-left text-xs font-medium text-gray-700 uppercase">Employee Name</th>
-                            <th className="border border-gray-300 px-4 py-2 text-left text-xs font-medium text-gray-700 uppercase">Department</th>
-                            <th className="border border-gray-300 px-4 py-2 text-left text-xs font-medium text-gray-700 uppercase">Assigned Clerk</th>
-                            <th className="border border-gray-300 px-4 py-2 text-left text-xs font-medium text-gray-700 uppercase">Retirement Date</th>
-                            <th className="border border-gray-300 px-4 py-2 text-left text-xs font-medium text-gray-700 uppercase">Progress</th>
-                            <th className="border border-gray-300 px-4 py-2 text-left text-xs font-medium text-gray-700 uppercase">Weeks Since Update</th>
+                            <th className="border border-gray-300 px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                              {isMarathi ? 'विभाग' : 'Department'}
+                            </th>
+                            <th className="border border-gray-300 px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                              {isMarathi ? 'कर्मचारी नाव' : 'Employee Name'}
+                            </th>
+                            <th className="border border-gray-300 px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                              {isMarathi ? 'सेवार्थ/शालार्थ आयडी' : 'Sevarth/Shalarth ID'}
+                            </th>
+                            <th className="border border-gray-300 px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                              {isMarathi ? 'सेवानिवृत्ती तारीख' : 'Date of Retirement'}
+                            </th>
                           </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                          {trackingData.map((emp, index) => (
-                            <tr key={index} className={`hover:bg-gray-50 ${emp.weeksSinceUpdate && emp.weeksSinceUpdate > 2 ? 'bg-red-50' : ''}`}>
-                              <td className="border border-gray-300 px-4 py-2 text-sm text-gray-900">{emp.emp_id}</td>
-                              <td className="border border-gray-300 px-4 py-2 text-sm text-gray-900">{emp.employee_name}</td>
-                              <td className="border border-gray-300 px-4 py-2 text-sm text-gray-900">{emp.department}</td>
-                              <td className="border border-gray-300 px-4 py-2 text-sm text-gray-900">{emp.clerkName}</td>
-                              <td className="border border-gray-300 px-4 py-2 text-sm text-gray-900">{emp.retirement_date}</td>
-                              <td className="border border-gray-300 px-4 py-2 text-sm">
-                                <div className="flex items-center space-x-2">
-                                  <div className="flex-1 bg-gray-200 rounded-full h-2">
-                                    <div
-                                      className="bg-teal-500 h-2 rounded-full"
-                                      style={{ width: `${(emp.completedCount / emp.totalCount) * 100}%` }}
-                                    ></div>
-                                  </div>
-                                  <span className="text-xs text-gray-600">{emp.completedCount}/{emp.totalCount}</span>
-                                </div>
+                          {retirementReportData.map((emp, index) => (
+                            <tr key={index} className="hover:bg-gray-50 transition-colors">
+                              <td className="border border-gray-300 px-4 py-3 text-sm text-gray-900">
+                                {emp.department || 'N/A'}
                               </td>
-                              <td className="border border-gray-300 px-4 py-2 text-sm">
-                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                                  emp.weeksSinceUpdate === null ? 'bg-gray-100 text-gray-800' :
-                                  emp.weeksSinceUpdate > 2 ? 'bg-red-100 text-red-800' :
-                                  emp.weeksSinceUpdate > 1 ? 'bg-yellow-100 text-yellow-800' :
-                                  'bg-green-100 text-green-800'
-                                }`}>
-                                  {emp.weeksSinceUpdate === null ? 'No update' : `${emp.weeksSinceUpdate} weeks`}
-                                </span>
+                              <td className="border border-gray-300 px-4 py-3 text-sm text-gray-900">
+                                {emp.employee_name || 'N/A'}
+                              </td>
+                              <td className="border border-gray-300 px-4 py-3 text-sm text-gray-900">
+                                {emp.sevarth_id || 'N/A'}
+                              </td>
+                              <td className="border border-gray-300 px-4 py-3 text-sm text-gray-900">
+                                {emp.retirement_date || 'N/A'}
                               </td>
                             </tr>
                           ))}
@@ -1469,11 +1306,19 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
                     </div>
 
                     <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
-                      <div className="text-sm text-gray-600">
-                        <p className="font-medium">Total Pending Cases: {trackingData.length}</p>
-                        <p className="text-xs mt-1">
-                          <span className="text-red-600">●</span> Red highlight indicates no update for more than 2 weeks
-                        </p>
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm text-gray-600">
+                          <p className="font-semibold">
+                            {isMarathi ? 'एकूण रेकॉर्ड' : 'Total Records'}: <span className="text-teal-600">{retirementReportData.length}</span>
+                          </p>
+                        </div>
+                        <button
+                          onClick={downloadRetirementReport}
+                          className="flex items-center space-x-2 px-4 py-2 bg-teal-600 text-white hover:bg-teal-700 rounded-lg transition-all duration-200 text-sm"
+                        >
+                          <Download className="h-4 w-4" />
+                          <span>{isMarathi ? 'एक्सेल डाउनलोड करा' : 'Download Excel'}</span>
+                        </button>
                       </div>
                     </div>
                   </div>
