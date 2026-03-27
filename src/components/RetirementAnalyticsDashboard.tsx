@@ -259,7 +259,7 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
       else if (status === 'in_progress') clerkPerformance[emp.assigned_clerk].inProgress++;
     });
 
-    return Object.values(clerkPerformance)
+    const result = Object.values(clerkPerformance)
       .filter(clerk => clerk.total > 0)
       .map(clerk => ({
         ...clerk,
@@ -267,6 +267,9 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
       }))
       .sort((a, b) => b.completionRate - a.completionRate)
       .slice(0, 10);
+
+    console.log('Top Clerks:', result.map(c => ({ name: c.name, len: c.name?.length })));
+    return result;
   };
 
   const getTopPerformingOfficers = () => {
@@ -293,7 +296,7 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
       else if (status === 'in_progress') officerPerformance[emp.officer_assigned].inProgress++;
     });
 
-    return Object.values(officerPerformance)
+    const result = Object.values(officerPerformance)
       .filter(officer => officer.total > 0)
       .map(officer => ({
         ...officer,
@@ -301,6 +304,9 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
       }))
       .sort((a, b) => b.completionRate - a.completionRate)
       .slice(0, 10);
+
+    console.log('Top Officers:', result.map(o => ({ name: o.name, len: o.name?.length })));
+    return result;
   };
 
   const getMonthWiseData = () => {
@@ -1005,11 +1011,11 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
               {topClerks.map((clerk, index) => (
                 <div key={index} className="p-3 bg-gray-50 rounded-lg">
                   <div className="flex items-start justify-between mb-2 gap-3">
-                    <div className="flex items-start space-x-2 flex-1 min-w-0">
+                    <div className="flex items-start space-x-2 flex-1">
                       <span className="text-xl font-bold text-amber-600 flex-shrink-0">#{index + 1}</span>
-                      <span className="text-sm font-medium text-gray-900 break-words">{clerk.name}</span>
+                      <span className="text-sm font-medium text-gray-900" style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>{clerk.name}</span>
                     </div>
-                    <span className="text-lg font-bold text-green-600 flex-shrink-0">{clerk.completionRate.toFixed(1)}%</span>
+                    <span className="text-lg font-bold text-green-600 flex-shrink-0 ml-2 whitespace-nowrap">{clerk.completionRate.toFixed(1)}%</span>
                   </div>
                   <div className="flex items-center space-x-4 text-xs text-gray-600">
                     <span>{isMarathi ? 'एकूण' : 'Total'}: {clerk.total}</span>
@@ -1038,11 +1044,11 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
               {topOfficers.map((officer, index) => (
                 <div key={index} className="p-3 bg-gray-50 rounded-lg">
                   <div className="flex items-start justify-between mb-2 gap-3">
-                    <div className="flex items-start space-x-2 flex-1 min-w-0">
+                    <div className="flex items-start space-x-2 flex-1">
                       <span className="text-xl font-bold text-blue-600 flex-shrink-0">#{index + 1}</span>
-                      <span className="text-sm font-medium text-gray-900 break-words">{officer.name}</span>
+                      <span className="text-sm font-medium text-gray-900" style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>{officer.name}</span>
                     </div>
-                    <span className="text-lg font-bold text-green-600 flex-shrink-0">{officer.completionRate.toFixed(1)}%</span>
+                    <span className="text-lg font-bold text-green-600 flex-shrink-0 ml-2 whitespace-nowrap">{officer.completionRate.toFixed(1)}%</span>
                   </div>
                   <div className="flex items-center space-x-4 text-xs text-gray-600">
                     <span>{isMarathi ? 'एकूण' : 'Total'}: {officer.total}</span>
