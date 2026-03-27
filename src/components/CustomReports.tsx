@@ -299,24 +299,36 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
   ];
 
   const fetchRetirementReportData = async () => {
-    if (departments.length === 0) return;
+    console.log('fetchRetirementReportData called, departments length:', departments.length);
+    if (departments.length === 0) {
+      console.log('Waiting for departments to load...');
+      return;
+    }
 
     setIsLoading(true);
     try {
+      console.log('Fetching retirement data from erms.employee_retirement...');
       const { data: retirementData, error: retirementError } = await ermsClient
         .from('employee_retirement')
         .select('*')
         .order('retirement_date', { ascending: true });
 
-      if (retirementError) throw retirementError;
+      if (retirementError) {
+        console.error('Error fetching retirement data:', retirementError);
+        throw retirementError;
+      }
+
+      console.log('Retirement data received:', retirementData?.length, 'records');
 
       if (!retirementData || retirementData.length === 0) {
+        console.log('No retirement data found');
         setRetirementReportData([]);
         setIsLoading(false);
         return;
       }
 
       const empIds = retirementData.map(r => r.emp_id);
+      console.log('Fetching related data for', empIds.length, 'employees...');
 
       const [employeeResult, progressResult, payCommResult, groupInsResult] = await Promise.all([
         ermsClient
@@ -337,24 +349,38 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
           .in('emp_id', empIds)
       ]);
 
-      if (employeeResult.error) throw employeeResult.error;
-      if (progressResult.error) throw progressResult.error;
-      if (payCommResult.error) throw payCommResult.error;
-      if (groupInsResult.error) throw groupInsResult.error;
+      if (employeeResult.error) {
+        console.error('Employee query error:', employeeResult.error);
+        throw employeeResult.error;
+      }
+      if (progressResult.error) {
+        console.error('Progress query error:', progressResult.error);
+        throw progressResult.error;
+      }
+      if (payCommResult.error) {
+        console.error('PayComm query error:', payCommResult.error);
+        throw payCommResult.error;
+      }
+      if (groupInsResult.error) {
+        console.error('GroupIns query error:', groupInsResult.error);
+        throw groupInsResult.error;
+      }
 
       const employeeData = employeeResult.data || [];
       const progressData = progressResult.data || [];
       const payCommData = payCommResult.data || [];
       const groupInsData = groupInsResult.data || [];
 
+      console.log('Data received - Employees:', employeeData.length, 'Progress:', progressData.length, 'PayComm:', payCommData.length, 'GroupIns:', groupInsData.length);
+
       const getProgressStatus = (empId: number) => {
         const progress = progressData.find(p => p.emp_id === empId);
-        return progress?.status || 'Pending';
+        return progress?.status || 'N/A';
       };
 
       const getPayCommissionStatus = (empId: number) => {
         const payComm = payCommData.find(p => p.emp_id === empId);
-        if (!payComm) return 'Not Started';
+        if (!payComm) return 'N/A';
 
         const fields = [
           payComm.fourth_pay_comission,
@@ -363,17 +389,17 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
           payComm.seventh_pay_comission
         ];
 
-        const completed = fields.filter(f => f && f !== 'Pending' && f !== '').length;
+        const completed = fields.filter(f => f && f.trim() !== '' && f !== 'Pending').length;
         const total = fields.length;
 
         if (completed === 0) return 'Not Started';
         if (completed === total) return 'Completed';
-        return 'In Progress';
+        return `${completed}/${total} Completed`;
       };
 
       const getGroupInsuranceStatus = (empId: number) => {
         const groupIns = groupInsData.find(g => g.emp_id === empId);
-        if (!groupIns) return 'Not Started';
+        if (!groupIns) return 'N/A';
 
         const fields = [
           groupIns.year_1990,
@@ -382,12 +408,12 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
           groupIns.year_2020
         ];
 
-        const completed = fields.filter(f => f && f !== 'Pending' && f !== '').length;
+        const completed = fields.filter(f => f && f.trim() !== '' && f !== 'Pending').length;
         const total = fields.length;
 
         if (completed === 0) return 'Not Started';
         if (completed === total) return 'Completed';
-        return 'In Progress';
+        return `${completed}/${total} Completed`;
       };
 
       let enrichedData = retirementData.map(retirement => {
@@ -407,8 +433,10 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
 
       if (selectedDepartment) {
         enrichedData = enrichedData.filter(emp => String(emp.dept_id) === selectedDepartment);
+        console.log('Filtered by department:', selectedDepartment, '- Result:', enrichedData.length, 'records');
       }
 
+      console.log('Setting retirement report data with', enrichedData.length, 'records');
       setRetirementReportData(enrichedData);
     } catch (error) {
       console.error('Error fetching retirement report data:', error);
