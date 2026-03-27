@@ -350,6 +350,7 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
   const fetchDepartments = async () => {
     try {
       const { data, error } = await ermsClient
+        .schema(erms)
         .from('department')
         .select('dept_id, department')
         .order('department');
