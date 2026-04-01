@@ -85,8 +85,10 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
 
   const [officeFilter, setOfficeFilter] = useState<string>('');
   const [clerkFilter, setClerkFilter] = useState<string>('');
+  const [vibhagFilter, setVibhagFilter] = useState<string>('');
 
   const [allData, setAllData] = useState<any[]>([]);
+  const [availableVibhags, setAvailableVibhags] = useState<string[]>([]);
 
   useEffect(() => {
     fetchOfficeSummaries();
@@ -102,6 +104,14 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
       if (error) throw error;
 
       setAllData(data || []);
+
+      const vibhagSet = new Set<string>();
+      data?.forEach((row: any) => {
+        if (row.department) {
+          vibhagSet.add(row.department);
+        }
+      });
+      setAvailableVibhags(Array.from(vibhagSet).sort());
 
       const officeMap = new Map<string, any>();
 
@@ -166,7 +176,11 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
   const fetchClerkDetails = (officeName: string) => {
     setIsLoading(true);
     try {
-      const filteredData = allData.filter(row => row.current_office_name === officeName);
+      let filteredData = allData.filter(row => row.current_office_name === officeName);
+
+      if (vibhagFilter) {
+        filteredData = filteredData.filter(row => row.department === vibhagFilter);
+      }
 
       const clerkMap = new Map<string, any>();
 
@@ -230,6 +244,10 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
     setIsLoading(true);
     try {
       let filteredData = allData.filter(row => row.current_office_name === officeName);
+
+      if (vibhagFilter) {
+        filteredData = filteredData.filter(row => row.department === vibhagFilter);
+      }
 
       if (clerkId !== 'unassigned') {
         filteredData = filteredData.filter(row => row.assigned_clerk === clerkId);
@@ -490,9 +508,72 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
     );
   };
 
-  const filteredOfficeSummaries = officeFilter
-    ? officeSummaries.filter(office => office.office_name === officeFilter)
-    : officeSummaries;
+  const getFilteredOfficeSummaries = () => {
+    let dataToProcess = allData;
+
+    if (vibhagFilter) {
+      dataToProcess = dataToProcess.filter(row => row.department === vibhagFilter);
+    }
+
+    const officeMap = new Map<string, any>();
+
+    dataToProcess.forEach((row: any) => {
+      const officeName = row.current_office_name || 'कार्यालय नियुक्त नाही';
+
+      if (!officeMap.has(officeName)) {
+        officeMap.set(officeName, {
+          office_name: officeName,
+          clerks: new Set(),
+          total_employees: 0,
+          pay_commission_pending: 0,
+          pay_commission_completed: 0,
+          group_insurance_pending: 0,
+          group_insurance_completed: 0,
+          status_pending: 0,
+          status_processing: 0,
+          status_completed: 0,
+          retirement_progress_pending: 0,
+          retirement_progress_in_progress: 0,
+          retirement_progress_completed: 0
+        });
+      }
+
+      const office = officeMap.get(officeName);
+
+      if (row.assigned_clerk) {
+        office.clerks.add(row.assigned_clerk);
+      }
+
+      office.total_employees++;
+
+      if (row.pay_commission_status === 'pending') office.pay_commission_pending++;
+      if (row.pay_commission_status === 'completed') office.pay_commission_completed++;
+
+      if (row.group_insurance_status === 'pending') office.group_insurance_pending++;
+      if (row.group_insurance_status === 'completed') office.group_insurance_completed++;
+
+      if (row.status === 'pending') office.status_pending++;
+      if (row.status === 'processing') office.status_processing++;
+      if (row.status === 'completed') office.status_completed++;
+
+      if (row.retirement_progress_status === 'pending') office.retirement_progress_pending++;
+      if (row.retirement_progress_status === 'in_progress') office.retirement_progress_in_progress++;
+      if (row.retirement_progress_status === 'completed') office.retirement_progress_completed++;
+    });
+
+    const summaries: OfficeSummary[] = Array.from(officeMap.values()).map(office => ({
+      ...office,
+      total_clerks: office.clerks.size
+    }));
+
+    summaries.sort((a, b) => b.total_employees - a.total_employees);
+
+    return officeFilter
+      ? summaries.filter(office => office.office_name === officeFilter)
+      : summaries;
+  };
+
+  const filteredOfficeSummaries = getFilteredOfficeSummaries();
 
   const filteredClerkDetails = clerkFilter
     ? clerkDetails.filter(clerk => clerk.clerk_id === clerkFilter)
@@ -571,23 +652,59 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
             {drillDownLevel === 'office' && (
               <div className="space-y-4">
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-                  <div className="flex items-center space-x-3">
-                    <Filter className="h-5 w-5 text-teal-600" />
-                    <label className="text-sm font-medium text-gray-700">कार्यालय निवडा:</label>
-                    <select
-                      value={officeFilter}
-                      onChange={(e) => handleOfficeFilterChange(e.target.value)}
-                      className="flex-1 max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                    >
-                      <option value="">सर्व कार्यालये</option>
-                      {officeSummaries.map((office, index) => (
-                        <option key={index} value={office.office_name}>
-                          {office.office_name}
-                        </option>
-                      ))}
-                    </select>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex items-center space-x-3">
+                      <Filter className="h-5 w-5 text-teal-600" />
+                      <label className="text-sm font-medium text-gray-700">विभाग निवडा:</label>
+                      <select
+                        value={vibhagFilter}
+                        onChange={(e) => setVibhagFilter(e.target.value)}
+                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                      >
+                        <option value="">सर्व विभाग</option>
+                        {availableVibhags.map((vibhag, index) => (
+                          <option key={index} value={vibhag}>
+                            {vibhag}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <Filter className="h-5 w-5 text-teal-600" />
+                      <label className="text-sm font-medium text-gray-700">कार्यालय निवडा:</label>
+                      <select
+                        value={officeFilter}
+                        onChange={(e) => handleOfficeFilterChange(e.target.value)}
+                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                      >
+                        <option value="">सर्व कार्यालये</option>
+                        {officeSummaries.map((office, index) => (
+                          <option key={index} value={office.office_name}>
+                            {office.office_name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
                 </div>
+
+                {vibhagFilter && (
+                  <div className="bg-gradient-to-r from-teal-50 to-cyan-50 border border-teal-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <Filter className="h-5 w-5 text-teal-600" />
+                        <span className="text-sm font-medium text-gray-700">निवडलेला विभाग:</span>
+                        <span className="text-sm font-bold text-teal-700">{vibhagFilter}</span>
+                      </div>
+                      <button
+                        onClick={() => setVibhagFilter('')}
+                        className="text-sm text-teal-600 hover:text-teal-800 font-medium underline"
+                      >
+                        फिल्टर काढा
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                   <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
@@ -766,21 +883,39 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
                 )}
 
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-                  <div className="flex items-center space-x-3">
-                    <Filter className="h-5 w-5 text-teal-600" />
-                    <label className="text-sm font-medium text-gray-700">लिपिक निवडा:</label>
-                    <select
-                      value={clerkFilter}
-                      onChange={(e) => handleClerkFilterChange(e.target.value)}
-                      className="flex-1 max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                    >
-                      <option value="">सर्व लिपिक</option>
-                      {clerkDetails.map((clerk, index) => (
-                        <option key={index} value={clerk.clerk_id}>
-                          {clerk.clerk_name}
-                        </option>
-                      ))}
-                    </select>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex items-center space-x-3">
+                      <Filter className="h-5 w-5 text-teal-600" />
+                      <label className="text-sm font-medium text-gray-700">विभाग निवडा:</label>
+                      <select
+                        value={vibhagFilter}
+                        onChange={(e) => setVibhagFilter(e.target.value)}
+                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                      >
+                        <option value="">सर्व विभाग</option>
+                        {availableVibhags.map((vibhag, index) => (
+                          <option key={index} value={vibhag}>
+                            {vibhag}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <Filter className="h-5 w-5 text-teal-600" />
+                      <label className="text-sm font-medium text-gray-700">लिपिक निवडा:</label>
+                      <select
+                        value={clerkFilter}
+                        onChange={(e) => handleClerkFilterChange(e.target.value)}
+                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                      >
+                        <option value="">सर्व लिपिक</option>
+                        {clerkDetails.map((clerk, index) => (
+                          <option key={index} value={clerk.clerk_id}>
+                            {clerk.clerk_name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
                 </div>
 
