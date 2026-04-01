@@ -890,7 +890,7 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
                           </div>
 
                           <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-4 border border-orange-200">
-                            <div className="text-sm text-orange-700 mb-2 font-medium pb-2 border-b border-orange-200">वेतन आयोग (प्रलंबित/प्रक्रियेत/पूर्ण)</div>
+                            <div className="text-sm text-orange-700 mb-2 font-medium pb-2 border-b border-orange-200">वेतन आयोग </div>
                             <div className="space-y-1 mt-2">
                               <div className="flex items-center justify-between">
                                 <span className="text-xs text-amber-700">प्रलंबित</span>
@@ -908,7 +908,7 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
                           </div>
 
                           <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-4 border border-emerald-200">
-                            <div className="text-sm text-emerald-700 mb-2 font-medium pb-2 border-b border-emerald-200">गट विमा (प्रलंबित/प्रक्रियेत/पूर्ण)</div>
+                            <div className="text-sm text-emerald-700 mb-2 font-medium pb-2 border-b border-emerald-200">गट विमा </div>
                             <div className="space-y-1 mt-2">
                               <div className="flex items-center justify-between">
                                 <span className="text-xs text-amber-700">प्रलंबित</span>
@@ -975,7 +975,7 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
                       </div>
 
                       <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-4 border border-orange-200">
-                        <div className="text-sm text-orange-700 mb-2 font-medium pb-2 border-b border-orange-200">वेतन आयोग (प्रलंबित/प्रक्रियेत/पूर्ण)</div>
+                        <div className="text-sm text-orange-700 mb-2 font-medium pb-2 border-b border-orange-200">वेतन आयोग </div>
                         <div className="space-y-1 mt-2">
                           <div className="flex items-center justify-between">
                             <span className="text-xs text-amber-700">प्रलंबित</span>
@@ -993,7 +993,7 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
                       </div>
 
                       <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-4 border border-emerald-200">
-                        <div className="text-sm text-emerald-700 mb-2 font-medium pb-2 border-b border-emerald-200">गट विमा (प्रलंबित/प्रक्रियेत/पूर्ण)</div>
+                        <div className="text-sm text-emerald-700 mb-2 font-medium pb-2 border-b border-emerald-200">गट विमा </div>
                         <div className="space-y-1 mt-2">
                           <div className="flex items-center justify-between">
                             <span className="text-xs text-amber-700">प्रलंबित</span>
@@ -1098,7 +1098,7 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
                           </div>
 
                           <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-4 border border-orange-200">
-                            <div className="text-sm text-orange-700 mb-2 font-medium pb-2 border-b border-orange-200">वेतन आयोग (प्रलंबित/प्रक्रियेत/पूर्ण)</div>
+                            <div className="text-sm text-orange-700 mb-2 font-medium pb-2 border-b border-orange-200">वेतन आयोग </div>
                             <div className="space-y-1 mt-2">
                               <div className="flex items-center justify-between">
                                 <span className="text-xs text-amber-700">प्रलंबित</span>
@@ -1116,7 +1116,7 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
                           </div>
 
                           <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-4 border border-emerald-200">
-                            <div className="text-sm text-emerald-700 mb-2 font-medium pb-2 border-b border-emerald-200">गट विमा (प्रलंबित/प्रक्रियेत/पूर्ण)</div>
+                            <div className="text-sm text-emerald-700 mb-2 font-medium pb-2 border-b border-emerald-200">गट विमा </div>
                             <div className="space-y-1 mt-2">
                               <div className="flex items-center justify-between">
                                 <span className="text-xs text-amber-700">प्रलंबित</span>
