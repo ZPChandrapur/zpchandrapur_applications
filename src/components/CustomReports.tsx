@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 import { ermsClient } from '../lib/supabase';
-import * as XLSX from 'xlsx';
+import * as XLSX from 'xlsx-js-style';
 
 interface CustomReportsProps {
   user: SupabaseUser;
@@ -722,7 +722,7 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'अहवाल');
 
-    XLSX.writeFile(wb, fileName);
+    XLSX.writeFile(wb, fileName, { cellStyles: true });
   };
 
   const getStatusBadge = (status: string) => {
