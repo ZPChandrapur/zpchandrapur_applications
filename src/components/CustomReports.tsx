@@ -399,31 +399,67 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
   const exportToExcel = () => {
     let worksheetData: any[] = [];
     let fileName = '';
+    let headerRow = 0;
+    let summaryEndRow = 0;
 
     if (drillDownLevel === 'office') {
-      fileName = 'कार्यालयनिहाय_अहवाल.xlsx';
+      const dataToExport = filteredOfficeSummaries;
 
-      worksheetData = [
-        ['कार्यालयनिहाय सारांश अहवाल'],
-        [],
-        [
-          'कार्यालय नाव',
-          'एकूण लिपिक',
-          'एकूण कर्मचारी',
-          'वेतन आयोग (प्रलंबित)',
-          'वेतन आयोग (पूर्ण)',
-          'गट विमा (प्रलंबित)',
-          'गट विमा (पूर्ण)',
-          'स्थिती (प्रलंबित)',
-          'स्थिती (प्रक्रियेत)',
-          'स्थिती (पूर्ण)',
-          'सेवानिवृत्ती प्रगती (प्रलंबित)',
-          'सेवानिवृत्ती प्रगती (प्रक्रियेत)',
-          'सेवानिवृत्ती प्रगती (पूर्ण)'
-        ]
-      ];
+      if (vibhagFilter) {
+        fileName = `विभागनिहाय_अहवाल_${vibhagFilter}.xlsx`;
+        worksheetData = [
+          ['विभागनिहाय सारांश अहवाल'],
+          [`विभाग: ${vibhagFilter}`],
+          []
+        ];
 
-      officeSummaries.forEach(office => {
+        if (vibhagSummary) {
+          worksheetData.push(
+            ['सारांश'],
+            ['एकूण कार्यालये', vibhagSummary.total_offices],
+            ['एकूण लिपिक', vibhagSummary.total_clerks],
+            ['एकूण कर्मचारी', vibhagSummary.total_employees],
+            [],
+            ['वेतन आयोग'],
+            ['प्रलंबित', vibhagSummary.pay_commission_pending],
+            ['प्रक्रियेत', vibhagSummary.status_processing],
+            ['पूर्ण', vibhagSummary.pay_commission_completed],
+            [],
+            ['गट विमा'],
+            ['प्रलंबित', vibhagSummary.group_insurance_pending],
+            ['प्रक्रियेत', vibhagSummary.status_processing],
+            ['पूर्ण', vibhagSummary.group_insurance_completed],
+            []
+          );
+        }
+        summaryEndRow = worksheetData.length;
+      } else {
+        fileName = 'कार्यालयनिहाय_अहवाल.xlsx';
+        worksheetData = [
+          ['कार्यालयनिहाय सारांश अहवाल'],
+          []
+        ];
+        summaryEndRow = 2;
+      }
+
+      headerRow = worksheetData.length;
+      worksheetData.push([
+        'कार्यालय नाव',
+        'एकूण लिपिक',
+        'एकूण कर्मचारी',
+        'वेतन आयोग (प्रलंबित)',
+        'वेतन आयोग (पूर्ण)',
+        'गट विमा (प्रलंबित)',
+        'गट विमा (पूर्ण)',
+        'स्थिती (प्रलंबित)',
+        'स्थिती (प्रक्रियेत)',
+        'स्थिती (पूर्ण)',
+        'सेवानिवृत्ती प्रगती (प्रलंबित)',
+        'सेवानिवृत्ती प्रगती (प्रक्रियेत)',
+        'सेवानिवृत्ती प्रगती (पूर्ण)'
+      ]);
+
+      dataToExport.forEach(office => {
         worksheetData.push([
           office.office_name,
           office.total_clerks,
@@ -444,23 +480,30 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
       fileName = `लिपिकनिहाय_अहवाल_${selectedOffice}.xlsx`;
 
       worksheetData = [
-        [`लिपिकनिहाय अहवाल - ${selectedOffice}`],
-        [],
-        [
-          'लिपिक नाव',
-          'एकूण कर्मचारी',
-          'वेतन आयोग (प्रलंबित)',
-          'वेतन आयोग (पूर्ण)',
-          'गट विमा (प्रलंबित)',
-          'गट विमा (पूर्ण)',
-          'स्थिती (प्रलंबित)',
-          'स्थिती (प्रक्रियेत)',
-          'स्थिती (पूर्ण)',
-          'सेवानिवृत्ती प्रगती (प्रलंबित)',
-          'सेवानिवृत्ती प्रगती (प्रक्रियेत)',
-          'सेवानिवृत्ती प्रगती (पूर्ण)'
-        ]
+        [`लिपिकनिहाय अहवाल - ${selectedOffice}`]
       ];
+
+      if (vibhagFilter) {
+        worksheetData.push([`विभाग फिल्टर: ${vibhagFilter}`]);
+      }
+
+      worksheetData.push([]);
+      headerRow = worksheetData.length;
+
+      worksheetData.push([
+        'लिपिक नाव',
+        'एकूण कर्मचारी',
+        'वेतन आयोग (प्रलंबित)',
+        'वेतन आयोग (पूर्ण)',
+        'गट विमा (प्रलंबित)',
+        'गट विमा (पूर्ण)',
+        'स्थिती (प्रलंबित)',
+        'स्थिती (प्रक्रियेत)',
+        'स्थिती (पूर्ण)',
+        'सेवानिवृत्ती प्रगती (प्रलंबित)',
+        'सेवानिवृत्ती प्रगती (प्रक्रियेत)',
+        'सेवानिवृत्ती प्रगती (पूर्ण)'
+      ]);
 
       clerkDetails.forEach(clerk => {
         worksheetData.push([
@@ -483,21 +526,28 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
       fileName = `कर्मचारी_अहवाल_${clerkName}.xlsx`;
 
       worksheetData = [
-        [`कर्मचारी अहवाल - ${selectedOffice} - ${clerkName}`],
-        [],
-        [
-          'कर्मचारी क्र.',
-          'नाव',
-          'शालार्थ/सेवार्थ आयडी',
-          'विभाग',
-          'पदनाम',
-          'सेवानिवृत्ती तारीख',
-          'वेतन आयोग',
-          'गट विमा',
-          'स्थिती',
-          'सेवानिवृत्ती प्रगती'
-        ]
+        [`कर्मचारी अहवाल - ${selectedOffice} - ${clerkName}`]
       ];
+
+      if (vibhagFilter) {
+        worksheetData.push([`विभाग फिल्टर: ${vibhagFilter}`]);
+      }
+
+      worksheetData.push([]);
+      headerRow = worksheetData.length;
+
+      worksheetData.push([
+        'कर्मचारी क्र.',
+        'नाव',
+        'शालार्थ/सेवार्थ आयडी',
+        'विभाग',
+        'पदनाम',
+        'सेवानिवृत्ती तारीख',
+        'वेतन आयोग',
+        'गट विमा',
+        'स्थिती',
+        'सेवानिवृत्ती प्रगती'
+      ]);
 
       employeeDetails.forEach(employee => {
         worksheetData.push([
@@ -531,39 +581,124 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
 
         if (R === 0) {
           ws[cellAddress].s = {
-            font: { bold: true, sz: 14, color: { rgb: "FFFFFF" } },
-            fill: { fgColor: { rgb: "0D9488" } },
-            alignment: { horizontal: "center", vertical: "center" }
-          };
-        } else if (R === 2) {
-          ws[cellAddress].s = {
-            font: { bold: true, sz: 11, color: { rgb: "FFFFFF" } },
-            fill: { fgColor: { rgb: "14B8A6" } },
+            font: { bold: true, sz: 16, color: { rgb: "1E40AF" } },
+            fill: { fgColor: { rgb: "DBEAFE" } },
             alignment: { horizontal: "center", vertical: "center" },
             border: {
-              top: { style: "thin", color: { rgb: "000000" } },
-              bottom: { style: "thin", color: { rgb: "000000" } },
-              left: { style: "thin", color: { rgb: "000000" } },
-              right: { style: "thin", color: { rgb: "000000" } }
+              top: { style: "medium", color: { rgb: "3B82F6" } },
+              bottom: { style: "medium", color: { rgb: "3B82F6" } },
+              left: { style: "medium", color: { rgb: "3B82F6" } },
+              right: { style: "medium", color: { rgb: "3B82F6" } }
             }
           };
-        } else if (R > 2) {
+        } else if (R === 1 && vibhagFilter) {
+          ws[cellAddress].s = {
+            font: { bold: true, sz: 12, color: { rgb: "5B21B6" } },
+            fill: { fgColor: { rgb: "EDE9FE" } },
+            alignment: { horizontal: "center", vertical: "center" },
+            border: {
+              top: { style: "thin", color: { rgb: "8B5CF6" } },
+              bottom: { style: "thin", color: { rgb: "8B5CF6" } },
+              left: { style: "thin", color: { rgb: "8B5CF6" } },
+              right: { style: "thin", color: { rgb: "8B5CF6" } }
+            }
+          };
+        } else if (summaryEndRow > 0 && R > 2 && R < summaryEndRow) {
+          const cellValue = ws[cellAddress].v;
+          const isLabel = C === 0;
+          const isHeaderLabel = ['सारांश', 'वेतन आयोग', 'गट विमा'].includes(cellValue);
+
+          if (isHeaderLabel) {
+            ws[cellAddress].s = {
+              font: { bold: true, sz: 11, color: { rgb: "FFFFFF" } },
+              fill: { fgColor: { rgb: "059669" } },
+              alignment: { horizontal: "center", vertical: "center" },
+              border: {
+                top: { style: "medium", color: { rgb: "059669" } },
+                bottom: { style: "medium", color: { rgb: "059669" } },
+                left: { style: "medium", color: { rgb: "059669" } },
+                right: { style: "medium", color: { rgb: "059669" } }
+              }
+            };
+          } else if (isLabel) {
+            const labelColors: any = {
+              'एकूण कार्यालये': { bg: 'DBEAFE', fg: '1E40AF', border: '3B82F6' },
+              'एकूण लिपिक': { bg: 'D1FAE5', fg: '065F46', border: '10B981' },
+              'एकूण कर्मचारी': { bg: 'E9D5FF', fg: '5B21B6', border: '8B5CF6' },
+              'प्रलंबित': { bg: 'FEF3C7', fg: '78350F', border: 'F59E0B' },
+              'प्रक्रियेत': { bg: 'DBEAFE', fg: '1E3A8A', border: '3B82F6' },
+              'पूर्ण': { bg: 'D1FAE5', fg: '065F46', border: '10B981' }
+            };
+            const colors = labelColors[cellValue] || { bg: 'F3F4F6', fg: '374151', border: '9CA3AF' };
+
+            ws[cellAddress].s = {
+              font: { bold: true, sz: 10, color: { rgb: colors.fg } },
+              fill: { fgColor: { rgb: colors.bg } },
+              alignment: { horizontal: "left", vertical: "center" },
+              border: {
+                top: { style: "thin", color: { rgb: colors.border } },
+                bottom: { style: "thin", color: { rgb: colors.border } },
+                left: { style: "thin", color: { rgb: colors.border } },
+                right: { style: "thin", color: { rgb: colors.border } }
+              }
+            };
+          } else {
+            ws[cellAddress].s = {
+              font: { bold: true, sz: 12, color: { rgb: "1F2937" } },
+              fill: { fgColor: { rgb: "F9FAFB" } },
+              alignment: { horizontal: "center", vertical: "center" },
+              border: {
+                top: { style: "thin", color: { rgb: "D1D5DB" } },
+                bottom: { style: "thin", color: { rgb: "D1D5DB" } },
+                left: { style: "thin", color: { rgb: "D1D5DB" } },
+                right: { style: "thin", color: { rgb: "D1D5DB" } }
+              }
+            };
+          }
+        } else if (R === headerRow) {
+          const columnColors = [
+            'DBEAFE', 'D1FAE5', 'E9D5FF', 'FED7AA', 'FED7AA',
+            'D1FAE5', 'D1FAE5', 'FEF3C7', 'DBEAFE', 'D1FAE5',
+            'FEF3C7', 'DBEAFE', 'D1FAE5'
+          ];
+
+          ws[cellAddress].s = {
+            font: { bold: true, sz: 11, color: { rgb: "1F2937" } },
+            fill: { fgColor: { rgb: columnColors[C] || 'E5E7EB' } },
+            alignment: { horizontal: "center", vertical: "center", wrapText: true },
+            border: {
+              top: { style: "medium", color: { rgb: "000000" } },
+              bottom: { style: "medium", color: { rgb: "000000" } },
+              left: { style: "thin", color: { rgb: "9CA3AF" } },
+              right: { style: "thin", color: { rgb: "9CA3AF" } }
+            }
+          };
+        } else if (R > headerRow) {
           const cellValue = ws[cellAddress].v;
           let fillColor = "FFFFFF";
+          let fontColor = "1F2937";
 
           if (typeof cellValue === 'string') {
             if (cellValue === 'pending' || cellValue === 'प्रलंबित') {
               fillColor = "FEF3C7";
+              fontColor = "78350F";
             } else if (cellValue === 'processing' || cellValue === 'in_progress' || cellValue === 'प्रक्रियेत') {
               fillColor = "DBEAFE";
+              fontColor = "1E3A8A";
             } else if (cellValue === 'completed' || cellValue === 'पूर्ण') {
               fillColor = "D1FAE5";
+              fontColor = "065F46";
+            }
+          } else if (typeof cellValue === 'number' && C > 0) {
+            if (R % 2 === 0) {
+              fillColor = "F9FAFB";
             }
           }
 
           ws[cellAddress].s = {
+            font: { sz: 10, color: { rgb: fontColor } },
             fill: { fgColor: { rgb: fillColor } },
-            alignment: { horizontal: "left", vertical: "center" },
+            alignment: { horizontal: C === 0 ? "left" : "center", vertical: "center" },
             border: {
               top: { style: "thin", color: { rgb: "E5E7EB" } },
               bottom: { style: "thin", color: { rgb: "E5E7EB" } },
@@ -573,6 +708,15 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
           };
         }
       }
+    }
+
+    if (summaryEndRow > 0) {
+      ws['!rows'] = ws['!rows'] || [];
+      for (let i = 0; i < summaryEndRow; i++) {
+        ws['!rows'][i] = { hpt: 20 };
+      }
+      ws['!rows'][0] = { hpt: 25 };
+      ws['!rows'][headerRow] = { hpt: 30 };
     }
 
     const wb = XLSX.utils.book_new();
