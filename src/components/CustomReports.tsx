@@ -610,45 +610,54 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
 
                         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
                           <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border border-blue-200">
+                            <div className="text-sm text-blue-700 mb-2 font-medium">एकूण लिपिक</div>
                             <div className="text-3xl font-bold text-blue-900">{office.total_clerks}</div>
-                            <div className="text-sm text-blue-700 mt-2 font-medium">एकूण लिपिक</div>
                           </div>
 
                           <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 border border-purple-200">
+                            <div className="text-sm text-purple-700 mb-2 font-medium">एकूण कर्मचारी</div>
                             <div className="text-3xl font-bold text-purple-900">{office.total_employees}</div>
-                            <div className="text-sm text-purple-700 mt-2 font-medium">एकूण कर्मचारी</div>
                           </div>
 
                           <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-4 border border-orange-200">
-                            <div className="space-y-1">
+                            <div className="text-sm text-orange-700 mb-2 font-medium pb-2 border-b border-orange-200">वेतन आयोग (प्रलंबित/प्रक्रियेत/पूर्ण)</div>
+                            <div className="space-y-1 mt-2">
                               <div className="flex items-center justify-between">
                                 <span className="text-xs text-amber-700">प्रलंबित</span>
                                 <span className="text-xl font-bold text-amber-900">{office.pay_commission_pending}</span>
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs text-sky-700">प्रक्रियेत</span>
+                                <span className="text-xl font-bold text-sky-900">{office.status_processing}</span>
                               </div>
                               <div className="flex items-center justify-between">
                                 <span className="text-xs text-green-700">पूर्ण</span>
                                 <span className="text-xl font-bold text-green-900">{office.pay_commission_completed}</span>
                               </div>
                             </div>
-                            <div className="text-sm text-orange-700 mt-2 font-medium border-t border-orange-200 pt-2">वेतन आयोग (प्रलंबित/पूर्ण)</div>
                           </div>
 
                           <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-4 border border-emerald-200">
-                            <div className="space-y-1">
+                            <div className="text-sm text-emerald-700 mb-2 font-medium pb-2 border-b border-emerald-200">गट विमा (प्रलंबित/प्रक्रियेत/पूर्ण)</div>
+                            <div className="space-y-1 mt-2">
                               <div className="flex items-center justify-between">
                                 <span className="text-xs text-amber-700">प्रलंबित</span>
                                 <span className="text-xl font-bold text-amber-900">{office.group_insurance_pending}</span>
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs text-sky-700">प्रक्रियेत</span>
+                                <span className="text-xl font-bold text-sky-900">{office.status_processing}</span>
                               </div>
                               <div className="flex items-center justify-between">
                                 <span className="text-xs text-green-700">पूर्ण</span>
                                 <span className="text-xl font-bold text-green-900">{office.group_insurance_completed}</span>
                               </div>
                             </div>
-                            <div className="text-sm text-emerald-700 mt-2 font-medium border-t border-emerald-200 pt-2">गट विमा (प्रलंबित/पूर्ण)</div>
                           </div>
 
                           <div className="bg-gradient-to-br from-teal-50 to-teal-100 rounded-xl p-4 border border-teal-200">
-                            <div className="space-y-1">
+                            <div className="text-sm text-gray-700 mb-2 font-medium pb-2 border-b border-teal-200">सेवानिवृत्ती प्रगती</div>
+                            <div className="space-y-1 mt-2">
                               <div className="flex items-center justify-between">
                                 <span className="text-xs text-amber-700">प्रलंबित</span>
                                 <span className="text-xl font-bold text-amber-900">{office.retirement_progress_pending}</span>
@@ -662,7 +671,6 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
                                 <span className="text-xl font-bold text-green-900">{office.retirement_progress_completed}</span>
                               </div>
                             </div>
-                            <div className="text-sm text-gray-700 mt-2 font-medium border-t border-teal-200 pt-2">सेवानिवृत्ती प्रगती</div>
                           </div>
                         </div>
                       </div>
@@ -718,40 +726,49 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
 
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                           <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 border border-purple-200">
+                            <div className="text-sm text-purple-700 mb-2 font-medium">एकूण कर्मचारी</div>
                             <div className="text-3xl font-bold text-purple-900">{clerk.total_employees}</div>
-                            <div className="text-sm text-purple-700 mt-2 font-medium">एकूण कर्मचारी</div>
                           </div>
 
                           <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-4 border border-orange-200">
-                            <div className="space-y-1">
+                            <div className="text-sm text-orange-700 mb-2 font-medium pb-2 border-b border-orange-200">वेतन आयोग (प्रलंबित/प्रक्रियेत/पूर्ण)</div>
+                            <div className="space-y-1 mt-2">
                               <div className="flex items-center justify-between">
                                 <span className="text-xs text-amber-700">प्रलंबित</span>
                                 <span className="text-xl font-bold text-amber-900">{clerk.pay_commission_pending}</span>
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs text-sky-700">प्रक्रियेत</span>
+                                <span className="text-xl font-bold text-sky-900">{clerk.status_processing}</span>
                               </div>
                               <div className="flex items-center justify-between">
                                 <span className="text-xs text-green-700">पूर्ण</span>
                                 <span className="text-xl font-bold text-green-900">{clerk.pay_commission_completed}</span>
                               </div>
                             </div>
-                            <div className="text-sm text-orange-700 mt-2 font-medium border-t border-orange-200 pt-2">वेतन आयोग (प्रलंबित/पूर्ण)</div>
                           </div>
 
                           <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-4 border border-emerald-200">
-                            <div className="space-y-1">
+                            <div className="text-sm text-emerald-700 mb-2 font-medium pb-2 border-b border-emerald-200">गट विमा (प्रलंबित/प्रक्रियेत/पूर्ण)</div>
+                            <div className="space-y-1 mt-2">
                               <div className="flex items-center justify-between">
                                 <span className="text-xs text-amber-700">प्रलंबित</span>
                                 <span className="text-xl font-bold text-amber-900">{clerk.group_insurance_pending}</span>
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs text-sky-700">प्रक्रियेत</span>
+                                <span className="text-xl font-bold text-sky-900">{clerk.status_processing}</span>
                               </div>
                               <div className="flex items-center justify-between">
                                 <span className="text-xs text-green-700">पूर्ण</span>
                                 <span className="text-xl font-bold text-green-900">{clerk.group_insurance_completed}</span>
                               </div>
                             </div>
-                            <div className="text-sm text-emerald-700 mt-2 font-medium border-t border-emerald-200 pt-2">गट विमा (प्रलंबित/पूर्ण)</div>
                           </div>
 
                           <div className="bg-gradient-to-br from-teal-50 to-teal-100 rounded-xl p-4 border border-teal-200">
-                            <div className="space-y-1">
+                            <div className="text-sm text-gray-700 mb-2 font-medium pb-2 border-b border-teal-200">सेवानिवृत्ती प्रगती</div>
+                            <div className="space-y-1 mt-2">
                               <div className="flex items-center justify-between">
                                 <span className="text-xs text-amber-700">प्रलंबित</span>
                                 <span className="text-xl font-bold text-amber-900">{clerk.retirement_progress_pending}</span>
@@ -765,7 +782,6 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
                                 <span className="text-xl font-bold text-green-900">{clerk.retirement_progress_completed}</span>
                               </div>
                             </div>
-                            <div className="text-sm text-gray-700 mt-2 font-medium border-t border-teal-200 pt-2">सेवानिवृत्ती प्रगती</div>
                           </div>
                         </div>
                       </div>
