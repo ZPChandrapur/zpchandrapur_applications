@@ -6,5 +6,11 @@ export default defineConfig({
   plugins: [react()],
   optimizeDeps: {
     exclude: ['lucide-react'],
+    include: ['xlsx-js-style']
   },
+  resolve: {
+    alias: {
+      './cptable': 'xlsx-js-style'
+    }
+  }
 });
