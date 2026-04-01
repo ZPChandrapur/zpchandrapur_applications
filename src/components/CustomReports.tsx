@@ -10,10 +10,13 @@ import {
   FileText,
   CheckCircle,
   Clock,
-  XCircle
+  XCircle,
+  Download,
+  Filter
 } from 'lucide-react';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 import { ermsClient } from '../lib/supabase';
+import * as XLSX from 'xlsx';
 
 interface CustomReportsProps {
   user: SupabaseUser;
@@ -31,6 +34,9 @@ interface OfficeSummary {
   status_pending: number;
   status_processing: number;
   status_completed: number;
+  retirement_progress_pending: number;
+  retirement_progress_in_progress: number;
+  retirement_progress_completed: number;
 }
 
 interface ClerkDetail {
@@ -44,6 +50,9 @@ interface ClerkDetail {
   status_pending: number;
   status_processing: number;
   status_completed: number;
+  retirement_progress_pending: number;
+  retirement_progress_in_progress: number;
+  retirement_progress_completed: number;
 }
 
 interface EmployeeDetail {
@@ -56,6 +65,7 @@ interface EmployeeDetail {
   pay_commission_status: string;
   group_insurance_status: string;
   status: string;
+  retirement_progress_status: string;
 }
 
 type DrillDownLevel = 'office' | 'clerk' | 'employee';
@@ -72,6 +82,11 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
   const [clerkDetails, setClerkDetails] = useState<ClerkDetail[]>([]);
   const [employeeDetails, setEmployeeDetails] = useState<EmployeeDetail[]>([]);
 
+  const [officeFilter, setOfficeFilter] = useState<string>('');
+  const [clerkFilter, setClerkFilter] = useState<string>('');
+
+  const [allData, setAllData] = useState<any[]>([]);
+
   useEffect(() => {
     fetchOfficeSummaries();
   }, []);
@@ -84,6 +99,8 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
         .select('*');
 
       if (error) throw error;
+
+      setAllData(data || []);
 
       const officeMap = new Map<string, any>();
 
@@ -101,7 +118,10 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
             group_insurance_completed: 0,
             status_pending: 0,
             status_processing: 0,
-            status_completed: 0
+            status_completed: 0,
+            retirement_progress_pending: 0,
+            retirement_progress_in_progress: 0,
+            retirement_progress_completed: 0
           });
         }
 
@@ -122,6 +142,10 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
         if (row.status === 'pending') office.status_pending++;
         if (row.status === 'processing') office.status_processing++;
         if (row.status === 'completed') office.status_completed++;
+
+        if (row.retirement_progress_status === 'pending') office.retirement_progress_pending++;
+        if (row.retirement_progress_status === 'in_progress') office.retirement_progress_in_progress++;
+        if (row.retirement_progress_status === 'completed') office.retirement_progress_completed++;
       });
 
       const summaries: OfficeSummary[] = Array.from(officeMap.values()).map(office => ({
@@ -138,19 +162,14 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
     }
   };
 
-  const fetchClerkDetails = async (officeName: string) => {
+  const fetchClerkDetails = (officeName: string) => {
     setIsLoading(true);
     try {
-      const { data, error } = await ermsClient
-        .from('employee_retirement_consolidated_view')
-        .select('*')
-        .eq('current_office_name', officeName);
-
-      if (error) throw error;
+      const filteredData = allData.filter(row => row.current_office_name === officeName);
 
       const clerkMap = new Map<string, any>();
 
-      data?.forEach((row: any) => {
+      filteredData.forEach((row: any) => {
         const clerkId = row.assigned_clerk || 'unassigned';
         const clerkName = row.assigned_clerk_name || 'नियुक्त नाही';
 
@@ -165,7 +184,10 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
             group_insurance_completed: 0,
             status_pending: 0,
             status_processing: 0,
-            status_completed: 0
+            status_completed: 0,
+            retirement_progress_pending: 0,
+            retirement_progress_in_progress: 0,
+            retirement_progress_completed: 0
           });
         }
 
@@ -181,6 +203,10 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
         if (row.status === 'pending') clerk.status_pending++;
         if (row.status === 'processing') clerk.status_processing++;
         if (row.status === 'completed') clerk.status_completed++;
+
+        if (row.retirement_progress_status === 'pending') clerk.retirement_progress_pending++;
+        if (row.retirement_progress_status === 'in_progress') clerk.retirement_progress_in_progress++;
+        if (row.retirement_progress_status === 'completed') clerk.retirement_progress_completed++;
       });
 
       const details: ClerkDetail[] = Array.from(clerkMap.values());
@@ -188,6 +214,7 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
       setClerkDetails(details);
       setDrillDownLevel('clerk');
       setSelectedOffice(officeName);
+      setClerkFilter('');
     } catch (error) {
       console.error('Error fetching clerk details:', error);
     } finally {
@@ -195,25 +222,18 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
     }
   };
 
-  const fetchEmployeeDetails = async (officeName: string, clerkId: string) => {
+  const fetchEmployeeDetails = (officeName: string, clerkId: string) => {
     setIsLoading(true);
     try {
-      let query = ermsClient
-        .from('employee_retirement_consolidated_view')
-        .select('*')
-        .eq('current_office_name', officeName);
+      let filteredData = allData.filter(row => row.current_office_name === officeName);
 
       if (clerkId !== 'unassigned') {
-        query = query.eq('assigned_clerk', clerkId);
+        filteredData = filteredData.filter(row => row.assigned_clerk === clerkId);
       } else {
-        query = query.is('assigned_clerk', null);
+        filteredData = filteredData.filter(row => !row.assigned_clerk);
       }
 
-      const { data, error } = await query;
-
-      if (error) throw error;
-
-      const employees: EmployeeDetail[] = data?.map((row: any) => ({
+      const employees: EmployeeDetail[] = filteredData.map((row: any) => ({
         emp_id: row.emp_id,
         employee_name: row.employee_name,
         shalarth_sevarthid: row.shalarth_sevarthid,
@@ -222,8 +242,9 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
         retirement_date: row.retirement_date,
         pay_commission_status: row.pay_commission_status || 'pending',
         group_insurance_status: row.group_insurance_status || 'pending',
-        status: row.status || 'pending'
-      })) || [];
+        status: row.status || 'pending',
+        retirement_progress_status: row.retirement_progress_status || 'pending'
+      }));
 
       employees.sort((a, b) => new Date(a.retirement_date).getTime() - new Date(b.retirement_date).getTime());
       setEmployeeDetails(employees);
@@ -243,13 +264,214 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
     } else if (drillDownLevel === 'clerk') {
       setDrillDownLevel('office');
       setSelectedOffice('');
+      setOfficeFilter('');
     }
+  };
+
+  const handleOfficeFilterChange = (officeName: string) => {
+    setOfficeFilter(officeName);
+    if (officeName) {
+      fetchClerkDetails(officeName);
+    }
+  };
+
+  const handleClerkFilterChange = (clerkId: string) => {
+    setClerkFilter(clerkId);
+    if (clerkId) {
+      fetchEmployeeDetails(selectedOffice, clerkId);
+    }
+  };
+
+  const exportToExcel = () => {
+    let worksheetData: any[] = [];
+    let fileName = '';
+
+    if (drillDownLevel === 'office') {
+      fileName = 'कार्यालयनिहाय_अहवाल.xlsx';
+
+      worksheetData = [
+        ['कार्यालयनिहाय सारांश अहवाल'],
+        [],
+        [
+          'कार्यालय नाव',
+          'एकूण लिपिक',
+          'एकूण कर्मचारी',
+          'वेतन आयोग (प्रलंबित)',
+          'वेतन आयोग (पूर्ण)',
+          'गट विमा (प्रलंबित)',
+          'गट विमा (पूर्ण)',
+          'स्थिती (प्रलंबित)',
+          'स्थिती (प्रक्रियेत)',
+          'स्थिती (पूर्ण)',
+          'सेवानिवृत्ती प्रगती (प्रलंबित)',
+          'सेवानिवृत्ती प्रगती (प्रक्रियेत)',
+          'सेवानिवृत्ती प्रगती (पूर्ण)'
+        ]
+      ];
+
+      officeSummaries.forEach(office => {
+        worksheetData.push([
+          office.office_name,
+          office.total_clerks,
+          office.total_employees,
+          office.pay_commission_pending,
+          office.pay_commission_completed,
+          office.group_insurance_pending,
+          office.group_insurance_completed,
+          office.status_pending,
+          office.status_processing,
+          office.status_completed,
+          office.retirement_progress_pending,
+          office.retirement_progress_in_progress,
+          office.retirement_progress_completed
+        ]);
+      });
+    } else if (drillDownLevel === 'clerk') {
+      fileName = `लिपिकनिहाय_अहवाल_${selectedOffice}.xlsx`;
+
+      worksheetData = [
+        [`लिपिकनिहाय अहवाल - ${selectedOffice}`],
+        [],
+        [
+          'लिपिक नाव',
+          'एकूण कर्मचारी',
+          'वेतन आयोग (प्रलंबित)',
+          'वेतन आयोग (पूर्ण)',
+          'गट विमा (प्रलंबित)',
+          'गट विमा (पूर्ण)',
+          'स्थिती (प्रलंबित)',
+          'स्थिती (प्रक्रियेत)',
+          'स्थिती (पूर्ण)',
+          'सेवानिवृत्ती प्रगती (प्रलंबित)',
+          'सेवानिवृत्ती प्रगती (प्रक्रियेत)',
+          'सेवानिवृत्ती प्रगती (पूर्ण)'
+        ]
+      ];
+
+      clerkDetails.forEach(clerk => {
+        worksheetData.push([
+          clerk.clerk_name,
+          clerk.total_employees,
+          clerk.pay_commission_pending,
+          clerk.pay_commission_completed,
+          clerk.group_insurance_pending,
+          clerk.group_insurance_completed,
+          clerk.status_pending,
+          clerk.status_processing,
+          clerk.status_completed,
+          clerk.retirement_progress_pending,
+          clerk.retirement_progress_in_progress,
+          clerk.retirement_progress_completed
+        ]);
+      });
+    } else if (drillDownLevel === 'employee') {
+      const clerkName = clerkDetails.find(c => c.clerk_id === selectedClerk)?.clerk_name || 'Unknown';
+      fileName = `कर्मचारी_अहवाल_${clerkName}.xlsx`;
+
+      worksheetData = [
+        [`कर्मचारी अहवाल - ${selectedOffice} - ${clerkName}`],
+        [],
+        [
+          'कर्मचारी क्र.',
+          'नाव',
+          'शालार्थ/सेवार्थ आयडी',
+          'विभाग',
+          'पदनाम',
+          'सेवानिवृत्ती तारीख',
+          'वेतन आयोग',
+          'गट विमा',
+          'स्थिती',
+          'सेवानिवृत्ती प्रगती'
+        ]
+      ];
+
+      employeeDetails.forEach(employee => {
+        worksheetData.push([
+          employee.emp_id,
+          employee.employee_name,
+          employee.shalarth_sevarthid || '-',
+          employee.department,
+          employee.designation,
+          new Date(employee.retirement_date).toLocaleDateString('en-GB'),
+          employee.pay_commission_status,
+          employee.group_insurance_status,
+          employee.status,
+          employee.retirement_progress_status
+        ]);
+      });
+    }
+
+    const ws = XLSX.utils.aoa_to_sheet(worksheetData);
+
+    const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
+
+    ws['!cols'] = [];
+    for (let i = 0; i <= range.e.c; i++) {
+      ws['!cols'].push({ wch: 20 });
+    }
+
+    for (let R = range.s.r; R <= range.e.r; ++R) {
+      for (let C = range.s.c; C <= range.e.c; ++C) {
+        const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+        if (!ws[cellAddress]) continue;
+
+        if (R === 0) {
+          ws[cellAddress].s = {
+            font: { bold: true, sz: 14, color: { rgb: "FFFFFF" } },
+            fill: { fgColor: { rgb: "0D9488" } },
+            alignment: { horizontal: "center", vertical: "center" }
+          };
+        } else if (R === 2) {
+          ws[cellAddress].s = {
+            font: { bold: true, sz: 11, color: { rgb: "FFFFFF" } },
+            fill: { fgColor: { rgb: "14B8A6" } },
+            alignment: { horizontal: "center", vertical: "center" },
+            border: {
+              top: { style: "thin", color: { rgb: "000000" } },
+              bottom: { style: "thin", color: { rgb: "000000" } },
+              left: { style: "thin", color: { rgb: "000000" } },
+              right: { style: "thin", color: { rgb: "000000" } }
+            }
+          };
+        } else if (R > 2) {
+          const cellValue = ws[cellAddress].v;
+          let fillColor = "FFFFFF";
+
+          if (typeof cellValue === 'string') {
+            if (cellValue === 'pending' || cellValue === 'प्रलंबित') {
+              fillColor = "FEF3C7";
+            } else if (cellValue === 'processing' || cellValue === 'in_progress' || cellValue === 'प्रक्रियेत') {
+              fillColor = "DBEAFE";
+            } else if (cellValue === 'completed' || cellValue === 'पूर्ण') {
+              fillColor = "D1FAE5";
+            }
+          }
+
+          ws[cellAddress].s = {
+            fill: { fgColor: { rgb: fillColor } },
+            alignment: { horizontal: "left", vertical: "center" },
+            border: {
+              top: { style: "thin", color: { rgb: "E5E7EB" } },
+              bottom: { style: "thin", color: { rgb: "E5E7EB" } },
+              left: { style: "thin", color: { rgb: "E5E7EB" } },
+              right: { style: "thin", color: { rgb: "E5E7EB" } }
+            }
+          };
+        }
+      }
+    }
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'अहवाल');
+
+    XLSX.writeFile(wb, fileName);
   };
 
   const getStatusBadge = (status: string) => {
     const statusConfig: any = {
       pending: { bg: 'bg-yellow-100', text: 'text-yellow-800', icon: Clock },
       processing: { bg: 'bg-blue-100', text: 'text-blue-800', icon: RefreshCw },
+      in_progress: { bg: 'bg-blue-100', text: 'text-blue-800', icon: RefreshCw },
       completed: { bg: 'bg-green-100', text: 'text-green-800', icon: CheckCircle }
     };
 
@@ -263,6 +485,14 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
       </span>
     );
   };
+
+  const filteredOfficeSummaries = officeFilter
+    ? officeSummaries.filter(office => office.office_name === officeFilter)
+    : officeSummaries;
+
+  const filteredClerkDetails = clerkFilter
+    ? clerkDetails.filter(clerk => clerk.clerk_id === clerkFilter)
+    : clerkDetails;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -282,13 +512,22 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
                 </p>
               </div>
             </div>
-            <button
-              onClick={fetchOfficeSummaries}
-              className="flex items-center space-x-2 px-4 py-2 text-teal-600 hover:bg-teal-50 rounded-lg transition-all duration-200"
-            >
-              <RefreshCw className="h-4 w-4" />
-              <span className="text-sm font-medium">रिफ्रेश करा</span>
-            </button>
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={exportToExcel}
+                className="flex items-center space-x-2 px-4 py-2 bg-teal-600 text-white hover:bg-teal-700 rounded-lg transition-all duration-200 shadow-sm"
+              >
+                <Download className="h-4 w-4" />
+                <span className="text-sm font-medium">Excel डाउनलोड</span>
+              </button>
+              <button
+                onClick={fetchOfficeSummaries}
+                className="flex items-center space-x-2 px-4 py-2 text-teal-600 hover:bg-teal-50 rounded-lg transition-all duration-200"
+              >
+                <RefreshCw className="h-4 w-4" />
+                <span className="text-sm font-medium">रिफ्रेश करा</span>
+              </button>
+            </div>
           </div>
 
           {drillDownLevel !== 'office' && (
@@ -327,6 +566,25 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
           <>
             {drillDownLevel === 'office' && (
               <div className="space-y-4">
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                  <div className="flex items-center space-x-3">
+                    <Filter className="h-5 w-5 text-teal-600" />
+                    <label className="text-sm font-medium text-gray-700">कार्यालय निवडा:</label>
+                    <select
+                      value={officeFilter}
+                      onChange={(e) => handleOfficeFilterChange(e.target.value)}
+                      className="flex-1 max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                    >
+                      <option value="">सर्व कार्यालये</option>
+                      {officeSummaries.map((office, index) => (
+                        <option key={index} value={office.office_name}>
+                          {office.office_name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                   <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
                     <Building2 className="h-5 w-5 text-teal-600" />
@@ -334,7 +592,7 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
                   </h2>
 
                   <div className="grid grid-cols-1 gap-4">
-                    {officeSummaries.map((office, index) => (
+                    {filteredOfficeSummaries.map((office, index) => (
                       <div
                         key={index}
                         onClick={() => fetchClerkDetails(office.office_name)}
@@ -377,14 +635,26 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
                         </div>
 
                         <div className="mt-3 pt-3 border-t border-gray-200">
-                          <div className="flex items-center space-x-4 text-sm">
-                            <div className="flex items-center space-x-2">
-                              <span className="text-gray-600">स्थिती:</span>
-                              <span className="font-medium text-yellow-600">{office.status_pending} प्रलंबित</span>
-                              <span className="text-gray-400">|</span>
-                              <span className="font-medium text-blue-600">{office.status_processing} प्रक्रियेत</span>
-                              <span className="text-gray-400">|</span>
-                              <span className="font-medium text-green-600">{office.status_completed} पूर्ण</span>
+                          <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                              <span className="text-gray-600 font-medium">स्थिती:</span>
+                              <div className="flex items-center space-x-2 mt-1">
+                                <span className="text-yellow-600">{office.status_pending} प्रलंबित</span>
+                                <span className="text-gray-400">|</span>
+                                <span className="text-blue-600">{office.status_processing} प्रक्रियेत</span>
+                                <span className="text-gray-400">|</span>
+                                <span className="text-green-600">{office.status_completed} पूर्ण</span>
+                              </div>
+                            </div>
+                            <div>
+                              <span className="text-gray-600 font-medium">सेवानिवृत्ती प्रगती:</span>
+                              <div className="flex items-center space-x-2 mt-1">
+                                <span className="text-yellow-600">{office.retirement_progress_pending} प्रलंबित</span>
+                                <span className="text-gray-400">|</span>
+                                <span className="text-blue-600">{office.retirement_progress_in_progress} प्रक्रियेत</span>
+                                <span className="text-gray-400">|</span>
+                                <span className="text-green-600">{office.retirement_progress_completed} पूर्ण</span>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -397,6 +667,25 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
 
             {drillDownLevel === 'clerk' && (
               <div className="space-y-4">
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                  <div className="flex items-center space-x-3">
+                    <Filter className="h-5 w-5 text-teal-600" />
+                    <label className="text-sm font-medium text-gray-700">लिपिक निवडा:</label>
+                    <select
+                      value={clerkFilter}
+                      onChange={(e) => handleClerkFilterChange(e.target.value)}
+                      className="flex-1 max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                    >
+                      <option value="">सर्व लिपिक</option>
+                      {clerkDetails.map((clerk, index) => (
+                        <option key={index} value={clerk.clerk_id}>
+                          {clerk.clerk_name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                   <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
                     <Users className="h-5 w-5 text-teal-600" />
@@ -404,7 +693,7 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
                   </h2>
 
                   <div className="grid grid-cols-1 gap-4">
-                    {clerkDetails.map((clerk, index) => (
+                    {filteredClerkDetails.map((clerk, index) => (
                       <div
                         key={index}
                         onClick={() => fetchEmployeeDetails(selectedOffice, clerk.clerk_id)}
@@ -448,6 +737,19 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
                             </div>
                           </div>
                         </div>
+
+                        <div className="mt-3 pt-3 border-t border-gray-200">
+                          <div className="text-sm">
+                            <span className="text-gray-600 font-medium">सेवानिवृत्ती प्रगती:</span>
+                            <div className="flex items-center space-x-2 mt-1">
+                              <span className="text-yellow-600">{clerk.retirement_progress_pending} प्रलंबित</span>
+                              <span className="text-gray-400">|</span>
+                              <span className="text-blue-600">{clerk.retirement_progress_in_progress} प्रक्रियेत</span>
+                              <span className="text-gray-400">|</span>
+                              <span className="text-green-600">{clerk.retirement_progress_completed} पूर्ण</span>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -477,6 +779,7 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
                         <th className="border-b border-gray-300 px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">वेतन आयोग</th>
                         <th className="border-b border-gray-300 px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">गट विमा</th>
                         <th className="border-b border-gray-300 px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">स्थिती</th>
+                        <th className="border-b border-gray-300 px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">सेवानिवृत्ती प्रगती</th>
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
@@ -493,6 +796,7 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
                           <td className="px-4 py-3 text-sm">{getStatusBadge(employee.pay_commission_status)}</td>
                           <td className="px-4 py-3 text-sm">{getStatusBadge(employee.group_insurance_status)}</td>
                           <td className="px-4 py-3 text-sm">{getStatusBadge(employee.status)}</td>
+                          <td className="px-4 py-3 text-sm">{getStatusBadge(employee.retirement_progress_status)}</td>
                         </tr>
                       ))}
                     </tbody>
