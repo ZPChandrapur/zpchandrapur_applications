@@ -68,6 +68,22 @@ interface EmployeeDetail {
   retirement_progress_status: string;
 }
 
+interface VibhagSummary {
+  total_offices: number;
+  total_clerks: number;
+  total_employees: number;
+  pay_commission_pending: number;
+  pay_commission_completed: number;
+  group_insurance_pending: number;
+  group_insurance_completed: number;
+  status_pending: number;
+  status_processing: number;
+  status_completed: number;
+  retirement_progress_pending: number;
+  retirement_progress_in_progress: number;
+  retirement_progress_completed: number;
+}
+
 type DrillDownLevel = 'office' | 'clerk' | 'employee';
 
 export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) => {
@@ -89,10 +105,19 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
 
   const [allData, setAllData] = useState<any[]>([]);
   const [availableVibhags, setAvailableVibhags] = useState<string[]>([]);
+  const [vibhagSummary, setVibhagSummary] = useState<VibhagSummary | null>(null);
 
   useEffect(() => {
     fetchOfficeSummaries();
   }, []);
+
+  useEffect(() => {
+    if (vibhagFilter && allData.length > 0) {
+      calculateVibhagSummary();
+    } else {
+      setVibhagSummary(null);
+    }
+  }, [vibhagFilter, allData]);
 
   const fetchOfficeSummaries = async () => {
     setIsLoading(true);
@@ -171,6 +196,59 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const calculateVibhagSummary = () => {
+    if (!vibhagFilter) return;
+
+    const vibhagData = allData.filter(row => row.department === vibhagFilter);
+
+    const officeSet = new Set<string>();
+    const clerkSet = new Set<string>();
+
+    const summary: VibhagSummary = {
+      total_offices: 0,
+      total_clerks: 0,
+      total_employees: vibhagData.length,
+      pay_commission_pending: 0,
+      pay_commission_completed: 0,
+      group_insurance_pending: 0,
+      group_insurance_completed: 0,
+      status_pending: 0,
+      status_processing: 0,
+      status_completed: 0,
+      retirement_progress_pending: 0,
+      retirement_progress_in_progress: 0,
+      retirement_progress_completed: 0
+    };
+
+    vibhagData.forEach((row: any) => {
+      if (row.current_office_name) {
+        officeSet.add(row.current_office_name);
+      }
+      if (row.assigned_clerk) {
+        clerkSet.add(row.assigned_clerk);
+      }
+
+      if (row.pay_commission_status === 'pending') summary.pay_commission_pending++;
+      if (row.pay_commission_status === 'completed') summary.pay_commission_completed++;
+
+      if (row.group_insurance_status === 'pending') summary.group_insurance_pending++;
+      if (row.group_insurance_status === 'completed') summary.group_insurance_completed++;
+
+      if (row.status === 'pending') summary.status_pending++;
+      if (row.status === 'processing') summary.status_processing++;
+      if (row.status === 'completed') summary.status_completed++;
+
+      if (row.retirement_progress_status === 'pending') summary.retirement_progress_pending++;
+      if (row.retirement_progress_status === 'in_progress') summary.retirement_progress_in_progress++;
+      if (row.retirement_progress_status === 'completed') summary.retirement_progress_completed++;
+    });
+
+    summary.total_offices = officeSet.size;
+    summary.total_clerks = clerkSet.size;
+
+    setVibhagSummary(summary);
   };
 
   const fetchClerkDetails = (officeName: string) => {
@@ -301,6 +379,20 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
     setClerkFilter(clerkId);
     if (clerkId) {
       fetchEmployeeDetails(selectedOffice, clerkId);
+    }
+  };
+
+  const handleVibhagFilterChange = (vibhag: string) => {
+    setVibhagFilter(vibhag);
+
+    if (drillDownLevel === 'clerk' && selectedOffice) {
+      setTimeout(() => {
+        fetchClerkDetails(selectedOffice);
+      }, 0);
+    } else if (drillDownLevel === 'employee' && selectedOffice && selectedClerk) {
+      setTimeout(() => {
+        fetchEmployeeDetails(selectedOffice, selectedClerk);
+      }, 0);
     }
   };
 
@@ -658,7 +750,7 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
                       <label className="text-sm font-medium text-gray-700">विभाग निवडा:</label>
                       <select
                         value={vibhagFilter}
-                        onChange={(e) => setVibhagFilter(e.target.value)}
+                        onChange={(e) => handleVibhagFilterChange(e.target.value)}
                         className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                       >
                         <option value="">सर्व विभाग</option>
@@ -688,20 +780,77 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
                   </div>
                 </div>
 
-                {vibhagFilter && (
-                  <div className="bg-gradient-to-r from-teal-50 to-cyan-50 border border-teal-200 rounded-lg p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <Filter className="h-5 w-5 text-teal-600" />
-                        <span className="text-sm font-medium text-gray-700">निवडलेला विभाग:</span>
-                        <span className="text-sm font-bold text-teal-700">{vibhagFilter}</span>
+                {vibhagFilter && vibhagSummary && (
+                  <div className="bg-gradient-to-br from-indigo-50 to-blue-50 border-2 border-indigo-300 rounded-xl shadow-md p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center space-x-3">
+                        <div className="bg-indigo-100 p-3 rounded-lg">
+                          <Filter className="h-7 w-7 text-indigo-600" />
+                        </div>
+                        <div>
+                          <h3 className="text-xl font-bold text-indigo-900">{vibhagFilter}</h3>
+                          <p className="text-sm text-indigo-600">विभागनिहाय सारांश</p>
+                        </div>
                       </div>
                       <button
-                        onClick={() => setVibhagFilter('')}
-                        className="text-sm text-teal-600 hover:text-teal-800 font-medium underline"
+                        onClick={() => handleVibhagFilterChange('')}
+                        className="px-4 py-2 bg-white border-2 border-indigo-300 text-indigo-700 hover:bg-indigo-50 rounded-lg font-medium transition-colors"
                       >
                         फिल्टर काढा
                       </button>
+                    </div>
+
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                      <div className="bg-white rounded-xl p-4 border-2 border-blue-200 shadow-sm">
+                        <div className="text-sm text-blue-700 mb-2 font-medium">एकूण कार्यालये</div>
+                        <div className="text-3xl font-bold text-blue-900">{vibhagSummary.total_offices}</div>
+                      </div>
+
+                      <div className="bg-white rounded-xl p-4 border-2 border-cyan-200 shadow-sm">
+                        <div className="text-sm text-cyan-700 mb-2 font-medium">एकूण लिपिक</div>
+                        <div className="text-3xl font-bold text-cyan-900">{vibhagSummary.total_clerks}</div>
+                      </div>
+
+                      <div className="bg-white rounded-xl p-4 border-2 border-purple-200 shadow-sm">
+                        <div className="text-sm text-purple-700 mb-2 font-medium">एकूण कर्मचारी</div>
+                        <div className="text-3xl font-bold text-purple-900">{vibhagSummary.total_employees}</div>
+                      </div>
+
+                      <div className="bg-white rounded-xl p-4 border-2 border-orange-200 shadow-sm">
+                        <div className="text-sm text-orange-700 mb-2 font-medium pb-2 border-b-2 border-orange-200">वेतन आयोग</div>
+                        <div className="space-y-1 mt-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-amber-700">प्रलंबित</span>
+                            <span className="text-xl font-bold text-amber-900">{vibhagSummary.pay_commission_pending}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-sky-700">प्रक्रियेत</span>
+                            <span className="text-xl font-bold text-sky-900">{vibhagSummary.status_processing}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-green-700">पूर्ण</span>
+                            <span className="text-xl font-bold text-green-900">{vibhagSummary.pay_commission_completed}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="bg-white rounded-xl p-4 border-2 border-emerald-200 shadow-sm">
+                        <div className="text-sm text-emerald-700 mb-2 font-medium pb-2 border-b-2 border-emerald-200">गट विमा</div>
+                        <div className="space-y-1 mt-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-amber-700">प्रलंबित</span>
+                            <span className="text-xl font-bold text-amber-900">{vibhagSummary.group_insurance_pending}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-sky-700">प्रक्रियेत</span>
+                            <span className="text-xl font-bold text-sky-900">{vibhagSummary.status_processing}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-green-700">पूर्ण</span>
+                            <span className="text-xl font-bold text-green-900">{vibhagSummary.group_insurance_completed}</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -889,7 +1038,7 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
                       <label className="text-sm font-medium text-gray-700">विभाग निवडा:</label>
                       <select
                         value={vibhagFilter}
-                        onChange={(e) => setVibhagFilter(e.target.value)}
+                        onChange={(e) => handleVibhagFilterChange(e.target.value)}
                         className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                       >
                         <option value="">सर्व विभाग</option>
