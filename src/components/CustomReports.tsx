@@ -944,7 +944,7 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
                       </button>
                     </div>
 
-                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
                       <div className="bg-white rounded-xl p-4 border-2 border-blue-200 shadow-sm">
                         <div className="text-sm text-blue-700 mb-2 font-medium">एकूण कार्यालये</div>
                         <div className="text-3xl font-bold text-blue-900">{vibhagSummary.total_offices}</div>
@@ -992,6 +992,24 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
                           <div className="flex items-center justify-between">
                             <span className="text-xs text-green-700">पूर्ण</span>
                             <span className="text-xl font-bold text-green-900">{vibhagSummary.group_insurance_completed}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="bg-white rounded-xl p-4 border-2 border-teal-200 shadow-sm">
+                        <div className="text-sm text-gray-700 mb-2 font-medium pb-2 border-b-2 border-teal-200">सेवानिवृत्ती प्रगती</div>
+                        <div className="space-y-1 mt-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-amber-700">प्रलंबित</span>
+                            <span className="text-xl font-bold text-amber-900">{vibhagSummary.retirement_progress_pending}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-sky-700">प्रक्रियेत</span>
+                            <span className="text-xl font-bold text-sky-900">{vibhagSummary.retirement_progress_in_progress}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-green-700">पूर्ण</span>
+                            <span className="text-xl font-bold text-green-900">{vibhagSummary.retirement_progress_completed}</span>
                           </div>
                         </div>
                       </div>
