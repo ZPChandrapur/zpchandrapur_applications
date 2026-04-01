@@ -449,6 +449,52 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
     };
   };
 
+  const getWeeklyDataUpdateMatrix = () => {
+    const weeklyData: { [key: string]: { clerk: string; updates: number; lastUpdate: Date | null } } = {};
+    const retirementEmployees = getRetirementEmployees();
+    const now = new Date();
+    const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+    retirementEmployees.forEach(emp => {
+      if (!emp.assigned_clerk) return;
+
+      const lastUpdate = emp.updated_at ? new Date(emp.updated_at) : null;
+
+      if (lastUpdate && lastUpdate >= oneWeekAgo) {
+        const clerk = clerks.find(c => c.user_id === emp.assigned_clerk);
+        const rawClerkName = clerk?.name || 'Unknown';
+        const clerkName = cleanName(rawClerkName);
+
+        if (!weeklyData[emp.assigned_clerk]) {
+          weeklyData[emp.assigned_clerk] = {
+            clerk: clerkName,
+            updates: 0,
+            lastUpdate: null
+          };
+        }
+
+        weeklyData[emp.assigned_clerk].updates++;
+
+        if (!weeklyData[emp.assigned_clerk].lastUpdate || lastUpdate > weeklyData[emp.assigned_clerk].lastUpdate) {
+          weeklyData[emp.assigned_clerk].lastUpdate = lastUpdate;
+        }
+      }
+    });
+
+    return Object.values(weeklyData).filter(item => item.updates > 0);
+  };
+
+  const downloadWeeklyMatrix = () => {
+    const weeklyData = getWeeklyDataUpdateMatrix();
+    const ws = XLSX.utils.json_to_sheet(weeklyData.map(item => ({
+      [isMarathi ? 'लिपिक' : 'Clerk']: item.clerk,
+      [isMarathi ? 'या आठवड्यात अपडेट' : 'Updates This Week']: item.updates,
+      [isMarathi ? 'शेवटचे अपडेट' : 'Last Update']: item.lastUpdate ? item.lastUpdate.toLocaleDateString() : 'N/A'
+    })));
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Weekly Data Update');
+    XLSX.writeFile(wb, 'weekly_data_update_matrix.xlsx');
+  };
 
   const renderLineChart = (data: any[]) => {
     if (data.length === 0) return null;
@@ -1021,6 +1067,51 @@ export const RetirementAnalyticsDashboard: React.FC<RetirementAnalyticsDashboard
           </div>
         </div>
 
+        {/* Weekly Data Update Matrix */}
+        <div className="mb-6">
+          <div className="bg-white rounded-lg shadow-md border border-gray-300 p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold text-gray-900">
+                {isMarathi ? 'साप्ताहिक डेटा अपडेट मॅट्रिक्स' : 'Weekly Data Update Matrix'}
+              </h3>
+              <button
+                onClick={downloadWeeklyMatrix}
+                className="flex items-center space-x-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all duration-200"
+              >
+                <Download className="h-4 w-4" />
+                <span className="text-sm">{isMarathi ? 'डाउनलोड' : 'Download'}</span>
+              </button>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse">
+                <thead className="bg-blue-50">
+                  <tr>
+                    <th className="border border-gray-300 px-4 py-2 text-left text-xs font-medium text-gray-700 uppercase">
+                      {isMarathi ? 'लिपिक' : 'Clerk'}
+                    </th>
+                    <th className="border border-gray-300 px-4 py-2 text-left text-xs font-medium text-gray-700 uppercase">
+                      {isMarathi ? 'या आठवड्यात अपडेट' : 'Updates This Week'}
+                    </th>
+                    <th className="border border-gray-300 px-4 py-2 text-left text-xs font-medium text-gray-700 uppercase">
+                      {isMarathi ? 'शेवटचे अपडेट' : 'Last Update'}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {getWeeklyDataUpdateMatrix().map((item, index) => (
+                    <tr key={index} className="hover:bg-gray-50">
+                      <td className="border border-gray-300 px-4 py-2 text-sm text-gray-900">{item.clerk}</td>
+                      <td className="border border-gray-300 px-4 py-2 text-sm text-gray-900">{item.updates}</td>
+                      <td className="border border-gray-300 px-4 py-2 text-sm text-gray-900">
+                        {item.lastUpdate ? item.lastUpdate.toLocaleDateString(isMarathi ? 'mr-IN' : 'en-US') : 'N/A'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
