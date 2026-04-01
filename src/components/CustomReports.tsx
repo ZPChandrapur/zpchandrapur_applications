@@ -81,6 +81,7 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
   const [officeSummaries, setOfficeSummaries] = useState<OfficeSummary[]>([]);
   const [clerkDetails, setClerkDetails] = useState<ClerkDetail[]>([]);
   const [employeeDetails, setEmployeeDetails] = useState<EmployeeDetail[]>([]);
+  const [selectedOfficeSummary, setSelectedOfficeSummary] = useState<OfficeSummary | null>(null);
 
   const [officeFilter, setOfficeFilter] = useState<string>('');
   const [clerkFilter, setClerkFilter] = useState<string>('');
@@ -215,6 +216,9 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
       setDrillDownLevel('clerk');
       setSelectedOffice(officeName);
       setClerkFilter('');
+
+      const officeSum = officeSummaries.find(o => o.office_name === officeName);
+      setSelectedOfficeSummary(officeSum || null);
     } catch (error) {
       console.error('Error fetching clerk details:', error);
     } finally {
@@ -682,6 +686,85 @@ export const CustomReports: React.FC<CustomReportsProps> = ({ user, onBack }) =>
 
             {drillDownLevel === 'clerk' && (
               <div className="space-y-4">
+                {selectedOfficeSummary && (
+                  <div className="bg-white rounded-lg shadow-md border border-gray-300 p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center space-x-3">
+                        <div className="bg-teal-100 p-3 rounded-lg">
+                          <Building2 className="h-7 w-7 text-teal-600" />
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-900">{selectedOfficeSummary.office_name}</h3>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                      <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border border-blue-200">
+                        <div className="text-sm text-blue-700 mb-2 font-medium">एकूण लिपिक</div>
+                        <div className="text-3xl font-bold text-blue-900">{selectedOfficeSummary.total_clerks}</div>
+                      </div>
+
+                      <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 border border-purple-200">
+                        <div className="text-sm text-purple-700 mb-2 font-medium">एकूण कर्मचारी</div>
+                        <div className="text-3xl font-bold text-purple-900">{selectedOfficeSummary.total_employees}</div>
+                      </div>
+
+                      <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-4 border border-orange-200">
+                        <div className="text-sm text-orange-700 mb-2 font-medium pb-2 border-b border-orange-200">वेतन आयोग (प्रलंबित/प्रक्रियेत/पूर्ण)</div>
+                        <div className="space-y-1 mt-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-amber-700">प्रलंबित</span>
+                            <span className="text-xl font-bold text-amber-900">{selectedOfficeSummary.pay_commission_pending}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-sky-700">प्रक्रियेत</span>
+                            <span className="text-xl font-bold text-sky-900">{selectedOfficeSummary.status_processing}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-green-700">पूर्ण</span>
+                            <span className="text-xl font-bold text-green-900">{selectedOfficeSummary.pay_commission_completed}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-4 border border-emerald-200">
+                        <div className="text-sm text-emerald-700 mb-2 font-medium pb-2 border-b border-emerald-200">गट विमा (प्रलंबित/प्रक्रियेत/पूर्ण)</div>
+                        <div className="space-y-1 mt-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-amber-700">प्रलंबित</span>
+                            <span className="text-xl font-bold text-amber-900">{selectedOfficeSummary.group_insurance_pending}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-sky-700">प्रक्रियेत</span>
+                            <span className="text-xl font-bold text-sky-900">{selectedOfficeSummary.status_processing}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-green-700">पूर्ण</span>
+                            <span className="text-xl font-bold text-green-900">{selectedOfficeSummary.group_insurance_completed}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="bg-gradient-to-br from-teal-50 to-teal-100 rounded-xl p-4 border border-teal-200">
+                        <div className="text-sm text-gray-700 mb-2 font-medium pb-2 border-b border-teal-200">सेवानिवृत्ती प्रगती</div>
+                        <div className="space-y-1 mt-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-amber-700">प्रलंबित</span>
+                            <span className="text-xl font-bold text-amber-900">{selectedOfficeSummary.retirement_progress_pending}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-sky-700">प्रक्रियेत</span>
+                            <span className="text-xl font-bold text-sky-900">{selectedOfficeSummary.retirement_progress_in_progress}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-green-700">पूर्ण</span>
+                            <span className="text-xl font-bold text-green-900">{selectedOfficeSummary.retirement_progress_completed}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
                   <div className="flex items-center space-x-3">
                     <Filter className="h-5 w-5 text-teal-600" />
