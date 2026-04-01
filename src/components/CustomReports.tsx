@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 import { ermsClient } from '../lib/supabase';
-import XLSX from 'xlsx-js-style';
+import * as XLSX from 'xlsx-color';
 
 interface CustomReportsProps {
   user: SupabaseUser;
