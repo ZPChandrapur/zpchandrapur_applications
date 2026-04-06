@@ -278,6 +278,14 @@ const GADReports: React.FC<GADReportsProps> = ({ user, onBack }) => {
     }
   }, [allData, vibhagFilter, groupFilter]);
 
+  useEffect(() => {
+    if (drillDownLevel === 'office' && selectedGroup) {
+      fetchOfficeDetails(selectedGroup);
+    } else if (drillDownLevel === 'clerk' && selectedOffice) {
+      fetchClerkDetails(selectedOffice);
+    }
+  }, [vibhagFilter]);
+
   const fetchAllData = async () => {
     setIsLoading(true);
     try {
@@ -305,12 +313,17 @@ const GADReports: React.FC<GADReportsProps> = ({ user, onBack }) => {
 
   const calculateGroupSummaries = () => {
     const summaries: GroupSummary[] = [];
+    const allGroupOffices = new Set<string>();
 
     let groupsToProcess = Object.keys(GAD_OFFICE_GROUPS);
 
     if (groupFilter) {
       groupsToProcess = groupsToProcess.filter(g => g === groupFilter);
     }
+
+    Object.values(GAD_OFFICE_GROUPS).flat().forEach(office => {
+      allGroupOffices.add(normalizeString(office));
+    });
 
     groupsToProcess.forEach(groupName => {
       const officeNames = GAD_OFFICE_GROUPS[groupName];
@@ -372,6 +385,61 @@ const GADReports: React.FC<GADReportsProps> = ({ user, onBack }) => {
       }
     });
 
+    if (vibhagFilter && !groupFilter) {
+      const ungroupedData = allData.filter(row => {
+        const normalizedOfficeName = normalizeString(row.current_office_name || '');
+        return !allGroupOffices.has(normalizedOfficeName) && row.department === vibhagFilter;
+      });
+
+      if (ungroupedData.length > 0) {
+        const officeSet = new Set<string>();
+        const clerkSet = new Set<string>();
+
+        const ungroupedSummary: GroupSummary = {
+          group_name: 'इतर कार्यालये (गटात नाही)',
+          total_offices: 0,
+          total_clerks: 0,
+          total_employees: ungroupedData.length,
+          pay_commission_pending: 0,
+          pay_commission_completed: 0,
+          group_insurance_pending: 0,
+          group_insurance_completed: 0,
+          status_pending: 0,
+          status_processing: 0,
+          status_completed: 0,
+          retirement_progress_pending: 0,
+          retirement_progress_in_progress: 0,
+          retirement_progress_completed: 0
+        };
+
+        ungroupedData.forEach((row: any) => {
+          if (row.current_office_name) {
+            officeSet.add(normalizeString(row.current_office_name));
+          }
+          if (row.assigned_clerk) {
+            const normalizedClerkName = normalizeString(row.assigned_clerk_name || row.assigned_clerk);
+            clerkSet.add(normalizedClerkName);
+          }
+
+          if (row.pay_commission_status === 'pending') ungroupedSummary.pay_commission_pending++;
+          if (row.pay_commission_status === 'completed') ungroupedSummary.pay_commission_completed++;
+          if (row.group_insurance_status === 'pending') ungroupedSummary.group_insurance_pending++;
+          if (row.group_insurance_status === 'completed') ungroupedSummary.group_insurance_completed++;
+          if (row.status === 'pending') ungroupedSummary.status_pending++;
+          if (row.status === 'processing') ungroupedSummary.status_processing++;
+          if (row.status === 'completed') ungroupedSummary.status_completed++;
+          if (row.retirement_progress_status === 'pending') ungroupedSummary.retirement_progress_pending++;
+          if (row.retirement_progress_status === 'in_progress') ungroupedSummary.retirement_progress_in_progress++;
+          if (row.retirement_progress_status === 'completed') ungroupedSummary.retirement_progress_completed++;
+        });
+
+        ungroupedSummary.total_offices = officeSet.size;
+        ungroupedSummary.total_clerks = clerkSet.size;
+
+        summaries.push(ungroupedSummary);
+      }
+    }
+
     summaries.sort((a, b) => b.total_employees - a.total_employees);
     setGroupSummaries(summaries);
   };
@@ -379,11 +447,25 @@ const GADReports: React.FC<GADReportsProps> = ({ user, onBack }) => {
   const fetchOfficeDetails = (groupName: string) => {
     setIsLoading(true);
     try {
-      const officeNames = GAD_OFFICE_GROUPS[groupName];
-      const normalizedOfficeNames = officeNames.map(normalizeString);
-      let filteredData = allData.filter(row =>
-        normalizedOfficeNames.includes(normalizeString(row.current_office_name || ''))
-      );
+      let filteredData: any[];
+
+      if (groupName === 'इतर कार्यालये (गटात नाही)') {
+        const allGroupOffices = new Set<string>();
+        Object.values(GAD_OFFICE_GROUPS).flat().forEach(office => {
+          allGroupOffices.add(normalizeString(office));
+        });
+
+        filteredData = allData.filter(row => {
+          const normalizedOfficeName = normalizeString(row.current_office_name || '');
+          return !allGroupOffices.has(normalizedOfficeName);
+        });
+      } else {
+        const officeNames = GAD_OFFICE_GROUPS[groupName];
+        const normalizedOfficeNames = officeNames.map(normalizeString);
+        filteredData = allData.filter(row =>
+          normalizedOfficeNames.includes(normalizeString(row.current_office_name || ''))
+        );
+      }
 
       if (vibhagFilter) {
         filteredData = filteredData.filter(row => row.department === vibhagFilter);
@@ -572,8 +654,6 @@ const GADReports: React.FC<GADReportsProps> = ({ user, onBack }) => {
     } else if (drillDownLevel === 'office') {
       setDrillDownLevel('group');
       setOfficeSummaries([]);
-    } else {
-      onBack();
     }
   };
 
@@ -582,8 +662,8 @@ const GADReports: React.FC<GADReportsProps> = ({ user, onBack }) => {
     let fileName = 'GAD_अहवाल.xlsx';
 
     if (drillDownLevel === 'group') {
-      fileName = 'GAD_गट_अहवाल.xlsx';
-      worksheetData = [['कर्मचारी अहवाल - GAD - गट सारांश']];
+      fileName = 'GAD_पंचायत_समिती_अहवाल.xlsx';
+      worksheetData = [['कर्मचारी अहवाल - GAD - पंचायत समिती सारांश']];
 
       if (vibhagFilter) {
         worksheetData.push([`विभाग फिल्टर: ${vibhagFilter}`]);
@@ -591,7 +671,7 @@ const GADReports: React.FC<GADReportsProps> = ({ user, onBack }) => {
 
       worksheetData.push([]);
       worksheetData.push([
-        'गट नाव',
+        'पंचायत समिती नाव',
         'एकूण कार्यालये',
         'एकूण लिपिक',
         'एकूण कर्मचारी',
@@ -795,7 +875,7 @@ const GADReports: React.FC<GADReportsProps> = ({ user, onBack }) => {
                   कर्मचारी अहवाल - GAD
                 </h1>
                 <p className="text-sm text-gray-500 mt-1">
-                  गटनिहाय, कार्यालयनिहाय, लिपिकनिहाय आणि कर्मचारी तपशील
+                  पंचायत समितीनिहाय, कार्यालयनिहाय, लिपिकनिहाय आणि कर्मचारी तपशील
                 </p>
               </div>
             </div>
@@ -814,13 +894,15 @@ const GADReports: React.FC<GADReportsProps> = ({ user, onBack }) => {
                 <RefreshCw className="h-4 w-4" />
                 <span className="text-sm font-medium">रिफ्रेश करा</span>
               </button>
-              <button
-                onClick={handleBack}
-                className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-all duration-200"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                <span className="text-sm font-medium">मागे</span>
-              </button>
+              {drillDownLevel !== 'group' && (
+                <button
+                  onClick={handleBack}
+                  className="flex items-center space-x-2 px-4 py-2 bg-orange-600 text-white hover:bg-orange-700 rounded-lg transition-all duration-200 shadow-md"
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                  <span className="text-sm font-medium">मागे</span>
+                </button>
+              )}
             </div>
           </div>
 
@@ -828,13 +910,13 @@ const GADReports: React.FC<GADReportsProps> = ({ user, onBack }) => {
             <Filter className="h-5 w-5 text-indigo-600" />
 
             <div className="flex items-center space-x-2">
-              <label className="text-sm font-medium text-gray-700">गट निवडा:</label>
+              <label className="text-sm font-medium text-gray-700">पंचायत समिती निवडा:</label>
               <select
                 value={groupFilter}
                 onChange={(e) => setGroupFilter(e.target.value)}
                 className="px-4 py-2 border-2 border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
               >
-                <option value="">सर्व गट</option>
+                <option value="">सर्व पंचायत समिती</option>
                 {Object.keys(GAD_OFFICE_GROUPS).map(group => (
                   <option key={group} value={group}>{group}</option>
                 ))}
@@ -882,7 +964,7 @@ const GADReports: React.FC<GADReportsProps> = ({ user, onBack }) => {
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                   <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
                     <Layers className="h-5 w-5 text-teal-600" />
-                    <span>गटनिहाय सारांश</span>
+                    <span>पंचायत समितीनिहाय सारांश</span>
                   </h2>
 
                   <div className="grid grid-cols-1 gap-6">
