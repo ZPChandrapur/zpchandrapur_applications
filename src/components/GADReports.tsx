@@ -344,8 +344,13 @@ const GADReports: React.FC<GADReportsProps> = ({ user, onBack }) => {
       };
 
       groupData.forEach((row: any) => {
-        if (row.current_office_name) officeSet.add(row.current_office_name);
-        if (row.assigned_clerk) clerkSet.add(row.assigned_clerk);
+        if (row.current_office_name) {
+          officeSet.add(normalizeString(row.current_office_name));
+        }
+        if (row.assigned_clerk) {
+          const normalizedClerkName = normalizeString(row.assigned_clerk_name || row.assigned_clerk);
+          clerkSet.add(normalizedClerkName);
+        }
 
         if (row.pay_commission_status === 'pending') summary.pay_commission_pending++;
         if (row.pay_commission_status === 'completed') summary.pay_commission_completed++;
@@ -388,9 +393,10 @@ const GADReports: React.FC<GADReportsProps> = ({ user, onBack }) => {
 
       filteredData.forEach((row: any) => {
         const officeName = row.current_office_name;
+        const normalizedOfficeName = normalizeString(officeName || '');
 
-        if (!officeMap.has(officeName)) {
-          officeMap.set(officeName, {
+        if (!officeMap.has(normalizedOfficeName)) {
+          officeMap.set(normalizedOfficeName, {
             office_name: officeName,
             clerks: new Set(),
             total_employees: 0,
@@ -407,8 +413,11 @@ const GADReports: React.FC<GADReportsProps> = ({ user, onBack }) => {
           });
         }
 
-        const office = officeMap.get(officeName);
-        if (row.assigned_clerk) office.clerks.add(row.assigned_clerk);
+        const office = officeMap.get(normalizedOfficeName);
+        if (row.assigned_clerk) {
+          const normalizedClerkName = normalizeString(row.assigned_clerk_name || row.assigned_clerk);
+          office.clerks.add(normalizedClerkName);
+        }
         office.total_employees++;
 
         if (row.pay_commission_status === 'pending') office.pay_commission_pending++;
@@ -455,9 +464,11 @@ const GADReports: React.FC<GADReportsProps> = ({ user, onBack }) => {
       filteredData.forEach((row: any) => {
         const clerkId = row.assigned_clerk || 'unassigned';
         const clerkName = row.assigned_clerk_name || 'नियुक्त नाही';
+        const normalizedClerkName = normalizeString(clerkName);
+        const clerkKey = clerkId === 'unassigned' ? 'unassigned' : normalizedClerkName;
 
-        if (!clerkMap.has(clerkId)) {
-          clerkMap.set(clerkId, {
+        if (!clerkMap.has(clerkKey)) {
+          clerkMap.set(clerkKey, {
             clerk_id: clerkId,
             clerk_name: clerkName,
             total_employees: 0,
@@ -474,7 +485,7 @@ const GADReports: React.FC<GADReportsProps> = ({ user, onBack }) => {
           });
         }
 
-        const clerk = clerkMap.get(clerkId);
+        const clerk = clerkMap.get(clerkKey);
         clerk.total_employees++;
 
         if (row.pay_commission_status === 'pending') clerk.pay_commission_pending++;
