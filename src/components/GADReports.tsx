@@ -10,7 +10,8 @@ import {
   Clock,
   Download,
   Filter,
-  Layers
+  Layers,
+  FileText
 } from 'lucide-react';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 import { ermsClient } from '../lib/supabase';
@@ -341,10 +342,16 @@ const GADReports: React.FC<GADReportsProps> = ({ user, onBack }) => {
   const fetchEmployeeDetails = (clerkId: string) => {
     setIsLoading(true);
     try {
+      console.log('Fetching employee details for clerk:', clerkId);
+      console.log('Selected office:', selectedOffice);
+      console.log('Total data rows:', allData.length);
+
       let filteredData = allData.filter(row => row.current_office_name === selectedOffice);
+      console.log('After office filter:', filteredData.length);
 
       if (vibhagFilter) {
         filteredData = filteredData.filter(row => row.department === vibhagFilter);
+        console.log('After department filter:', filteredData.length);
       }
 
       if (clerkId !== 'unassigned') {
@@ -352,6 +359,8 @@ const GADReports: React.FC<GADReportsProps> = ({ user, onBack }) => {
       } else {
         filteredData = filteredData.filter(row => !row.assigned_clerk);
       }
+
+      console.log('After clerk filter:', filteredData.length);
 
       const employees: EmployeeDetail[] = filteredData.map((row: any) => ({
         emp_id: row.emp_id,
@@ -367,6 +376,7 @@ const GADReports: React.FC<GADReportsProps> = ({ user, onBack }) => {
       }));
 
       employees.sort((a, b) => new Date(a.retirement_date).getTime() - new Date(b.retirement_date).getTime());
+      console.log('Final employees:', employees.length);
       setEmployeeDetails(employees);
       setDrillDownLevel('employee');
       setSelectedClerk(clerkId);
