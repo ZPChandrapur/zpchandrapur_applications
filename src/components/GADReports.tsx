@@ -751,6 +751,10 @@ const GADReports: React.FC<GADReportsProps> = ({ user, onBack }) => {
                                 <span className="text-xl font-bold text-amber-900">{group.pay_commission_pending}</span>
                               </div>
                               <div className="flex items-center justify-between">
+                                <span className="text-xs text-blue-700">प्रक्रियेत</span>
+                                <span className="text-xl font-bold text-blue-900">{group.status_processing}</span>
+                              </div>
+                              <div className="flex items-center justify-between">
                                 <span className="text-xs text-green-700">पूर्ण</span>
                                 <span className="text-xl font-bold text-green-900">{group.pay_commission_completed}</span>
                               </div>
@@ -765,6 +769,10 @@ const GADReports: React.FC<GADReportsProps> = ({ user, onBack }) => {
                                 <span className="text-xl font-bold text-amber-900">{group.group_insurance_pending}</span>
                               </div>
                               <div className="flex items-center justify-between">
+                                <span className="text-xs text-blue-700">प्रक्रियेत</span>
+                                <span className="text-xl font-bold text-blue-900">{group.status_processing}</span>
+                              </div>
+                              <div className="flex items-center justify-between">
                                 <span className="text-xs text-green-700">पूर्ण</span>
                                 <span className="text-xl font-bold text-green-900">{group.group_insurance_completed}</span>
                               </div>
@@ -777,6 +785,10 @@ const GADReports: React.FC<GADReportsProps> = ({ user, onBack }) => {
                               <div className="flex items-center justify-between">
                                 <span className="text-xs text-amber-700">प्रलंबित</span>
                                 <span className="text-xl font-bold text-amber-900">{group.retirement_progress_pending}</span>
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs text-blue-700">प्रक्रियेत</span>
+                                <span className="text-xl font-bold text-blue-900">{group.retirement_progress_in_progress}</span>
                               </div>
                               <div className="flex items-center justify-between">
                                 <span className="text-xs text-green-700">पूर्ण</span>
@@ -838,6 +850,10 @@ const GADReports: React.FC<GADReportsProps> = ({ user, onBack }) => {
                                 <span className="text-xl font-bold text-amber-900">{office.pay_commission_pending}</span>
                               </div>
                               <div className="flex items-center justify-between">
+                                <span className="text-xs text-blue-700">प्रक्रियेत</span>
+                                <span className="text-xl font-bold text-blue-900">{office.status_processing}</span>
+                              </div>
+                              <div className="flex items-center justify-between">
                                 <span className="text-xs text-green-700">पूर्ण</span>
                                 <span className="text-xl font-bold text-green-900">{office.pay_commission_completed}</span>
                               </div>
@@ -852,6 +868,10 @@ const GADReports: React.FC<GADReportsProps> = ({ user, onBack }) => {
                                 <span className="text-xl font-bold text-amber-900">{office.group_insurance_pending}</span>
                               </div>
                               <div className="flex items-center justify-between">
+                                <span className="text-xs text-blue-700">प्रक्रियेत</span>
+                                <span className="text-xl font-bold text-blue-900">{office.status_processing}</span>
+                              </div>
+                              <div className="flex items-center justify-between">
                                 <span className="text-xs text-green-700">पूर्ण</span>
                                 <span className="text-xl font-bold text-green-900">{office.group_insurance_completed}</span>
                               </div>
@@ -864,6 +884,10 @@ const GADReports: React.FC<GADReportsProps> = ({ user, onBack }) => {
                               <div className="flex items-center justify-between">
                                 <span className="text-xs text-amber-700">प्रलंबित</span>
                                 <span className="text-xl font-bold text-amber-900">{office.retirement_progress_pending}</span>
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs text-blue-700">प्रक्रियेत</span>
+                                <span className="text-xl font-bold text-blue-900">{office.retirement_progress_in_progress}</span>
                               </div>
                               <div className="flex items-center justify-between">
                                 <span className="text-xs text-green-700">पूर्ण</span>
@@ -907,18 +931,21 @@ const GADReports: React.FC<GADReportsProps> = ({ user, onBack }) => {
                             <td className="px-4 py-3 text-center text-sm">
                               <div className="flex flex-col space-y-1">
                                 <span className="text-amber-700">प्रलंबित: {clerk.pay_commission_pending}</span>
+                                <span className="text-blue-700">प्रक्रियेत: {clerk.status_processing}</span>
                                 <span className="text-green-700">पूर्ण: {clerk.pay_commission_completed}</span>
                               </div>
                             </td>
                             <td className="px-4 py-3 text-center text-sm">
                               <div className="flex flex-col space-y-1">
                                 <span className="text-amber-700">प्रलंबित: {clerk.group_insurance_pending}</span>
+                                <span className="text-blue-700">प्रक्रियेत: {clerk.status_processing}</span>
                                 <span className="text-green-700">पूर्ण: {clerk.group_insurance_completed}</span>
                               </div>
                             </td>
                             <td className="px-4 py-3 text-center text-sm">
                               <div className="flex flex-col space-y-1">
                                 <span className="text-amber-700">प्रलंबित: {clerk.retirement_progress_pending}</span>
+                                <span className="text-blue-700">प्रक्रियेत: {clerk.retirement_progress_in_progress}</span>
                                 <span className="text-green-700">पूर्ण: {clerk.retirement_progress_completed}</span>
                               </div>
                             </td>
