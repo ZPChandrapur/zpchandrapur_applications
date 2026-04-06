@@ -258,6 +258,11 @@ const GADReports: React.FC<GADReportsProps> = ({ user, onBack }) => {
   const [selectedOffice, setSelectedOffice] = useState<string>('');
   const [selectedClerk, setSelectedClerk] = useState<string>('');
 
+  // Normalize strings by removing extra spaces and trimming
+  const normalizeString = (str: string): string => {
+    return str.replace(/\s+/g, ' ').trim();
+  };
+
   const [vibhagFilter, setVibhagFilter] = useState<string>('');
   const [groupFilter, setGroupFilter] = useState<string>('');
   const [departments, setDepartments] = useState<string[]>([]);
@@ -309,7 +314,10 @@ const GADReports: React.FC<GADReportsProps> = ({ user, onBack }) => {
 
     groupsToProcess.forEach(groupName => {
       const officeNames = GAD_OFFICE_GROUPS[groupName];
-      let groupData = allData.filter(row => officeNames.includes(row.current_office_name));
+      const normalizedOfficeNames = officeNames.map(normalizeString);
+      let groupData = allData.filter(row =>
+        normalizedOfficeNames.includes(normalizeString(row.current_office_name || ''))
+      );
 
       if (vibhagFilter) {
         groupData = groupData.filter(row => row.department === vibhagFilter);
@@ -367,7 +375,10 @@ const GADReports: React.FC<GADReportsProps> = ({ user, onBack }) => {
     setIsLoading(true);
     try {
       const officeNames = GAD_OFFICE_GROUPS[groupName];
-      let filteredData = allData.filter(row => officeNames.includes(row.current_office_name));
+      const normalizedOfficeNames = officeNames.map(normalizeString);
+      let filteredData = allData.filter(row =>
+        normalizedOfficeNames.includes(normalizeString(row.current_office_name || ''))
+      );
 
       if (vibhagFilter) {
         filteredData = filteredData.filter(row => row.department === vibhagFilter);
@@ -431,7 +442,9 @@ const GADReports: React.FC<GADReportsProps> = ({ user, onBack }) => {
   const fetchClerkDetails = (officeName: string) => {
     setIsLoading(true);
     try {
-      let filteredData = allData.filter(row => row.current_office_name === officeName);
+      let filteredData = allData.filter(row =>
+        normalizeString(row.current_office_name || '') === normalizeString(officeName)
+      );
 
       if (vibhagFilter) {
         filteredData = filteredData.filter(row => row.department === vibhagFilter);
@@ -495,7 +508,9 @@ const GADReports: React.FC<GADReportsProps> = ({ user, onBack }) => {
       console.log('Selected office:', selectedOffice);
       console.log('Total data rows:', allData.length);
 
-      let filteredData = allData.filter(row => row.current_office_name === selectedOffice);
+      let filteredData = allData.filter(row =>
+        normalizeString(row.current_office_name || '') === normalizeString(selectedOffice)
+      );
       console.log('After office filter:', filteredData.length);
 
       if (vibhagFilter) {
