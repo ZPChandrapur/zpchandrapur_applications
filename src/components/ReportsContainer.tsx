@@ -12,7 +12,7 @@ interface ReportsContainerProps {
 type ReportTab = 'custom' | 'gad';
 
 const ReportsContainer: React.FC<ReportsContainerProps> = ({ user, onBack }) => {
-  const [activeTab, setActiveTab] = useState<ReportTab>('custom');
+  const [activeTab, setActiveTab] = useState<ReportTab>('gad');
 
   return (
     <div className="min-h-screen bg-gray-50">

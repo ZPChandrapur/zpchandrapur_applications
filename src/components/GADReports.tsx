@@ -159,6 +159,7 @@ const GADReports: React.FC<GADReportsProps> = ({ user, onBack }) => {
   const [selectedClerk, setSelectedClerk] = useState<string>('');
 
   const [vibhagFilter, setVibhagFilter] = useState<string>('');
+  const [groupFilter, setGroupFilter] = useState<string>('');
   const [departments, setDepartments] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -170,7 +171,7 @@ const GADReports: React.FC<GADReportsProps> = ({ user, onBack }) => {
     if (allData.length > 0) {
       calculateGroupSummaries();
     }
-  }, [allData, vibhagFilter]);
+  }, [allData, vibhagFilter, groupFilter]);
 
   const fetchAllData = async () => {
     setIsLoading(true);
@@ -200,7 +201,13 @@ const GADReports: React.FC<GADReportsProps> = ({ user, onBack }) => {
   const calculateGroupSummaries = () => {
     const summaries: GroupSummary[] = [];
 
-    Object.keys(GAD_OFFICE_GROUPS).forEach(groupName => {
+    let groupsToProcess = Object.keys(GAD_OFFICE_GROUPS);
+
+    if (groupFilter) {
+      groupsToProcess = groupsToProcess.filter(g => g === groupFilter);
+    }
+
+    groupsToProcess.forEach(groupName => {
       const officeNames = GAD_OFFICE_GROUPS[groupName];
       let groupData = allData.filter(row => officeNames.includes(row.current_office_name));
 
@@ -682,8 +689,23 @@ const GADReports: React.FC<GADReportsProps> = ({ user, onBack }) => {
             </div>
           </div>
 
-          <div className="mt-4 flex items-center space-x-4">
+          <div className="mt-4 flex items-center space-x-4 flex-wrap gap-2">
             <Filter className="h-5 w-5 text-indigo-600" />
+
+            <div className="flex items-center space-x-2">
+              <label className="text-sm font-medium text-gray-700">गट निवडा:</label>
+              <select
+                value={groupFilter}
+                onChange={(e) => setGroupFilter(e.target.value)}
+                className="px-4 py-2 border-2 border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
+              >
+                <option value="">सर्व गट</option>
+                {Object.keys(GAD_OFFICE_GROUPS).map(group => (
+                  <option key={group} value={group}>{group}</option>
+                ))}
+              </select>
+            </div>
+
             <div className="flex items-center space-x-2">
               <label className="text-sm font-medium text-gray-700">विभाग निवडा:</label>
               <select
@@ -697,9 +719,13 @@ const GADReports: React.FC<GADReportsProps> = ({ user, onBack }) => {
                 ))}
               </select>
             </div>
-            {vibhagFilter && (
+
+            {(vibhagFilter || groupFilter) && (
               <button
-                onClick={() => setVibhagFilter('')}
+                onClick={() => {
+                  setVibhagFilter('');
+                  setGroupFilter('');
+                }}
                 className="px-4 py-2 bg-white border-2 border-indigo-300 text-indigo-700 hover:bg-indigo-50 rounded-lg font-medium transition-colors"
               >
                 फिल्टर काढा
