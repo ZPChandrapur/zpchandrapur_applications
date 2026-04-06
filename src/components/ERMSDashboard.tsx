@@ -23,7 +23,7 @@ import { EmployeeDashboard } from './EmployeeDashboard';
 import { RetirementDashboard } from './RetirementDashboard';
 import { RetirementTracker } from './RetirementTracker';
 import { InstructionsDashboard } from './InstructionsDashboard';
-import { CustomReports } from './CustomReports';
+import ReportsContainer from './ReportsContainer';
 import { RetirementAnalyticsDashboard } from './RetirementAnalyticsDashboard';
 import { usePermissions } from '../hooks/usePermissions';
 import { supabase } from "../lib/supabase"; // adjust import path if needed
@@ -224,7 +224,7 @@ export const ERMSDashboard: React.FC<ERMSDashboardProps> = ({ user, isInspector 
           </div>
         </div>
         <div style={{ display: activeModule === 'custom-reports' ? 'block' : 'none' }}>
-          <CustomReports user={user} onBack={handleBackToMain} />
+          <ReportsContainer user={user} onBack={handleBackToMain} />
         </div>
         <div style={{ display: activeModule === 'instructions' ? 'block' : 'none' }}>
           <InstructionsDashboard user={user} onBack={handleBackToMain} />
