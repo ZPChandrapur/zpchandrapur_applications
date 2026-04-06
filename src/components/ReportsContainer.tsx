@@ -47,11 +47,12 @@ const ReportsContainer: React.FC<ReportsContainerProps> = ({ user, onBack }) => 
       </div>
 
       <div>
-        {activeTab === 'custom' ? (
+        <div style={{ display: activeTab === 'custom' ? 'block' : 'none' }}>
           <CustomReports user={user} onBack={onBack} />
-        ) : (
+        </div>
+        <div style={{ display: activeTab === 'gad' ? 'block' : 'none' }}>
           <GADReports user={user} onBack={onBack} />
-        )}
+        </div>
       </div>
     </div>
   );
