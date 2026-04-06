@@ -127,7 +127,7 @@ const GADReports: React.FC<GADReportsProps> = ({ user, onBack }) => {
     setIsLoading(true);
     try {
       const { data, error } = await ermsClient
-        .from('employee_retirement_consolidated')
+        .from('employee_retirement_consolidated_view')
         .select('*');
 
       if (error) throw error;
