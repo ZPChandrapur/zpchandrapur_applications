@@ -1,28 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  Users,
-  Calendar,
-  CheckCircle,
-  Clock,
-  AlertCircle,
-  FileText,
-  TrendingUp,
-  Filter,
-  Download,
-  RefreshCw,
-  Eye,
-  Edit,
-  BarChart3,
-  User,
-  X,
-  Search,
-  ChevronLeft,
-  ChevronRight
-} from 'lucide-react';
+import { Users, Calendar, CheckCircle, Clock, AlertCircle, FileText, TrendingUp, Filter, Download, RefreshCw, Eye, CreditCard as Edit, BarChart3, User, X, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { ermsClient, supabase } from '../lib/supabase';
 import { usePermissions } from '../hooks/usePermissions';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
+import { exportToExcel } from '../utils/excelExport';
 
 interface GroupInsuranceProps {
   user: SupabaseUser;
@@ -977,55 +959,49 @@ export const GroupInsurance: React.FC<GroupInsuranceProps> = ({ user }) => {
               </button>
               <button
                 onClick={() => {
-                  const data = getTabFilteredRecords(); // export UI-visible data only
+                  const data = getTabFilteredRecords();
 
                   if (!data || data.length === 0) {
                     alert("No data available to export");
                     return;
                   }
 
-                  // UI Table Columns ONLY
-                  const uiColumns = [
-                    "Shalarth_Id",
-                    "panchayatrajsevarth_id",
-                    "emp_id",
-                    "employee_name",
-                    "department",
-                    "retirement_date",
-                    "age",
-                    "assigned_clerk",
-                    "year_1990",
-                    "year_2003",
-                    "year_2010",
-                    "year_2020"
+                  const headers = [
+                    "शालार्थ आयडी",
+                    "पंचायतराजसेवार्थ आयडी",
+                    "कर्मचारी आयडी",
+                    "कर्मचारी नाव",
+                    "विभाग",
+                    "सेवानिवृत्ती दिनांक",
+                    "वय",
+                    "नियुक्त लिपिक",
+                    "वर्ष १९९०",
+                    "वर्ष २००३",
+                    "वर्ष २०१०",
+                    "वर्ष २०२०"
                   ];
 
-                  const headers = uiColumns.join(",");
+                  const rows = data.map(row => [
+                    row.Shalarth_Id || '',
+                    row.panchayatrajsevarth_id || '',
+                    row.emp_id || '',
+                    row.employee_name || '',
+                    row.department || '',
+                    row.retirement_date ? new Date(row.retirement_date).toLocaleDateString() : '',
+                    row.age || '',
+                    row.assigned_clerk || '',
+                    row.year_1990 || '',
+                    row.year_2003 || '',
+                    row.year_2010 || '',
+                    row.year_2020 || ''
+                  ]);
 
-                  const rows = data.map(row =>
-                    uiColumns
-                      .map(key => {
-                        let value = row[key];
-
-                        // Format date fields same as UI
-                        if (key === "retirement_date" && value) {
-                          value = new Date(value).toLocaleDateString();
-                        }
-
-                        return `"${value !== null && value !== undefined ? value : ''}"`;
-                      })
-                      .join(",")
-                  );
-
-                  const csvContent = [headers, ...rows].join("\n");
-
-                  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-                  const url = URL.createObjectURL(blob);
-                  const link = document.createElement("a");
-                  link.href = url;
-                  link.download = "group_insurance_ui_table.csv";
-                  link.click();
-                  URL.revokeObjectURL(url);
+                  exportToExcel({
+                    fileName: 'गट_विमा.xlsx',
+                    sheetName: 'गट विमा',
+                    headers,
+                    data: rows
+                  });
                 }}
                 className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-300"
               >

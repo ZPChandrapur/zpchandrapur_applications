@@ -1,28 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  Users,
-  Calendar,
-  CheckCircle,
-  Clock,
-  AlertCircle,
-  FileText,
-  TrendingUp,
-  Filter,
-  Download,
-  RefreshCw,
-  Eye,
-  Edit,
-  BarChart3,
-  User,
-  X,
-  Search,
-  ChevronLeft,
-  ChevronRight
-} from 'lucide-react';
+import { Users, Calendar, CheckCircle, Clock, AlertCircle, FileText, TrendingUp, Filter, Download, RefreshCw, Eye, CreditCard as Edit, BarChart3, User, X, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { ermsClient, supabase } from '../lib/supabase';
 import { usePermissions } from '../hooks/usePermissions';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
+import { exportToExcel } from '../utils/excelExport';
 
 interface PayCommissionProps {
   user: SupabaseUser;
@@ -903,57 +885,53 @@ export const PayCommission: React.FC<PayCommissionProps> = ({ user }) => {
               </button>
               <button
                 onClick={() => {
-                  const data = getTabFilteredRecords(); // export UI-visible data
+                  const data = getTabFilteredRecords();
 
                   if (!data || data.length === 0) {
                     alert("No data available to export");
                     return;
                   }
 
-                  // Only UI table columns (Pay Commission)
-                  const uiColumns = [
-                    "Shalarth_Id",
-                    "panchayatrajsevarth_id",
-                    "emp_id",
-                    "employee_name",
-                    "department",
-                    "retirement_date",
-                    "age",
-                    "assigned_clerk",
-                    "fourth_pay_comission",
-                    "fifth_pay_comission",
-                    "sixth_pay_comission",
-                    "seventh_pay_comission",
-                    "pay_progress_scheme",
-                    "department_progress_scheme"
+                  const headers = [
+                    "शालार्थ आयडी",
+                    "पंचायतराजसेवार्थ आयडी",
+                    "कर्मचारी आयडी",
+                    "कर्मचारी नाव",
+                    "विभाग",
+                    "सेवानिवृत्ती दिनांक",
+                    "वय",
+                    "नियुक्त लिपिक",
+                    "चौथा वेतन आयोग",
+                    "पाचवा वेतन आयोग",
+                    "सहावा वेतन आयोग",
+                    "सातवा वेतन आयोग",
+                    "वेतन प्रगती योजना",
+                    "विभाग प्रगती योजना"
                   ];
 
-                  const headers = uiColumns.join(",");
+                  const rows = data.map(row => [
+                    row.Shalarth_Id || '',
+                    row.panchayatrajsevarth_id || '',
+                    row.emp_id || '',
+                    row.employee_name || '',
+                    row.department || '',
+                    row.retirement_date ? new Date(row.retirement_date).toLocaleDateString() : '',
+                    row.age || '',
+                    row.assigned_clerk || '',
+                    row.fourth_pay_comission || '',
+                    row.fifth_pay_comission || '',
+                    row.sixth_pay_comission || '',
+                    row.seventh_pay_comission || '',
+                    row.pay_progress_scheme || '',
+                    row.department_progress_scheme || ''
+                  ]);
 
-                  const rows = data.map(row =>
-                    uiColumns
-                      .map(key => {
-                        let value = row[key];
-
-                        // Format date same as UI
-                        if (key === "retirement_date" && value) {
-                          value = new Date(value).toLocaleDateString();
-                        }
-
-                        return `"${value !== null && value !== undefined ? value : ''}"`;
-                      })
-                      .join(",")
-                  );
-
-                  const csvContent = [headers, ...rows].join("\n");
-
-                  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-                  const url = URL.createObjectURL(blob);
-                  const link = document.createElement("a");
-                  link.href = url;
-                  link.download = "pay_commission_ui_table.csv";
-                  link.click();
-                  URL.revokeObjectURL(url);
+                  exportToExcel({
+                    fileName: 'वेतन_आयोग.xlsx',
+                    sheetName: 'वेतन आयोग',
+                    headers,
+                    data: rows
+                  });
                 }}
                 className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-300"
               >

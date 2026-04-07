@@ -1,28 +1,11 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  Users,
-  Calendar,
-  CheckCircle,
-  Clock,
-  AlertCircle,
-  FileText,
-  TrendingUp,
-  Filter,
-  Download,
-  RefreshCw,
-  Eye,
-  Edit,
-  BarChart3,
-  User,
-  X,
-  Search,
-  FolderOpen
-} from 'lucide-react';
+import { Users, Calendar, CheckCircle, Clock, AlertCircle, FileText, TrendingUp, Filter, Download, RefreshCw, Eye, CreditCard as Edit, BarChart3, User, X, Search, FolderOpen } from 'lucide-react';
 import { ermsClient, supabase } from '../lib/supabase';
 import { usePermissions } from '../hooks/usePermissions';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 import { FileTracking } from './FileTracking';
+import { exportToExcel } from '../utils/excelExport';
 
 interface RetirementDashboardProps {
   user: SupabaseUser;
@@ -998,49 +981,47 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
     try {
       const tabRecords = getTabFilteredRecords();
 
-      // Prepare Excel data with proper headers
       const headers = [
-        'Employee ID',
-        'Employee Name',
-        'Department',
-        'Designation',
-        'Age',
-        'Retirement Date',
-        'Assigned Clerk',
-        'Retirement Reason',
-        'Birth Certificate',
-        'Medical Certificate',
-        'Nomination',
-        'Permanent Registration',
-        'Computer Exam',
-        'Language Exam',
-        'Post Service Exam',
-        'Verification',
-        'Date of Birth Verification',
-        'Computer Exam Passed',
-        'Marathi Hindi Exam Exemption',
-        'Verification Completed',
-        'Undertaking Taken',
-        'No Objection Certificate',
-        'Retirement Order',
-        'Submission Date',
-        'Department Submitted',
-        'Type of Pension',
-        'Pension Case Approval Date',
-        'Group Insurance Benefit',
-        'Gratuity Benefit',
-        'Leave Encashment Benefit',
-        'Medical Allowance Benefit',
-        'Hometown Travel Allowance',
-        'Pending Travel Allowance',
-        'Government Decision March 2023',
-        'Overall Comment',
-        'Completion Percentage',
-        'Status'
+        'कर्मचारी आयडी',
+        'कर्मचारी नाव',
+        'विभाग',
+        'पदनाम',
+        'वय',
+        'सेवानिवृत्ती दिनांक',
+        'नियुक्त लिपिक',
+        'सेवानिवृत्तीचे कारण',
+        'जन्म प्रमाणपत्र',
+        'वैद्यकीय प्रमाणपत्र',
+        'नामांकन',
+        'कायम नोंदणी',
+        'संगणक परीक्षा',
+        'भाषा परीक्षा',
+        'सेवोत्तर परीक्षा',
+        'पडताळणी',
+        'जन्म तारीख पडताळणी',
+        'संगणक परीक्षा उत्तीर्ण',
+        'मराठी/हिंदी परीक्षा सूट',
+        'पडताळणी पूर्ण',
+        'हमीपत्र घेतले',
+        'हरकत नाही प्रमाणपत्र',
+        'सेवानिवृत्ती आदेश',
+        'सादरीकरण तारीख',
+        'विभाग सादर',
+        'पेन्शनचा प्रकार',
+        'पेन्शन केस मंजूरी तारीख',
+        'गट विमा लाभ',
+        'उपदान लाभ',
+        'रजा रोख लाभ',
+        'वैद्यकीय भत्ता लाभ',
+        'मूळगाव प्रवास भत्ता',
+        'प्रलंबित प्रवास भत्ता',
+        'शासन निर्णय मार्च २०२३',
+        'एकूण टिप्पणी',
+        'पूर्णता टक्केवारी',
+        'स्थिती'
       ];
 
-      // Convert data to CSV format
-      const csvData = tabRecords.map(record => {
+      const dataRows = tabRecords.map(record => {
         const completionPercentage = getCompletionPercentage(record);
         const status = getProgressStatus(record);
 
@@ -1084,29 +1065,17 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
         ];
       });
 
-      // Create CSV content
-      const csvContent = [headers, ...csvData]
-        .map(row => row.map(field => `\"${field}\"`).join(','))
-        .join('\n');
-
-      // Create and download the file
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      const url = URL.createObjectURL(blob);
-      link.setAttribute('href', url);
-
-      // Generate filename with current date and tab
       const currentDate = new Date().toISOString().split('T')[0];
-      const tabName = activeTab === 'inProgress' ? 'In_Progress' :
-        activeTab === 'pending' ? 'Pending' : 'Completed';
-      const filename = `retirement_progress_${tabName}_${currentDate}.csv`;
-      link.setAttribute('download', filename);
+      const tabName = activeTab === 'inProgress' ? 'प्रक्रियेत' :
+        activeTab === 'pending' ? 'प्रलंबित' : 'पूर्ण';
+      const filename = `सेवानिवृत्ती_प्रगती_${tabName}_${currentDate}.xlsx`;
 
-      // Trigger download
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      exportToExcel({
+        fileName: filename,
+        sheetName: 'सेवानिवृत्ती प्रगती',
+        headers,
+        data: dataRows
+      });
 
     } catch (error) {
       console.error('Error downloading data:', error);

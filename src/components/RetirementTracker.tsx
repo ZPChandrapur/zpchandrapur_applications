@@ -2,29 +2,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PayCommission } from './PayCommission';
 import { GroupInsurance } from './GroupInsurance';
-import {
-  Users,
-  Calendar,
-  CheckCircle,
-  Clock,
-  AlertCircle,
-  FileText,
-  TrendingUp,
-  Filter,
-  Download,
-  RefreshCw,
-  Eye,
-  Edit,
-  BarChart3,
-  User,
-  X,
-  Search,
-  ChevronLeft,
-  ChevronRight
-} from 'lucide-react';
+import { Users, Calendar, CheckCircle, Clock, AlertCircle, FileText, TrendingUp, Filter, Download, RefreshCw, Eye, CreditCard as Edit, BarChart3, User, X, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { ermsClient, supabase } from '../lib/supabase';
 import { usePermissions } from '../hooks/usePermissions';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
+import { exportToExcel } from '../utils/excelExport';
 
 interface RetirementTrackerProps {
   user: SupabaseUser;
@@ -914,64 +896,63 @@ const fetchRetirementProgress = async () => {
                   </button>
                   <button
                     onClick={() => {
-                      const data = getTabFilteredEmployees(); // 👈 export filtered table data (UI only)
+                      const data = getTabFilteredEmployees();
 
                       if (!data || data.length === 0) {
                         alert("No data available to export");
                         return;
                       }
 
-                      // Export ONLY UI-side table columns
-                      const uiColumns = [
-                        "Shalarth_Id",
-                        "panchayatrajsevarth_id",
-                        "emp_id",
-                        "employee_name",
-                        "status",
-                        "date_of_birth_verification",
-                        "birth_certificate_doc_submitted",
-                        "medical_certificate",
-                        "nomination",
-                        "permanent_registration",
-                        "computer_exam_passed",
-                        "marathi_hindi_exam_exemption",
-                        "post_service_exam",
-                        "appointed_employee",
-                        "validity_certificate",
-                        "verification_completed",
-                        "has_undertaking_been_taken_on_21_12_2021",
-                        "no_objection_no_inquiry_certificate",
-                        "retirement_order",
+                      const headers = [
+                        "शालार्थ आयडी",
+                        "पंचायतराजसेवार्थ आयडी",
+                        "कर्मचारी आयडी",
+                        "कर्मचारी नाव",
+                        "स्थिती",
+                        "जन्म दिनांक पडताळणी",
+                        "जन्म प्रमाणपत्र सादर",
+                        "वैद्यकीय प्रमाणपत्र",
+                        "नामांकन",
+                        "कायम नोंदणी",
+                        "संगणक परीक्षा उत्तीर्ण",
+                        "मराठी/हिंदी परीक्षा सूट",
+                        "सेवोत्तर परीक्षा",
+                        "नियुक्त कर्मचारी",
+                        "वैधता प्रमाणपत्र",
+                        "पडताळणी पूर्ण",
+                        "२१/१२/२०२१ रोजी हमीपत्र घेतले",
+                        "हरकत नाही प्रमाणपत्र",
+                        "सेवानिवृत्ती आदेश"
                       ];
 
-                      const headers = uiColumns.join(",");
+                      const rows = data.map(row => [
+                        row.Shalarth_Id || '',
+                        row.panchayatrajsevarth_id || '',
+                        row.emp_id || '',
+                        row.employee_name || '',
+                        row.status || '',
+                        row.date_of_birth_verification || '',
+                        row.birth_certificate_doc_submitted || '',
+                        row.medical_certificate || '',
+                        row.nomination || '',
+                        row.permanent_registration || '',
+                        row.computer_exam_passed || '',
+                        row.marathi_hindi_exam_exemption || '',
+                        row.post_service_exam || '',
+                        row.appointed_employee || '',
+                        row.validity_certificate || '',
+                        row.verification_completed || '',
+                        row.has_undertaking_been_taken_on_21_12_2021 || '',
+                        row.no_objection_no_inquiry_certificate || '',
+                        row.retirement_order || ''
+                      ]);
 
-                      const rows = data.map(row =>
-                        uiColumns
-                          .map(key => {
-                            let value = row[key];
-
-                            // Format date same as UI
-                            if (key === "retirement_date" && value) {
-                              value = new Date(value).toLocaleDateString();
-                            }
-
-                            return `"${value !== null && value !== undefined ? value : ''}"`;
-                          })
-                          .join(",")
-                      );
-
-                      const csvContent = [headers, ...rows].join("\n");
-
-                      // Download CSV file
-                      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-                      const url = URL.createObjectURL(blob);
-                      const link = document.createElement("a");
-                      link.setAttribute("href", url);
-                      link.setAttribute("download", "retirement_progress_ui_table.csv");
-                      document.body.appendChild(link);
-                      link.click();
-                      document.body.removeChild(link);
+                      exportToExcel({
+                        fileName: 'सेवानिवृत्ती_प्रगती_ट्रॅकर.xlsx',
+                        sheetName: 'सेवानिवृत्ती प्रगती',
+                        headers,
+                        data: rows
+                      });
                     }}
                     className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-300"
                   >
