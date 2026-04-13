@@ -1,22 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  Users,
-  Calendar,
-  UserCheck,
-  Plus,
-  Search,
-  Filter,
-  Download,
-  RefreshCw,
-  Eye,
-  Edit,
-  Trash2,
-  X,
-  ChevronLeft,
-  BarChart3,
-  ChevronRight
-} from 'lucide-react';
+import { Users, Calendar, UserCheck, Plus, Search, Filter, Download, RefreshCw, Eye, CreditCard as Edit, Trash2, X, ChevronLeft, BarChart3, ChevronRight } from 'lucide-react';
 import { ermsClient, supabase } from '../lib/supabase';
 import { usePermissions } from '../hooks/usePermissions';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
@@ -691,23 +675,16 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
   const handleAddEmployee = async () => {
     setEditingEmployee(null);
 
-    // 1. Fetch max emp_id from actual employee table
-    const { data, error } = await ermsClient
-      .from("employee")
-      .select("emp_id")
-      .order("emp_id", { ascending: false })
-      .limit(1);
+    let nextId = "160000";
 
-    let nextId = "1";
-
-    if (!error && data && data.length > 0) {
-      const maxId = Number(data[0].emp_id);
-      if (!isNaN(maxId)) {
-        nextId = String(maxId + 1);
+    try {
+      const { data, error } = await supabase.rpc("get_next_edu_emp_id");
+      if (!error && data) {
+        nextId = String(data);
       }
+    } catch (_) {
     }
 
-    // 2. Apply to your form structure
     setFormData({
       emp_id: nextId,
       Cadre: "C",
