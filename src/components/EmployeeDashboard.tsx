@@ -749,23 +749,16 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack, us
   const handleAddEmployee = async () => {
     setEditingEmployee(null);
 
-    // 1. Fetch the maximum emp_id from the employee table
-    const { data, error } = await ermsClient
-      .from("employee")
-      .select("emp_id")
-      .order("emp_id", { ascending: false })
-      .limit(1);
+    let nextId = "140000";
 
-    let nextId = "1";
-
-    if (!error && data && data.length > 0) {
-      const maxId = Number(data[0].emp_id);
-      if (!isNaN(maxId)) {
-        nextId = String(maxId + 1);
+    try {
+      const { data, error } = await ermsClient.rpc("get_next_emp_id");
+      if (!error && data) {
+        nextId = String(data);
       }
+    } catch (_) {
     }
 
-    // 2. Set form with auto-generated next emp_id
     setFormData({
       emp_id: nextId,
       employee_name: "",
@@ -1445,10 +1438,8 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack, us
                   <input
                     type="text"
                     value={formData.emp_id || ''}
-                    onChange={(e) => setFormData({ ...formData, emp_id: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
-                    maxLength={50}
+                    readOnly
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed"
                   />
                 </div>
 
