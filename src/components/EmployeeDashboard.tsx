@@ -1,20 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  Users,
-  Calendar,
-  UserCheck,
-  BarChart3,
-  Plus,
-  Search,
-  Edit,
-  Trash2,
-  Eye,
-  RefreshCw,
-  X,
-  Filter,
-  Download
-} from 'lucide-react';
+import { Users, Calendar, UserCheck, BarChart3, Plus, Search, CreditCard as Edit, Trash2, Eye, RefreshCw, X, Filter, Download } from 'lucide-react';
 import { ermsClient, supabase } from '../lib/supabase';
 import { EducationEmployeeDashboard } from './EducationEmployeeDashboard';
 import { usePermissions } from '../hooks/usePermissions';
@@ -882,24 +868,28 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack, us
 
 
       // Calculate retirement date based on cadre
+      const toIntOrNull = (val: string | number | null | undefined): number | null => {
+        if (val === null || val === undefined || String(val).trim() === '') return null;
+        const parsed = parseInt(String(val), 10);
+        return isNaN(parsed) ? null : parsed;
+      };
+
       const employeeData = {
         emp_id: String(formData.emp_id || '').trim() || null,
         employee_name: String(formData.employee_name || '').trim(),
         Cadre: String(formData.Cadre || '').trim() || null,
         date_of_birth: formData.date_of_birth,
-        //retirement_date: calculatedRetirementDate,
         retirement_date: calculateRetirementDate(formData.date_of_birth, formData.Cadre),
-        designation_id: formData.designation_id,
+        designation_id: toIntOrNull(formData.designation_id),
         reason: String(formData.reason || '').trim() || null,
         assigned_clerk: formData.assigned_clerk || null,
         officer_assigned: formData.officer_assigned || null,
-        tal_id: formData.tal_id,
-        dept_id: formData.dept_id,
-        office_id: formData.office_id,
+        tal_id: toIntOrNull(formData.tal_id),
+        dept_id: toIntOrNull(formData.dept_id),
+        office_id: toIntOrNull(formData.office_id),
         ddo_code: String(formData.ddo_code || '').trim() || null,
         date_of_joining: formData.date_of_joining || null,
         panchayatrajsevarth_id: formData.panchayatrajsevarth_id?.trim() || null
-        //department: formData.department || null
       };
 
       // Log the employeeData object before insert to verify retirement_date is present
