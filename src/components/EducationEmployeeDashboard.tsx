@@ -91,6 +91,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
         return {
           searchTerm: parsed.searchTerm || '',
           selectedDepartment: parsed.selectedDepartment || '',
+          selectedTaluka: parsed.selectedTaluka || '',
           selectedDesignation: parsed.selectedDesignation || '',
           selectedClerk: parsed.selectedClerk || '',
           selectedReason: parsed.selectedReason || ''
@@ -102,6 +103,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
     return {
       searchTerm: '',
       selectedDepartment: '',
+      selectedTaluka: '',
       selectedDesignation: '',
       selectedClerk: '',
       selectedReason: ''
@@ -182,9 +184,10 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
   const [selectedDepartment, setSelectedDepartment] = useState(initialFilters.selectedDepartment);
   const [selectedClerk, setSelectedClerk] = useState(initialFilters.selectedClerk);
   const [selectedReason, setSelectedReason] = useState(initialFilters.selectedReason);
+  const [selectedTaluka, setSelectedTaluka] = useState(initialFilters.selectedTaluka || '');
   const [currentPage, setCurrentPage] = useState(initialPagination.currentPage);
   const [totalEmployeeCount, setTotalEmployeeCount] = useState(0);
-  const [recordsPerPage] = useState(initialPagination.recordsPerPage);
+  const [recordsPerPage, setRecordsPerPage] = useState(initialPagination.recordsPerPage);
   const [filterType, setFilterType] = useState<string>('');
   const [selectedDesignation, setSelectedDesignation] = useState('');
 
@@ -208,6 +211,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
       const filterState = {
         searchTerm,
         selectedDepartment,
+        selectedTaluka,
         selectedDesignation,
         selectedClerk,
         selectedReason,
@@ -371,7 +375,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
     if (isInitialized) {
       saveFilters();
     }
-  }, [searchTerm, selectedDepartment, selectedClerk, selectedReason, selectedDesignation, isInitialized]);
+  }, [searchTerm, selectedTaluka, selectedClerk, selectedReason, selectedDesignation, isInitialized]);
 
   // Auto-save pagination when it changes
   useEffect(() => {
@@ -400,7 +404,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
   useEffect(() => {
     filterEmployees();
     setCurrentPage(1);
-  }, [employees, searchTerm, selectedDepartment, selectedClerk, selectedReason, selectedDesignation, filterType]);
+  }, [employees, searchTerm, selectedTaluka, selectedClerk, selectedReason, selectedDesignation, filterType]);
 
   const fetchAllData = async () => {
     setIsLoading(true);
@@ -471,7 +475,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
     }
   };
 
-  const fetchEmployees = async () => {debugger
+  const fetchEmployees = async () => {
     if (!educationDeptId) return;
 
     try {
@@ -609,12 +613,10 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
       );
     }
 
-    // New Department Filter
-    if (selectedDepartment) {
-      filtered = filtered.filter(emp => String(emp.dept_id) === selectedDepartment);
+    if (selectedTaluka) {
+      filtered = filtered.filter(emp => String(emp.tal_id) === selectedTaluka);
     }
 
-    // New Designation Filter
     if (selectedDesignation) {
       filtered = filtered.filter(emp => String(emp.designation_id) === selectedDesignation);
     }
@@ -829,11 +831,12 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
 
   const clearFilters = () => {
     setSearchTerm('');
-    setSelectedDepartment('');
+    setSelectedTaluka('');
     setSelectedDesignation('');
     setSelectedClerk('');
     setCurrentPage(1);
     setSelectedReason('');
+    setFilterType('');
   };
 
   const kpiData = getKPIData();
@@ -938,8 +941,19 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
       <div className="bg-white rounded-lg shadow-md border border-gray-300">
         <div className="px-6 py-4 border-b border-gray-300">
           <div className="flex items-center justify-between mb-4">
-            <div>
-              {filteredEmployees.length} पैकी {paginatedEmployees.length} कर्मचारी दाखवत आहे (पृष्ठ {currentPage} / {totalPages})
+            <div className="flex items-center space-x-4">
+              <select
+                value={recordsPerPage}
+                onChange={(e) => { setRecordsPerPage(Number(e.target.value)); setCurrentPage(1); }}
+                className="px-3 py-2 border border-gray-400 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+              >
+                <option value={20}>20 per page</option>
+                <option value={50}>50 per page</option>
+                <option value={100}>100 per page</option>
+              </select>
+              <span className="text-sm text-gray-500">
+                {filteredEmployees.length} पैकी {paginatedEmployees.length} कर्मचारी दाखवत आहे (पृष्ठ {currentPage} / {totalPages})
+              </span>
             </div>
             <div className="flex items-center space-x-3">
               <button className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-300">
@@ -976,14 +990,14 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
             </select>
 
             <select
-              value={selectedDepartment}
-              onChange={(e) => setSelectedDepartment(e.target.value)}
+              value={selectedTaluka}
+              onChange={(e) => setSelectedTaluka(e.target.value)}
               className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             >
-              <option value="">सर्व विभाग</option>
-              {departments.map(dept => (
-                <option key={dept.dept_id} value={dept.dept_id}>
-                  {dept.department}
+              <option value="">सर्व तालुका</option>
+              {talukas.map(taluka => (
+                <option key={taluka.tal_id} value={String(taluka.tal_id)}>
+                  {taluka.name}
                 </option>
               ))}
             </select>
