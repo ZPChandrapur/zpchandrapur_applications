@@ -752,7 +752,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack, us
     let nextId = "140000";
 
     try {
-      const { data, error } = await ermsClient.rpc("get_next_emp_id");
+      const { data, error } = await supabase.rpc("get_next_emp_id");
       if (!error && data) {
         nextId = String(data);
       }
