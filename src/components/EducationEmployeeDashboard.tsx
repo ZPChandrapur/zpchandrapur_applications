@@ -1271,6 +1271,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
                     <option value="Special Backward Class">Special Backward Class</option>
                     <option value="Vimukta Jati (A)">Vimukta Jati (A)</option>
                     <option value="Nomadic Tribe (D)">Nomadic Tribe (D)</option>
+                    <option value="N.T.- C">N.T.- C</option>
                     <option value="Economically Weaker Section">Economically Weaker Section</option>
                     <option value="Special Backward Category (A)">Special Backward Category (A)</option>
                   </select>
@@ -1544,6 +1545,7 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
                     <option value="Special Backward Class">Special Backward Class</option>
                     <option value="Vimukta Jati (A)">Vimukta Jati (A)</option>
                     <option value="Nomadic Tribe (D)">Nomadic Tribe (D)</option>
+                    <option value="N.T.- C">N.T.- C</option>
                     <option value="Economically Weaker Section">Economically Weaker Section</option>
                     <option value="Special Backward Category (A)">Special Backward Category (A)</option>
                   </select>
