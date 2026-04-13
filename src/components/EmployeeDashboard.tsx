@@ -449,7 +449,54 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ onBack, us
   }, [showAddModal, showEditModal, editingEmployee, formData, isInitialized]);
 
   useEffect(() => {
-    filterEmployees();
+    let filtered = employees;
+
+    if (searchTerm) {
+      filtered = filtered.filter(emp =>
+        String(emp.emp_id).toLowerCase().includes(searchTerm.toLowerCase()) ||
+        emp.employee_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        emp.department?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        emp.panchayatrajsevarth_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        emp.ddo_code?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    if (selectedDepartment) {
+      filtered = filtered.filter(emp => String(emp.dept_id) === selectedDepartment);
+    }
+
+    if (selectedClerk) {
+      filtered = filtered.filter(emp => emp.assigned_clerk === selectedClerk);
+    }
+
+    if (selectedReason) {
+      filtered = filtered.filter(emp => emp.reason === selectedReason);
+    }
+
+    if (selectedCadre) {
+      filtered = filtered.filter(emp => (emp.Cadre || '').toLowerCase() === selectedCadre.toLowerCase());
+    }
+
+    if (selectedDesignation) {
+      filtered = filtered.filter(emp => String(emp.designation_id) === selectedDesignation);
+    }
+
+    if (filterType === 'upcomingRetirements') {
+      const sixMonthsFromNow = new Date();
+      sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
+      filtered = filtered.filter(emp => {
+        if (!emp.retirement_date) return false;
+        const retirementDate = new Date(emp.retirement_date);
+        return retirementDate <= sixMonthsFromNow;
+      });
+    } else if (filterType === 'assigned') {
+      filtered = filtered.filter(emp => emp.assigned_clerk);
+    } else if (filterType === 'unassigned') {
+      filtered = filtered.filter(emp => !emp.assigned_clerk);
+    }
+
+    setFilteredEmployees(filtered);
+    setCurrentPage(1);
   }, [employees, searchTerm, selectedDepartment, selectedClerk, selectedReason, selectedCadre, filterType, selectedDesignation]);
 
   const fetchAllData = async () => {

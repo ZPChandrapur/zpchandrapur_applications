@@ -402,7 +402,47 @@ export const EducationEmployeeDashboard: React.FC<EducationEmployeeDashboardProp
   }, [educationDeptId]);
 
   useEffect(() => {
-    filterEmployees();
+    let filtered = employees;
+
+    if (searchTerm) {
+      filtered = filtered.filter(emp =>
+        String(emp.emp_id || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        emp.employee_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        emp.Shalarth_Id?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    if (selectedTaluka) {
+      filtered = filtered.filter(emp => String(emp.tal_id) === selectedTaluka);
+    }
+
+    if (selectedDesignation) {
+      filtered = filtered.filter(emp => String(emp.designation_id) === selectedDesignation);
+    }
+
+    if (selectedClerk) {
+      filtered = filtered.filter(emp => emp.assigned_clerk === selectedClerk);
+    }
+
+    if (selectedReason) {
+      filtered = filtered.filter(emp => emp.retirement_reason === selectedReason);
+    }
+
+    if (filterType === 'upcomingRetirements') {
+      const sixMonthsFromNow = new Date();
+      sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
+      filtered = filtered.filter(emp => {
+        if (!emp.retirement_date) return false;
+        const retirementDate = new Date(emp.retirement_date);
+        return retirementDate <= sixMonthsFromNow;
+      });
+    } else if (filterType === 'assigned') {
+      filtered = filtered.filter(emp => emp.assigned_clerk);
+    } else if (filterType === 'unassigned') {
+      filtered = filtered.filter(emp => !emp.assigned_clerk);
+    }
+
+    setFilteredEmployees(filtered);
     setCurrentPage(1);
   }, [employees, searchTerm, selectedTaluka, selectedClerk, selectedReason, selectedDesignation, filterType]);
 
