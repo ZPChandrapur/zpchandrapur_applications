@@ -15,9 +15,11 @@ import {
   RefreshCw,
   X,
   ChevronUp,
-  ChevronDown
+  ChevronDown,
+  Download
 } from 'lucide-react';
 import { ermsClient } from '../lib/supabase';
+import { exportToExcelWithStyle } from '../utils/excelExport';
 
 interface OrganizationSetupProps {
   onBack: () => void;
@@ -136,6 +138,7 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
 
   // Sort state
   const [sortConfig, setSortConfig] = useState<{ column: string; direction: 'asc' | 'desc' } | null>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   // Save state
   const saveState = () => {
@@ -247,6 +250,11 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
       setSortConfig(null); // Reset sort when tab changes
     }
   }, [activeTab, searchTerm, isInitialized]);
+
+  // Clear search term when switching tabs
+  useEffect(() => {
+    setSearchTerm('');
+  }, [activeTab]);
 
   // Auto-save modal state when it changes
   useEffect(() => {
@@ -465,6 +473,78 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
     }
   };
 
+  const handleDownload = async () => {
+    setIsDownloading(true);
+    try {
+      const filteredData = getFilteredData();
+      
+      if (filteredData.length === 0) {
+        alert(t('common.error') + ': No data to download');
+        setIsDownloading(false);
+        return;
+      }
+
+      let headers: string[] = [];
+      let data: any[][] = [];
+      let fileName = '';
+      let title = '';
+
+      if (activeTab === 'departments') {
+        headers = [t('erms.departmentId'), t('erms.departmentName'), t('erms.createdDate')];
+        fileName = `Departments_${new Date().toISOString().split('T')[0]}.xlsx`;
+        title = t('erms.department');
+        data = filteredData.map(item => [
+          item.id,
+          item.department,
+          item.created_at ? new Date(item.created_at).toLocaleDateString('en-IN') : '-'
+        ]);
+      } else if (activeTab === 'designations') {
+        headers = [t('erms.designationId'), t('erms.designationName'), t('erms.createdDate')];
+        fileName = `Designations_${new Date().toISOString().split('T')[0]}.xlsx`;
+        title = t('erms.designation');
+        data = filteredData.map(item => [
+          item.designation_id,
+          item.designation,
+          item.created_at ? new Date(item.created_at).toLocaleDateString('en-IN') : '-'
+        ]);
+      } else if (activeTab === 'talukas') {
+        headers = [t('erms.talukaId'), t('erms.talukaName'), t('erms.createdDate')];
+        fileName = `Talukas_${new Date().toISOString().split('T')[0]}.xlsx`;
+        title = t('erms.taluka');
+        data = filteredData.map(item => [
+          item.id,
+          item.name,
+          item.created_at ? new Date(item.created_at).toLocaleDateString('en-IN') : '-'
+        ]);
+      } else if (activeTab === 'offices') {
+        headers = [t('erms.officeId'), t('erms.officeName'), t('erms.createdDate')];
+        fileName = `Offices_${new Date().toISOString().split('T')[0]}.xlsx`;
+        title = t('erms.office');
+        data = filteredData.map(item => [
+          item.office_id,
+          item.name,
+          item.created_at ? new Date(item.created_at).toLocaleDateString('en-IN') : '-'
+        ]);
+      }
+
+      exportToExcelWithStyle({
+        fileName,
+        sheetName: title,
+        headers,
+        data,
+        columnWidths: [15, 30, 18],
+        title: `${title} - ${new Date().toLocaleDateString('en-IN')}`,
+        font: { name: 'Devanagari', size: 11 },
+        includeStyles: true
+      });
+    } catch (error) {
+      console.error('Error downloading:', error);
+      alert(t('common.error') + ': Download failed');
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
 
   const getFilteredData = () => {
     let data: any[] = [];
@@ -666,8 +746,17 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
               <span className="text-sm font-medium">Refresh</span>
             </button>
             <button 
+              onClick={handleDownload}
+              disabled={isDownloading}
+              className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 active:scale-95"
+              title="Download as Excel"
+            >
+              <Download className="h-4 w-4" />
+              <span className="text-sm font-medium">{isDownloading ? 'Downloading...' : 'Download'}</span>
+            </button>
+            <button 
               onClick={handleAdd}
-              className={`flex items-center space-x-2 px-4 py-2 ${config.color} text-white rounded-lg transition-all duration-200`}
+              className={`flex items-center space-x-2 px-4 py-2 ${config.color} text-white rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 active:scale-95`}
             >
               <Plus className="h-4 w-4" />
               <span className="text-sm font-medium">{config.addText}</span>
