@@ -177,16 +177,16 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
       color: 'bg-green-500'
     },
     {
-      id: 'talukas',
-      name: t('erms.talukas'),
-      icon: MapPin,
-      color: 'bg-orange-500'
-    },
-    {
       id: 'offices',
       name: t('erms.offices'),
       icon: Building2,
       color: 'bg-teal-500'
+    },
+    {
+      id: 'talukas',
+      name: t('erms.talukas'),
+      icon: MapPin,
+      color: 'bg-orange-500'
     }
   ];
 
@@ -270,7 +270,7 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
       const { data, error } = await ermsClient
         .from('designations')
         .select('designation_id, designation, created_at, updated_at')
-        .order('designation');
+        .order('designation_id');
       
       if (error) throw error;
       setDesignations(data || []);
@@ -284,7 +284,7 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
       const { data, error } = await ermsClient
         .from('department')
         .select('dept_id, department, created_at, updated_at')
-        .order('department');
+        .order('dept_id');
       
       if (error) throw error;
       setDepartments(data?.map(d => ({ id: d.dept_id, department: d.department, created_at: d.created_at, updated_at: d.updated_at })) || []);
@@ -298,7 +298,7 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
       const { data, error } = await ermsClient
         .from('talukas')
         .select('tal_id, name, created_at, updated_at')
-        .order('name');
+        .order('tal_id');
       
       if (error) throw error;
       setTalukas(data?.map(t => ({ id: t.tal_id, name: t.name, created_at: t.created_at, updated_at: t.updated_at })) || []);
@@ -312,7 +312,7 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
       const { data, error } = await ermsClient
         .from('office_locations')
         .select('office_id, name, created_at, updated_at')
-        .order('name');
+        .order('office_id');
       
       if (error) throw error;
       setOfficeLocations(data || []);
