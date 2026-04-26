@@ -13,7 +13,9 @@ import {
   Trash2,
   Eye,
   RefreshCw,
-  X
+  X,
+  ChevronUp,
+  ChevronDown
 } from 'lucide-react';
 import { ermsClient } from '../lib/supabase';
 
@@ -132,6 +134,9 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
   const [persistenceEnabled, setPersistenceEnabled] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
 
+  // Sort state
+  const [sortConfig, setSortConfig] = useState<{ column: string; direction: 'asc' | 'desc' } | null>(null);
+
   // Save state
   const saveState = () => {
     try {
@@ -239,6 +244,7 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
   useEffect(() => {
     if (isInitialized) {
       saveState();
+      setSortConfig(null); // Reset sort when tab changes
     }
   }, [activeTab, searchTerm, isInitialized]);
 
@@ -467,7 +473,8 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
     else if (activeTab === 'talukas') data = talukas;
     else if (activeTab === 'offices') data = officeLocations;
 
-    return data.filter(item => {
+    // Filter data
+    let filtered = data.filter(item => {
       const searchFields = activeTab === 'departments' 
         ? [item.id, item.department]
         : activeTab === 'designations'
@@ -482,6 +489,102 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
         String(field || '').toLowerCase().includes(searchTerm.toLowerCase())
       );
     });
+
+    // Sort data
+    if (sortConfig) {
+      filtered = [...filtered].sort((a, b) => {
+        let aValue: any;
+        let bValue: any;
+
+        switch (activeTab) {
+          case 'departments':
+            if (sortConfig.column === 'id') {
+              aValue = a.id;
+              bValue = b.id;
+            } else if (sortConfig.column === 'name') {
+              aValue = a.department;
+              bValue = b.department;
+            } else if (sortConfig.column === 'created_at') {
+              aValue = a.created_at || '';
+              bValue = b.created_at || '';
+            }
+            break;
+          case 'designations':
+            if (sortConfig.column === 'id') {
+              aValue = a.designation_id;
+              bValue = b.designation_id;
+            } else if (sortConfig.column === 'name') {
+              aValue = a.designation;
+              bValue = b.designation;
+            } else if (sortConfig.column === 'created_at') {
+              aValue = a.created_at || '';
+              bValue = b.created_at || '';
+            }
+            break;
+          case 'talukas':
+            if (sortConfig.column === 'id') {
+              aValue = a.id;
+              bValue = b.id;
+            } else if (sortConfig.column === 'name') {
+              aValue = a.name;
+              bValue = b.name;
+            } else if (sortConfig.column === 'created_at') {
+              aValue = a.created_at || '';
+              bValue = b.created_at || '';
+            }
+            break;
+          case 'offices':
+            if (sortConfig.column === 'id') {
+              aValue = a.office_id;
+              bValue = b.office_id;
+            } else if (sortConfig.column === 'name') {
+              aValue = a.name;
+              bValue = b.name;
+            } else if (sortConfig.column === 'created_at') {
+              aValue = a.created_at || '';
+              bValue = b.created_at || '';
+            }
+            break;
+        }
+
+        // Handle string comparison
+        if (typeof aValue === 'string' && typeof bValue === 'string') {
+          aValue = aValue.toLowerCase();
+          bValue = bValue.toLowerCase();
+        }
+
+        if (aValue < bValue) {
+          return sortConfig.direction === 'asc' ? -1 : 1;
+        }
+        if (aValue > bValue) {
+          return sortConfig.direction === 'asc' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+
+    return filtered;
+  };
+
+  const handleSort = (column: string) => {
+    setSortConfig((prevConfig) => {
+      if (prevConfig?.column === column) {
+        // Toggle direction if clicking the same column
+        return {
+          column,
+          direction: prevConfig.direction === 'asc' ? 'desc' : 'asc'
+        };
+      }
+      // New column, default to ascending
+      return { column, direction: 'asc' };
+    });
+  };
+
+  const getSortIcon = (column: string) => {
+    if (sortConfig?.column !== column) return null;
+    return sortConfig.direction === 'asc' ? 
+      <ChevronUp className="h-4 w-4 ml-1 inline" /> : 
+      <ChevronDown className="h-4 w-4 ml-1 inline" />;
   };
 
   const kpiData = [
@@ -596,11 +699,30 @@ export const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onBack }) 
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
-                  {config.columns.map((column) => (
-                    <th key={column} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {column}
-                    </th>
-                  ))}
+                  {config.columns.map((column, idx) => {
+                    // Map column names to sort keys (skip 'Actions' column)
+                    let sortKey = '';
+                    if (column.toLowerCase().includes('id')) sortKey = 'id';
+                    else if (column.toLowerCase().includes('name')) sortKey = 'name';
+                    else if (column.toLowerCase().includes('date')) sortKey = 'created_at';
+
+                    const isSortable = sortKey && sortKey !== 'actions';
+
+                    return (
+                      <th 
+                        key={column} 
+                        onClick={() => isSortable && handleSort(sortKey)}
+                        className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${
+                          isSortable ? 'cursor-pointer hover:bg-gray-100 hover:text-gray-700' : ''
+                        }`}
+                      >
+                        <div className="flex items-center">
+                          {column}
+                          {isSortable && getSortIcon(sortKey)}
+                        </div>
+                      </th>
+                    );
+                  })}
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
