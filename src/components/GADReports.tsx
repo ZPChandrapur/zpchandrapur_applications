@@ -317,6 +317,7 @@ const GADReports: React.FC<GADReportsProps> = ({ user, onBack }) => {
   }, [vibhagFilter]);
 
   const fetchAllData = async () => {
+    if (allData.length > 0) return;
     setIsLoading(true);
     try {
       const { data, error } = await ermsClient
@@ -692,16 +693,18 @@ const GADReports: React.FC<GADReportsProps> = ({ user, onBack }) => {
     let fileName = 'GAD_अहवाल.xlsx';
 
     if (drillDownLevel === 'group') {
-      fileName = 'GAD_पंचायत_समिती_अहवाल.xlsx';
-      worksheetData = [['कर्मचारी अहवाल - GAD - पंचायत समिती सारांश']];
+      fileName = isVibhagSelected ? `GAD_विभाग_अहवाल_${groupFilter}.xlsx` : 'GAD_पंचायत_समिती_अहवाल.xlsx';
+      worksheetData = [[`कर्मचारी अहवाल - GAD - ${groupSectionTitle}`]];
 
-      if (vibhagFilter) {
+      if (groupFilter) {
+        worksheetData.push([`फिल्टर: ${groupFilter}`]);
+      } else if (vibhagFilter) {
         worksheetData.push([`विभाग फिल्टर: ${vibhagFilter}`]);
       }
 
       worksheetData.push([]);
       worksheetData.push([
-        'पंचायत समिती नाव',
+        isVibhagSelected ? 'विभाग नाव' : 'पंचायत समिती नाव',
         'एकूण कार्यालये',
         'एकूण लिपिक',
         'एकूण कर्मचारी',
@@ -891,6 +894,9 @@ const GADReports: React.FC<GADReportsProps> = ({ user, onBack }) => {
     );
   };
 
+  const isVibhagSelected = groupFilter && !groupFilter.startsWith('पंचायत समिती');
+  const groupSectionTitle = isVibhagSelected ? 'विभागनिहाय सारांश' : 'पंचायत समितीनिहाय सारांश';
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white shadow-sm border-b border-gray-200">
@@ -1001,7 +1007,7 @@ const GADReports: React.FC<GADReportsProps> = ({ user, onBack }) => {
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                   <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
                     <Layers className="h-5 w-5 text-teal-600" />
-                    <span>पंचायत समितीनिहाय सारांश</span>
+                    <span>{groupSectionTitle}</span>
                   </h2>
 
                   <div className="grid grid-cols-1 gap-6">
