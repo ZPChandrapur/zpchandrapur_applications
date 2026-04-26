@@ -910,7 +910,7 @@ const GADReports: React.FC<GADReportsProps> = ({ user, onBack }) => {
             <Filter className="h-5 w-5 text-indigo-600" />
 
             <div className="flex items-center space-x-2">
-              <label className="text-sm font-medium text-gray-700">पंचायत समिती निवडा:</label>
+              <label className="text-sm font-medium text-gray-700">पंचायत समिती आणि विभाग निवडा:</label>
               <select
                 value={groupFilter}
                 onChange={(e) => setGroupFilter(e.target.value)}
@@ -920,6 +920,16 @@ const GADReports: React.FC<GADReportsProps> = ({ user, onBack }) => {
                 {Object.keys(GAD_OFFICE_GROUPS).map(group => (
                   <option key={group} value={group}>{group}</option>
                 ))}
+                <option value="सामान्य प्रशासन विभाग, जि.प.चंद्रपुर">सामान्य प्रशासन विभाग, जि.प.चंद्रपुर</option>
+                <option value="शिक्षण विभाग, जि.प.चंद्रपुर">शिक्षण विभाग, जि.प.चंद्रपुर</option>
+                <option value="बालकल्याण विभाग, जि.प.चंद्रपुर">बालकल्याण विभाग, जि.प.चंद्रपुर</option>
+                <option value="कृषी विभाग, जि.प.चंद्रपुर">कृषी विभाग, जि.प.चंद्रपुर</option>
+                <option value="आरोग्य विभाग, जि.प.चंद्रपुर">आरोग्य विभाग, जि.प.चंद्रपुर</option>
+                <option value="पंचायत विभाग, जि.प.चंद्रपुर">पंचायत विभाग, जि.प.चंद्रपुर</option>
+                <option value="बांधकाम विभाग, जि.प.चंद्रपुर">बांधकाम विभाग, जि.प.चंद्रपुर</option>
+                <option value="सिंचाई विभाग, जि.प.चंद्रपुर">सिंचाई विभाग, जि.प.चंद्रपुर</option>
+                <option value="वित्त विभाग, जि.प.चंद्रपुर">वित्त विभाग, जि.प.चंद्रपुर</option>
+                <option value="ग्रामीण पाणी पुरवठा विभाग, जि.प.चंद्रपुर">ग्रामीण पाणी पुरवठा विभाग, जि.प.चंद्रपुर</option>
               </select>
             </div>
 
