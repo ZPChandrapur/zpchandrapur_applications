@@ -293,10 +293,23 @@ const GADReports: React.FC<GADReportsProps> = ({ user, onBack }) => {
     return str.replace(/\s+/g, ' ').trim();
   };
 
-  const [vibhagFilter, setVibhagFilter] = useState<string>('');
-  const [groupFilter, setGroupFilter] = useState<string>('');
+  const [vibhagFilter, setVibhagFilterState] = useState<string>(
+    () => sessionStorage.getItem('gad_vibhagFilter') || ''
+  );
+  const [groupFilter, setGroupFilterState] = useState<string>(
+    () => sessionStorage.getItem('gad_groupFilter') || ''
+  );
   const [departments, setDepartments] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  const setVibhagFilter = (val: string) => {
+    sessionStorage.setItem('gad_vibhagFilter', val);
+    setVibhagFilterState(val);
+  };
+  const setGroupFilter = (val: string) => {
+    sessionStorage.setItem('gad_groupFilter', val);
+    setGroupFilterState(val);
+  };
 
   useEffect(() => {
     fetchAllData();
