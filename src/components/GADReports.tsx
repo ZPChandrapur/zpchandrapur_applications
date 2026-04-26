@@ -84,19 +84,6 @@ interface EmployeeDetail {
   retirement_progress_status: string;
 }
 
-const VIBHAG_LIST = [
-  { label: 'सामान्य प्रशासन विभाग, जि.प.चंद्रपुर', value: 'सामान्य प्रशासन विभाग' },
-  { label: 'शिक्षण विभाग, जि.प.चंद्रपुर', value: 'शिक्षण विभाग' },
-  { label: 'बालकल्याण विभाग, जि.प.चंद्रपुर', value: 'महिला व बाल कल्याण विभाग' },
-  { label: 'कृषी विभाग, जि.प.चंद्रपुर', value: 'कृषी विभाग' },
-  { label: 'आरोग्य विभाग, जि.प.चंद्रपुर', value: 'आरोग्य विभाग' },
-  { label: 'पंचायत विभाग, जि.प.चंद्रपुर', value: 'पंचायत विभाग' },
-  { label: 'बांधकाम विभाग, जि.प.चंद्रपुर', value: 'बांधकाम विभाग' },
-  { label: 'सिंचाई विभाग, जि.प.चंद्रपुर', value: 'सिंचाई विभाग' },
-  { label: 'वित्त विभाग, जि.प.चंद्रपुर', value: 'वित्त विभाग' },
-  { label: 'ग्रामीण पाणी पुरवठा विभाग, जि.प.चंद्रपुर', value: 'ग्रामीण पाणीपुरवठा व स्वच्छता विभाग' },
-];
-
 const GAD_OFFICE_GROUPS: Record<string, string[]> = {
   'पंचायत समिती बल्लारपुर': [
     'पंचायत समिती, बल्लारपूर',
@@ -278,7 +265,7 @@ const GADReports: React.FC<GADReportsProps> = ({ user, onBack }) => {
 
   const [vibhagFilter, setVibhagFilter] = useState<string>('');
   const [groupFilter, setGroupFilter] = useState<string>('');
-  const [vibhagSummaries, setVibhagSummaries] = useState<GroupSummary[]>([]);
+  const [departments, setDepartments] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -288,7 +275,6 @@ const GADReports: React.FC<GADReportsProps> = ({ user, onBack }) => {
   useEffect(() => {
     if (allData.length > 0) {
       calculateGroupSummaries();
-      calculateVibhagSummaries();
     }
   }, [allData, vibhagFilter, groupFilter]);
 
@@ -310,6 +296,14 @@ const GADReports: React.FC<GADReportsProps> = ({ user, onBack }) => {
       if (error) throw error;
 
       setAllData(data || []);
+
+      const uniqueDepts = Array.from(new Set(
+        (data || [])
+          .map((row: any) => row.department)
+          .filter((dept: string) => dept && dept.trim() !== '')
+      )).sort();
+
+      setDepartments(uniqueDepts as string[]);
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -448,65 +442,6 @@ const GADReports: React.FC<GADReportsProps> = ({ user, onBack }) => {
 
     summaries.sort((a, b) => b.total_employees - a.total_employees);
     setGroupSummaries(summaries);
-  };
-
-  const calculateVibhagSummaries = () => {
-    const summaries: GroupSummary[] = [];
-
-    VIBHAG_LIST.forEach(({ label, value }) => {
-      let deptData = allData.filter(row => row.department === value);
-
-      if (groupFilter) {
-        const officeNames = GAD_OFFICE_GROUPS[groupFilter] || [];
-        const normalizedOfficeNames = officeNames.map(normalizeString);
-        deptData = deptData.filter(row =>
-          normalizedOfficeNames.includes(normalizeString(row.current_office_name || ''))
-        );
-      }
-
-      if (deptData.length === 0) return;
-
-      const officeSet = new Set<string>();
-      const clerkSet = new Set<string>();
-
-      const summary: GroupSummary = {
-        group_name: label,
-        total_offices: 0,
-        total_clerks: 0,
-        total_employees: deptData.length,
-        pay_commission_pending: 0,
-        pay_commission_completed: 0,
-        group_insurance_pending: 0,
-        group_insurance_completed: 0,
-        status_pending: 0,
-        status_processing: 0,
-        status_completed: 0,
-        retirement_progress_pending: 0,
-        retirement_progress_in_progress: 0,
-        retirement_progress_completed: 0,
-      };
-
-      deptData.forEach((row: any) => {
-        if (row.current_office_name) officeSet.add(normalizeString(row.current_office_name));
-        if (row.assigned_clerk) clerkSet.add(normalizeString(row.assigned_clerk_name || row.assigned_clerk));
-        if (row.pay_commission_status === 'pending') summary.pay_commission_pending++;
-        if (row.pay_commission_status === 'completed') summary.pay_commission_completed++;
-        if (row.group_insurance_status === 'pending') summary.group_insurance_pending++;
-        if (row.group_insurance_status === 'completed') summary.group_insurance_completed++;
-        if (row.status === 'pending') summary.status_pending++;
-        if (row.status === 'processing') summary.status_processing++;
-        if (row.status === 'completed') summary.status_completed++;
-        if (row.retirement_progress_status === 'pending') summary.retirement_progress_pending++;
-        if (row.retirement_progress_status === 'in_progress') summary.retirement_progress_in_progress++;
-        if (row.retirement_progress_status === 'completed') summary.retirement_progress_completed++;
-      });
-
-      summary.total_offices = officeSet.size;
-      summary.total_clerks = clerkSet.size;
-      summaries.push(summary);
-    });
-
-    setVibhagSummaries(summaries);
   };
 
   const fetchOfficeDetails = (groupName: string) => {
@@ -993,11 +928,11 @@ const GADReports: React.FC<GADReportsProps> = ({ user, onBack }) => {
               <select
                 value={vibhagFilter}
                 onChange={(e) => setVibhagFilter(e.target.value)}
-                className="px-4 py-2 border-2 border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
+                className="px-4 py-2 border-2 border-indigo-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
               >
                 <option value="">सर्व विभाग</option>
-                {VIBHAG_LIST.map(v => (
-                  <option key={v.value} value={v.value}>{v.label}</option>
+                {departments.map(dept => (
+                  <option key={dept} value={dept}>{dept}</option>
                 ))}
               </select>
             </div>
@@ -1025,7 +960,7 @@ const GADReports: React.FC<GADReportsProps> = ({ user, onBack }) => {
         ) : (
           <>
             {drillDownLevel === 'group' && (
-              <div className="space-y-6">
+              <div className="space-y-4">
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                   <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
                     <Layers className="h-5 w-5 text-teal-600" />
@@ -1123,62 +1058,6 @@ const GADReports: React.FC<GADReportsProps> = ({ user, onBack }) => {
                     ))}
                   </div>
                 </div>
-
-                {vibhagSummaries.length > 0 && (
-                  <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
-                      <BarChart3 className="h-5 w-5 text-orange-600" />
-                      <span>विभागनिहाय सारांश</span>
-                    </h2>
-
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead className="bg-orange-50 border-b-2 border-orange-200">
-                          <tr>
-                            <th className="px-4 py-3 text-left text-sm font-semibold text-orange-900">विभाग नाव</th>
-                            <th className="px-4 py-3 text-center text-sm font-semibold text-orange-900">एकूण कार्यालये</th>
-                            <th className="px-4 py-3 text-center text-sm font-semibold text-orange-900">एकूण लिपिक</th>
-                            <th className="px-4 py-3 text-center text-sm font-semibold text-orange-900">एकूण कर्मचारी</th>
-                            <th className="px-4 py-3 text-center text-sm font-semibold text-orange-900">वेतन आयोग</th>
-                            <th className="px-4 py-3 text-center text-sm font-semibold text-orange-900">गट विमा</th>
-                            <th className="px-4 py-3 text-center text-sm font-semibold text-orange-900">सेवानिवृत्ती प्रगती</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-200">
-                          {vibhagSummaries.map((v, index) => (
-                            <tr key={index} className="hover:bg-orange-50 transition-colors">
-                              <td className="px-4 py-3 text-sm font-semibold text-gray-900">{v.group_name}</td>
-                              <td className="px-4 py-3 text-center text-sm text-gray-700 font-medium">{v.total_offices}</td>
-                              <td className="px-4 py-3 text-center text-sm text-gray-700 font-medium">{v.total_clerks}</td>
-                              <td className="px-4 py-3 text-center">
-                                <span className="inline-block bg-orange-100 text-orange-900 font-bold text-sm px-3 py-1 rounded-full">{v.total_employees}</span>
-                              </td>
-                              <td className="px-4 py-3 text-center text-sm">
-                                <div className="flex flex-col space-y-0.5">
-                                  <span className="text-amber-700">प्रलंबित: <strong>{v.pay_commission_pending}</strong></span>
-                                  <span className="text-green-700">पूर्ण: <strong>{v.pay_commission_completed}</strong></span>
-                                </div>
-                              </td>
-                              <td className="px-4 py-3 text-center text-sm">
-                                <div className="flex flex-col space-y-0.5">
-                                  <span className="text-amber-700">प्रलंबित: <strong>{v.group_insurance_pending}</strong></span>
-                                  <span className="text-green-700">पूर्ण: <strong>{v.group_insurance_completed}</strong></span>
-                                </div>
-                              </td>
-                              <td className="px-4 py-3 text-center text-sm">
-                                <div className="flex flex-col space-y-0.5">
-                                  <span className="text-amber-700">प्रलंबित: <strong>{v.retirement_progress_pending}</strong></span>
-                                  <span className="text-blue-700">प्रक्रियेत: <strong>{v.retirement_progress_in_progress}</strong></span>
-                                  <span className="text-green-700">पूर्ण: <strong>{v.retirement_progress_completed}</strong></span>
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                )}
               </div>
             )}
 
