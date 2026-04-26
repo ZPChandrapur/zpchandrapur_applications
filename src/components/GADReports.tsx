@@ -244,6 +244,36 @@ const GAD_OFFICE_GROUPS: Record<string, string[]> = {
     'प्राथमिक आरोग्य केंद्र, वाढोना',
     'प्राथमिक आरोग्य केंद्र, बाळापूर',
   ],
+  'सामान्य प्रशासन विभाग, जि.प.चंद्रपुर': [
+    'सामान्य प्रशासन विभाग, जि.प.चंद्रपुर',
+  ],
+  'शिक्षण विभाग, जि.प.चंद्रपुर': [
+    'शिक्षण विभाग, जि.प.चंद्रपुर',
+  ],
+  'बालकल्याण विभाग, जि.प.चंद्रपुर': [
+    'बालकल्याण विभाग, जि.प.चंद्रपुर',
+  ],
+  'कृषी विभाग, जि.प.चंद्रपुर': [
+    'कृषी विभाग, जि.प.चंद्रपुर',
+  ],
+  'आरोग्य विभाग, जि.प.चंद्रपुर': [
+    'आरोग्य विभाग, जि.प.चंद्रपुर',
+  ],
+  'पंचायत विभाग, जि.प.चंद्रपुर': [
+    'पंचायत विभाग, जि.प.चंद्रपुर',
+  ],
+  'बांधकाम विभाग, जि.प.चंद्रपुर': [
+    'बांधकाम विभाग, जि.प.चंद्रपुर',
+  ],
+  'सिंचाई विभाग, जि.प.चंद्रपुर': [
+    'सिंचाई विभाग, जि.प.चंद्रपुर',
+  ],
+  'वित्त विभाग, जि.प.चंद्रपुर': [
+    'वित्त विभाग, जि.प.चंद्रपुर',
+  ],
+  'ग्रामीण पाणी पुरवठा विभाग, जि.प.चंद्रपुर': [
+    'ग्रामीण पाणी पुरवठा विभाग, जि.प.चंद्रपुर',
+  ],
 };
 
 const GADReports: React.FC<GADReportsProps> = ({ user, onBack }) => {
@@ -916,20 +946,17 @@ const GADReports: React.FC<GADReportsProps> = ({ user, onBack }) => {
                 onChange={(e) => setGroupFilter(e.target.value)}
                 className="px-4 py-2 border-2 border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
               >
-                <option value="">सर्व पंचायत समिती</option>
-                {Object.keys(GAD_OFFICE_GROUPS).map(group => (
-                  <option key={group} value={group}>{group}</option>
-                ))}
-                <option value="सामान्य प्रशासन विभाग, जि.प.चंद्रपुर">सामान्य प्रशासन विभाग, जि.प.चंद्रपुर</option>
-                <option value="शिक्षण विभाग, जि.प.चंद्रपुर">शिक्षण विभाग, जि.प.चंद्रपुर</option>
-                <option value="बालकल्याण विभाग, जि.प.चंद्रपुर">बालकल्याण विभाग, जि.प.चंद्रपुर</option>
-                <option value="कृषी विभाग, जि.प.चंद्रपुर">कृषी विभाग, जि.प.चंद्रपुर</option>
-                <option value="आरोग्य विभाग, जि.प.चंद्रपुर">आरोग्य विभाग, जि.प.चंद्रपुर</option>
-                <option value="पंचायत विभाग, जि.प.चंद्रपुर">पंचायत विभाग, जि.प.चंद्रपुर</option>
-                <option value="बांधकाम विभाग, जि.प.चंद्रपुर">बांधकाम विभाग, जि.प.चंद्रपुर</option>
-                <option value="सिंचाई विभाग, जि.प.चंद्रपुर">सिंचाई विभाग, जि.प.चंद्रपुर</option>
-                <option value="वित्त विभाग, जि.प.चंद्रपुर">वित्त विभाग, जि.प.चंद्रपुर</option>
-                <option value="ग्रामीण पाणी पुरवठा विभाग, जि.प.चंद्रपुर">ग्रामीण पाणी पुरवठा विभाग, जि.प.चंद्रपुर</option>
+                <option value="">सर्व</option>
+                <optgroup label="पंचायत समिती">
+                  {Object.keys(GAD_OFFICE_GROUPS).filter(g => g.startsWith('पंचायत समिती')).map(group => (
+                    <option key={group} value={group}>{group}</option>
+                  ))}
+                </optgroup>
+                <optgroup label="विभाग">
+                  {Object.keys(GAD_OFFICE_GROUPS).filter(g => !g.startsWith('पंचायत समिती')).map(group => (
+                    <option key={group} value={group}>{group}</option>
+                  ))}
+                </optgroup>
               </select>
             </div>
 
