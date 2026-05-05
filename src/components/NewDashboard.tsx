@@ -7,6 +7,7 @@ import { PermissionGuard } from './PermissionGuard';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { SessionTimeoutModal } from './SessionTimeoutModal';
 import { SessionTimeoutManager, SESSION_CONFIG } from '../utils/security';
+import { UserManagement } from './UserManagement';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 // Import ERMSDashboard directly since lazy loading is causing issues
@@ -193,6 +194,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
   const { t } = useTranslation();
   const { hasAccess, permissions, userRole, userProfile, isLoading: permissionsLoading } = usePermissions(user);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [showUserManagement, setShowUserManagement] = useState(false);
   const [selectedApp, setSelectedApp] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [sessionManager] = useState(() => new SessionTimeoutManager(
@@ -1056,6 +1058,18 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
                     <Settings className="h-4 w-4" />
                     <span>{t('navigation.settings')}</span>
                     </button>
+                    {(userRole === 'developer' || userRole === 'super_admin') && (
+                      <button 
+                      className="w-full text-left px-6 py-3 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-cyan-50 rounded-2xl mx-2 transition-all duration-300 hover:scale-105 flex items-center space-x-3"
+                      onClick={() => {
+                          setShowUserManagement(true);
+                          setIsProfileOpen(false);
+                      }}
+                      >
+                      <Users className="h-4 w-4" />
+                      <span>Manage Users</span>
+                      </button>
+                    )}
                 </div>
 
                 {/* Sign Out */}
@@ -1082,9 +1096,23 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
           
         </nav>
 
-        {/* Hero Image Slider */}
-        <ImageSlider />
+        {/* User Management Panel */}
+        {showUserManagement && (
+          <div className="min-h-screen bg-white pt-40">
+            <div className="max-w-7xl mx-auto px-8 py-8">
+              <UserManagement 
+                user={user} 
+                onClose={() => setShowUserManagement(false)} 
+              />
+            </div>
+          </div>
+        )}
 
+        {/* Hero Image Slider */}
+        {!showUserManagement && <ImageSlider />}
+
+        {!showUserManagement && (
+        <>
       {/* Officials Section */}
       <section className="max-w-7xl mx-auto px-8 py-12">
         <div className="bg-white rounded-2xl shadow-lg p-8">
@@ -1349,6 +1377,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSignOut }) => {
           </div>
         </div>
       </footer>
+        </>
+        )}
       
       {/* Session Timeout Warning Modal */}
       <SessionTimeoutModal
