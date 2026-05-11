@@ -111,18 +111,17 @@ export const SignInForm: React.FC<SignInFormProps> = ({
         .from('user_roles')
         .select('role_id')
         .eq('user_id', data.user.id)
-        .single();
+        .maybeSingle();
 
       if (roleError) {
         console.error('Role fetch error:', roleError);
-        setIsLoading(false);
-        return;
+        // Don't block login on role fetch errors — usePermissions will handle role loading
       }
 
       const roleId = roleData?.role_id ?? null;
 
       if (roleId !== null) {
-        const { data: accessData, error: accessError } = await supabase
+        const { data: accessData } = await supabase
           .from('application_permissions')
           .select('id')
           .eq('role_id', roleId)
