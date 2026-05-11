@@ -566,16 +566,15 @@ const fetchRetirementProgress = async () => {
 
       let officersData: ClerkData[] = [];
 
+      // role_id 4 = officer, role_id 14 = Jr./Asst. Administration Officer
+      const officerRoleIds = [4, 14];
+
       if (officerIds.length > 0) {
         const { data, error } = await supabase
           .from('user_roles')
-          .select(`
-           user_id,
-           name,
-           roles!inner(name)
-         `)
+          .select(`user_id, name, roles!inner(name)`)
           .in('user_id', officerIds)
-          .eq('roles.name', 'officer')
+          .in('role_id', officerRoleIds)
           .not('name', 'is', null);
 
         if (error) throw error;
@@ -588,12 +587,8 @@ const fetchRetirementProgress = async () => {
       } else {
         const { data, error } = await supabase
           .from('user_roles')
-          .select(`
-             user_id,
-             name,
-             roles!inner(name)
-           `)
-          .eq('roles.name', 'officer')
+          .select(`user_id, name, roles!inner(name)`)
+          .in('role_id', officerRoleIds)
           .not('name', 'is', null);
 
         if (error) throw error;

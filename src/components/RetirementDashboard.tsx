@@ -744,17 +744,15 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
 
       let officersData: ClerkData[] = [];
 
+      // role_id 4 = officer, role_id 14 = Jr./Asst. Administration Officer
+      const officerRoleIds = [4, 14];
+
       if (officerIds.length > 0) {
-        // fetch only those officers referenced in retirement_progress
         const { data, error } = await supabase
           .from('user_roles')
-          .select(`
-          user_id,
-          name,
-          roles!inner(name)
-        `)
+          .select(`user_id, name, roles!inner(name)`)
           .in('user_id', officerIds)
-          .eq('roles.name', 'officer')
+          .in('role_id', officerRoleIds)
           .not('name', 'is', null);
 
         if (error) throw error;
@@ -765,15 +763,10 @@ export const RetirementDashboard: React.FC<RetirementDashboardProps> = ({ user, 
           role_name: officer.roles?.name || 'officer'
         }));
       } else {
-        // fallback: fetch all officers (original behaviour)
         const { data, error } = await supabase
           .from('user_roles')
-          .select(`
-            user_id,
-            name,
-            roles!inner(name)
-          `)
-          .eq('roles.name', 'officer')
+          .select(`user_id, name, roles!inner(name)`)
+          .in('role_id', officerRoleIds)
           .not('name', 'is', null);
 
         if (error) throw error;
